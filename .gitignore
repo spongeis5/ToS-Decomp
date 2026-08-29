@@ -18,3 +18,8 @@
 /thirdparty/disasm/obj/
 __pycache__/
 build/
+
+# objdiff-cli, fetched from its releases rather than vendored.
+# MIT-licensed and redistributable, but a 7 MB binary does not belong in
+# git history; tools/bin is a local convenience and CI downloads it.
+/tools/bin/

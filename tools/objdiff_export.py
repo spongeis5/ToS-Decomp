@@ -269,6 +269,35 @@ def main(argv):
         })
         done += 1
 
+    # COVERAGE UNITS, so the report's denominator is the whole section.
+    #
+    # objdiff divides matched code by the total code of the units it is
+    # given, and its model assumes those cover the binary -- a normal
+    # project lists every translation unit, with the unwritten ones present
+    # as target-only. Exporting only what we had sources for made the
+    # denominator 39,684 bytes, and `objdiff-cli report generate` reported
+    # 85.9% decompiled: the share of what has been WRITTEN that matches, not
+    # progress. decomp.dev would have published that as a claim this game is
+    # 86% done when it is 0.4%.
+    #
+    # tools/coverage.py buckets the rest of .text by address. Those are not
+    # translation units and are named so nobody reads them as such; there is
+    # no link map here and no way to recover file boundaries for code nobody
+    # has read. They are target-only, so they contribute their bytes and
+    # their function count to the denominator and nothing to the numerator.
+    cov_dir = OUT / "target"
+    for cov in sorted(cov_dir.glob("cov_*.o")):
+        lo = cov.stem[4:]
+        units.append({
+            "name": "undecompiled/%s" % lo,
+            "target_path": "build/objdiff/target/%s.o" % cov.stem,
+            "metadata": {
+                "complete": False,
+                "progress_categories": ["undecompiled"],
+                "auto_generated": True,
+            },
+        })
+
     cfg = {
         "min_version": "2.0.0",
         "custom_make": "python",
@@ -283,6 +312,7 @@ def main(argv):
             {"id": "handwritten", "name": "Hand-written from disassembly"},
             {"id": "generated", "name": "Generated from encodings"},
             {"id": "nearmiss", "name": "Near-miss"},
+            {"id": "undecompiled", "name": "No source yet"},
         ],
         "units": units,
     }

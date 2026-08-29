@@ -24,6 +24,10 @@
     {
       "id": "nearmiss",
       "name": "Near-miss"
+    },
+    {
+      "id": "undecompiled",
+      "name": "No source yet"
     }
   ],
   "units": [
@@ -16171,6 +16175,721 @@
           "nearmiss"
         ],
         "auto_generated": false
+      }
+    },
+    {
+      "name": "undecompiled/82100000",
+      "target_path": "build/objdiff/target/cov_82100000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82120000",
+      "target_path": "build/objdiff/target/cov_82120000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82140000",
+      "target_path": "build/objdiff/target/cov_82140000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82160000",
+      "target_path": "build/objdiff/target/cov_82160000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82180000",
+      "target_path": "build/objdiff/target/cov_82180000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/821A0000",
+      "target_path": "build/objdiff/target/cov_821A0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/821C0000",
+      "target_path": "build/objdiff/target/cov_821C0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/821E0000",
+      "target_path": "build/objdiff/target/cov_821E0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82200000",
+      "target_path": "build/objdiff/target/cov_82200000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82220000",
+      "target_path": "build/objdiff/target/cov_82220000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82240000",
+      "target_path": "build/objdiff/target/cov_82240000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82260000",
+      "target_path": "build/objdiff/target/cov_82260000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82280000",
+      "target_path": "build/objdiff/target/cov_82280000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/822A0000",
+      "target_path": "build/objdiff/target/cov_822A0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/822C0000",
+      "target_path": "build/objdiff/target/cov_822C0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/822E0000",
+      "target_path": "build/objdiff/target/cov_822E0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82300000",
+      "target_path": "build/objdiff/target/cov_82300000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82320000",
+      "target_path": "build/objdiff/target/cov_82320000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82340000",
+      "target_path": "build/objdiff/target/cov_82340000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82360000",
+      "target_path": "build/objdiff/target/cov_82360000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82380000",
+      "target_path": "build/objdiff/target/cov_82380000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/823A0000",
+      "target_path": "build/objdiff/target/cov_823A0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/823C0000",
+      "target_path": "build/objdiff/target/cov_823C0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/823E0000",
+      "target_path": "build/objdiff/target/cov_823E0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82400000",
+      "target_path": "build/objdiff/target/cov_82400000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82420000",
+      "target_path": "build/objdiff/target/cov_82420000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82440000",
+      "target_path": "build/objdiff/target/cov_82440000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82460000",
+      "target_path": "build/objdiff/target/cov_82460000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82480000",
+      "target_path": "build/objdiff/target/cov_82480000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/824A0000",
+      "target_path": "build/objdiff/target/cov_824A0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/824C0000",
+      "target_path": "build/objdiff/target/cov_824C0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/824E0000",
+      "target_path": "build/objdiff/target/cov_824E0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82500000",
+      "target_path": "build/objdiff/target/cov_82500000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82520000",
+      "target_path": "build/objdiff/target/cov_82520000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82540000",
+      "target_path": "build/objdiff/target/cov_82540000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82560000",
+      "target_path": "build/objdiff/target/cov_82560000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82580000",
+      "target_path": "build/objdiff/target/cov_82580000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/825A0000",
+      "target_path": "build/objdiff/target/cov_825A0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/825C0000",
+      "target_path": "build/objdiff/target/cov_825C0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/825E0000",
+      "target_path": "build/objdiff/target/cov_825E0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82600000",
+      "target_path": "build/objdiff/target/cov_82600000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82620000",
+      "target_path": "build/objdiff/target/cov_82620000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82640000",
+      "target_path": "build/objdiff/target/cov_82640000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82660000",
+      "target_path": "build/objdiff/target/cov_82660000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82680000",
+      "target_path": "build/objdiff/target/cov_82680000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/826A0000",
+      "target_path": "build/objdiff/target/cov_826A0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/826C0000",
+      "target_path": "build/objdiff/target/cov_826C0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/826E0000",
+      "target_path": "build/objdiff/target/cov_826E0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82700000",
+      "target_path": "build/objdiff/target/cov_82700000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82720000",
+      "target_path": "build/objdiff/target/cov_82720000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82740000",
+      "target_path": "build/objdiff/target/cov_82740000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82760000",
+      "target_path": "build/objdiff/target/cov_82760000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82780000",
+      "target_path": "build/objdiff/target/cov_82780000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/827A0000",
+      "target_path": "build/objdiff/target/cov_827A0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/827C0000",
+      "target_path": "build/objdiff/target/cov_827C0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/827E0000",
+      "target_path": "build/objdiff/target/cov_827E0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82800000",
+      "target_path": "build/objdiff/target/cov_82800000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82820000",
+      "target_path": "build/objdiff/target/cov_82820000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82840000",
+      "target_path": "build/objdiff/target/cov_82840000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82860000",
+      "target_path": "build/objdiff/target/cov_82860000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82880000",
+      "target_path": "build/objdiff/target/cov_82880000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/828A0000",
+      "target_path": "build/objdiff/target/cov_828A0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/828C0000",
+      "target_path": "build/objdiff/target/cov_828C0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/828E0000",
+      "target_path": "build/objdiff/target/cov_828E0000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "undecompiled/82900000",
+      "target_path": "build/objdiff/target/cov_82900000.o",
+      "metadata": {
+        "complete": false,
+        "progress_categories": [
+          "undecompiled"
+        ],
+        "auto_generated": true
       }
     }
   ]

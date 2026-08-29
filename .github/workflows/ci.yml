@@ -1,0 +1,137 @@
+# Continuous checks, and the decomp.dev progress report.
+#
+# THIS WORKFLOW CANNOT RUN THE MATCHING CHECKS ON A PUBLIC RUNNER, and that
+# is worth stating plainly rather than discovering as a red X. The build
+# needs two things that are not in this repository and must not be:
+#
+#   * the retail image, `build/default.pe.exe` -- the game itself
+#   * the Xbox 360 XDK's cl.exe 15.00.8153, under SDKFiles/
+#
+# Both are gitignored. So the job below runs the checks that need neither,
+# and the full `tools/verify.py` stays a local gate (it is also what the
+# pre-commit hook runs). If you later add a self-hosted runner that has the
+# image and the XDK, set RUN_FULL to true and the rest works unchanged.
+#
+# The report job is the one decomp.dev consumes: it wants `report.json`
+# uploaded as an artifact named `<version>_report`, and the decomp.dev
+# GitHub app installed on the repository so it is told when a run finishes.
+
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+env:
+  # Flip to "true" only on a runner that holds the retail image and the XDK.
+  RUN_FULL: "false"
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Tool self-tests that need neither the image nor the XDK
+        run: |
+          set -o pipefail
+          python tools/test_coffreloc.py
+          python tools/test_permute.py
+
+      - name: The manifest must be well-formed
+        run: |
+          set -o pipefail
+          python - <<'EOF'
+          import sys
+          from pathlib import Path
+          bad = []
+          for i, line in enumerate(
+                  Path("src/manifest.txt").read_text().splitlines(), 1):
+              s = line.split("#")[0].strip()
+              if not s:
+                  continue
+              f = s.split()
+              if len(f) < 2:
+                  bad.append((i, line, "only %d field(s)" % len(f)))
+                  continue
+              try:
+                  int(f[1], 16)
+              except ValueError:
+                  bad.append((i, line, "second field is not an address"))
+          seen = {}
+          for i, line in enumerate(
+                  Path("src/manifest.txt").read_text().splitlines(), 1):
+              s = line.split("#")[0].strip()
+              f = s.split()
+              if len(f) < 2:
+                  continue
+              try:
+                  key = (int(f[1], 16),
+                         next((x for x in f[2:]
+                               if not x.startswith("flags=") and x != "-"),
+                              None))
+              except ValueError:
+                  continue
+              if key in seen:
+                  bad.append((i, line, "duplicate of line %d" % seen[key]))
+              seen[key] = i
+          for i, line, why in bad:
+              print("line %d: %s" % (i, why))
+              print("    %r" % line)
+          if bad:
+              print("")
+              print("A source path of 32 characters leaves no space before")
+              print("the address under `%-32s`; and a duplicated row is")
+              print("built, spliced and COUNTED twice.")
+          sys.exit(1 if bad else 0)
+          EOF
+
+      - name: Full verification
+        if: env.RUN_FULL == 'true'
+        run: python tools/verify.py
+
+  report:
+    runs-on: ubuntu-latest
+    if: false   # enable once a runner holds the image and the XDK
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build the objdiff unit list and coverage objects
+        run: |
+          set -o pipefail
+          python tools/coverage.py --write
+          python tools/objdiff_export.py
+
+      # Fetched, not vendored: it is a 7 MB binary and does not belong in
+      # git history. tools/bin/ is gitignored and is a local convenience.
+      - name: Fetch objdiff-cli
+        run: |
+          set -o pipefail
+          mkdir -p tools/bin
+          curl -sSfL -o tools/bin/objdiff-cli \
+            https://github.com/encounter/objdiff/releases/latest/download/objdiff-cli-linux-x86_64
+          chmod +x tools/bin/objdiff-cli
+          ./tools/bin/objdiff-cli --version
+
+      - name: Generate the progress report
+        run: |
+          set -o pipefail
+          ./tools/bin/objdiff-cli report generate -p . -o report.json
+
+      # decomp.dev looks for an artifact named "<version>_report". This
+      # title ships one executable, so the version is `default` -- the same
+      # name build/default.pe.exe already uses.
+      - name: Upload progress report
+        uses: actions/upload-artifact@v4
+        with:
+          name: default_report
+          path: report.json

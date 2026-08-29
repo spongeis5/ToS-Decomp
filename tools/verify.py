@@ -247,18 +247,35 @@ def main():
     # extents and said 34,340 against build.py's 34,096; the inventory is
     # wrong in both directions, and two numbers for one fact is the drift
     # that has produced most of this project's tooling bugs.
+    # THREE independent counters, one number. build.py splices each function
+    # into .text and sums what it wrote; report.py sums compiled lengths per
+    # source file; objdiff-cli (the reference implementation of the report
+    # schema, a Rust binary nothing here shares code with) reads the exported
+    # ELF pairs. Agreement across all three is real evidence; any two of them
+    # agreeing while the third differs says which one to go and look at.
+    import json as _json
     import re as _re
+    figures = {}
     m = _re.search(r"VERIFIED: (\d+) of \d+ \.text byte", out)
-    rc2, out2 = run(["tools/report.py"])
+    if m:
+        figures["build.py"] = int(m.group(1))
+    _rc, out2 = run(["tools/report.py"])
     m2 = _re.search(r"matched_code\s+(\d+) of", out2)
-    if m and m2:
-        agree = m.group(1) == m2.group(1)
-        detail = "" if agree else "  build %s, report %s" % (m.group(1),
-                                                            m2.group(1))
-    else:
-        agree = False
-        detail = "  could not read one of the two figures"
-    print("  %-42s %s%s" % ("report.py agrees with build.py on bytes",
+    if m2:
+        figures["report.py"] = int(m2.group(1))
+    cli = ROOT / "build/report_cli.json"
+    if cli.exists():
+        try:
+            figures["objdiff-cli"] = int(
+                _json.loads(cli.read_text())["measures"]["matched_code"])
+        except (ValueError, KeyError, TypeError):
+            pass
+    agree = len(figures) >= 2 and len(set(figures.values())) == 1
+    detail = ("  %d source(s) agree on %d" % (len(figures),
+                                              list(figures.values())[0])
+              if agree else "  " + ", ".join("%s=%s" % kv
+                                             for kv in sorted(figures.items())))
+    print("  %-42s %s%s" % ("build, report and objdiff-cli agree",
                             "ok" if agree else "FAIL", detail))
     results.append(agree)
     print("  %-42s %s" % ("no symbol resolves to two addresses",
