@@ -230,15 +230,49 @@ was reached rather than presenting the bound as an answer.
 
 ## Where to pick up
 
-**Immediate: match a second function.** `python tools/candidates.py` gives
-2,565 vetted targets — leaf, unattributed, outside the XDK bands, at least 16
-bytes, ending in a real terminator. The technique that worked is in
-`FINDINGS.md` §7d: **read the target's register discipline out of the
-disassembly instead of guessing plausible C.** Which value it keeps live and
-for how long IS the specification.
+**FIRST: settle whether the retail build used LTCG.** This decides whether the
+matching loop this project is built around can work at all for the game's own
+code, so nothing else is worth doing until it is answered.
 
-`sub_827618E8` (136 B, a counted wide-string compare) is half-finished in
-`src/wstr_compare.cpp` — three attempts, right size, wrong loop rotation.
+Three functions have now been attempted. All three reached the exact byte
+size with the right instructions and stalled on **instruction scheduling** —
+where the compiler places one instruction — which no source shape and no flag
+combination reached:
+
+```
+822607F0  120 B   MATCHED 30/30
+82806FD0   84 B   11/21   8 source shapes, 65 flag combinations
+826C1480   76 B   13/19   branchless, so NOT a branch-layout problem
+827618E8  136 B   partial
+```
+
+`/GL` was tested directly and produces a machine-0000 object with **zero
+PowerPC code bytes** — under LTCG, codegen happens at link time and there is
+nothing in the object to compare. If the game's own translation units were
+built that way, object-level matching cannot work and the unit of comparison
+must become the linked image.
+
+Evidence is split and neither side settles it. 6,332 functions match
+**non-LTCG** XDK library objects byte for byte, which proves those libraries
+were not regenerated — but `/LTCG` regenerates `/GL` objects while leaving
+precompiled libraries alone, so it says nothing about the game's code.
+
+The test to run: build a two-function object, link it with and without
+`/LTCG`, and locate the code through the PE section table. A first attempt
+compared raw file windows and scored 0/19 for BOTH arms, including the
+non-LTCG build known to score 13/19 at object level — so that harness was
+wrong, not the answer. `link.exe` works (see the manifest fix above).
+
+**Then: match a second function.** `python tools/candidates.py` gives 2,565
+vetted targets — leaf, unattributed, outside the XDK bands, at least 16 bytes,
+ending in a real terminator. `tools/permute.py` scores several source shapes
+against one target in a single command.
+
+The technique that worked on the one match is in `FINDINGS.md` §7d: **read the
+target's register discipline out of the disassembly instead of guessing
+plausible C.** Which value it keeps live and for how long IS the
+specification. Writing assignments in the target's own field order took
+`826C1480` from 10/19 to 13/19.
 
 **Larger, in rough order of value:**
 
