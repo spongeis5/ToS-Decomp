@@ -1,0 +1,23 @@
+# The ripped disc. 3.79 GiB, 150 files, and not ours to distribute.
+/game/
+
+# The Xbox 360 XDK, extracted and as installers. ~2.4 GiB of proprietary
+# Microsoft software. Required to build anything here; never committed.
+# See README.md for what is needed and how to verify a candidate copy.
+/SDKFiles/
+
+# Everything under build/ is DERIVED and reproducible from game/ + tools/.
+# Notably build/text_dis.txt is 80 MB and build/default*.exe are 11 MB each.
+/build/
+
+# Ghidra project database. Large, binary, and rebuilt by the documented
+# analyzeHeadless invocation in README.md.
+/ghidra/
+
+__pycache__/
+*.pyc
+/thirdparty/disasm/obj/
+
+# Scratch
+*.tmp
+*.orig

@@ -1,0 +1,1240 @@
+# ToS-Decomp — what is established
+
+A byte-matching C++ decompilation of *SpongeBob's Truth or Square* (Xbox 360).
+
+Separate project from `../ToS-Port`, which is a static-recompilation PC port of
+the same title. Nothing here depends on that tree.
+
+**Every entry states how it was measured.** A fact and the conditions it was
+measured under are one thing, not two. `NOT_MEASURED` means exactly that — it is
+not zero, and it is not a benign default.
+
+---
+
+## 1. The container
+
+`game/DEFAULT.XEX`, 10,334,208 bytes, md5 `9d8fe3d885e1b4c8fe33f6e95fa0e255`.
+
+```
+entry point   822F8BC8      image base    82000000
+image size    00AC0000      encryption    normal (AES-128-CBC)
+                            compression   basic (data/zero runs — NOT LZX)
+```
+
+`python tools/xex.py` unpacks it to `build/default.pe.exe`, 11,272,192 bytes,
+md5 `1403fa232c718295487e7fe936c8de1b`.
+
+**Basic compression is the lucky break.** It is run-length data/zero block pairs,
+so no LZX decompressor was needed — the whole unpacker is one file with a
+self-contained AES-128 and no hard dependency.
+
+**Three independent size derivations, and they were not all right the first
+time.** The block table's data sizes sum to `0x9D8000`, which is exactly the file
+bytes after the `0x3000` header. The block table's data+zero sums to `0xAB8000`.
+The security info declares `0x00AC0000`, and 172 page descriptors × 64 KiB is
+also exactly `0x00AC0000` — and the descriptor array's own extent reproduces the
+security header size exactly (`0x184 + 172×24 = 0x11A4`).
+
+So the block table describes *content* to `0xAB8000` and the image is rounded up
+to whole 64 KiB pages; the trailing `0x8000` is page padding. The unpacker
+zero-fills it and **refuses any shortfall of a page or more**, because that would
+be a missing block rather than rounding.
+
+A first pass at this asserted the block table summed to `0xAC0000` — arithmetic
+done by eye, and wrong. The guard in the tool caught it. The page-descriptor
+derivation is what settled it, and it has nothing in common with the block table.
+*measured 2026-08-28 by `tools/xex.py`*
+
+The retail key decrypts it (the devkit arm is tried too and is not what works);
+session key `739167aec12d3de88f411d4c5db38c70`.
+
+---
+
+## 2. The toolchain — what a matching build has to reproduce
+
+This is the load-bearing section for a *matching* decomp.
+
+```
+PE machine        01F2  POWERPCBE          PE32, section align 0x10000
+linker version    9.0                      (optional-header field, direct read)
+link timestamp    4A9243B2 = 2009-08-24 07:39:30 UTC
+```
+
+**The Rich header, decoded (xor key `8BB1AB7D`, 26 dwords from `DanS`):**
+
+| prodid | build | count | reading |
+|---|---|---|---|
+| 0 | 0 | 2 | padding |
+| 123 | **2909** | 2 | a second, older toolchain |
+| 109 | **2909** | 1 | " |
+| 1 | 0 | 324 | import descriptors |
+| 138 | **8153** | 54 | |
+| 149 | **8153** | 25 | |
+| 147 | **8153** | 5 | |
+| 131 | **8153** | 359 | one compiler front end |
+| 132 | **8153** | 1090 | the other, and the bulk of the image |
+| 146 | **8153** | 1 | |
+| 145 | **8153** | 1 | conventionally the linker (last entry) |
+
+**Build `8153` is the number to verify a candidate XDK against.** Every object
+the title's own compiler produced carries it. 54+25+5+359+1090+1+1 = **1,535
+objects** from that toolchain, of which the two large buckets (1,090 and 359)
+are ~1,449 translation units.
+
+The `2909` pair is a prebuilt third-party library — consistent with the
+`BINK`/`BINKCONS`/`BINKDATA`/`BINKBSS` sections, which RAD ships as objects.
+
+**The prodid → tool NAMES are NOT_MEASURED.** The community prodid table was not
+consulted; naming 132 "the C++ compiler" from memory is exactly the move that
+produces a confident wrong name. The *counts and builds* are read directly and
+are what the verification needs.
+
+**XDK version, from the image's own strings:**
+
+```
+82048FD8  e:\xenon\mar09\core\private\xtl\graphics\...   (53 XTL source paths)
+8201C38C  Microsoft (R) Xbox 360 Shader Assembler 2.0.8276.0
+```
+
+So the statically-linked XTL comes from the **March 2009** XDK branch and a
+component of it stamps **2.0.8276.0**. Whether `8153` and `8276` are the same
+XDK release is NOT_MEASURED — they are different components and were read from
+different places.
+
+### FOUND AND CONFIRMED 2026-08-28: XDK 8276 (March 2009), the DEFAULT compiler
+
+`SDKFiles/XDKSetupXenon8276.exe` is a self-extracting CAB; the toolchain is
+extracted to `SDKFiles/xdk/XDK/`.
+
+**The XDK ships TWO PowerPC toolchains, and only one matches.** This is a
+discrimination rather than a coincidence — the wrong one was available in the
+same folder and was rejected on evidence:
+
+| toolchain | version | matches the image? |
+|---|---|---|
+| `XDK\bin\win32\` cl, c1, c1xx, c2 | **15.00.8153** | **yes** — Rich header build 8153 |
+| `XDK\bin\win32\link.exe` | **9.00.8153** | **yes** — PE linker version 9.0 |
+| `XDK\TechPreview\Mar09Compiler\` | 15.00.8327 | no |
+
+```
+Microsoft (R) 32-bit C/C++ Optimizing Compiler Version 15.00.8153 for PowerPC
+```
+
+**End-to-end, not just a banner.** Compiling a trivial `.cpp` with it produces a
+COFF object with machine `01F2` POWERPCBE and the symbol
+
+```
+@comp.id  value 00841FD9   -> low half 0x1FD9 = 8153
+```
+
+So the toolchain runs on this machine and stamps the same build the shipped
+game's Rich header records. Three agreeing facts — Rich header, linker version,
+and a live compile — from sources with nothing in common.
+*measured 2026-08-28*
+
+**The `2909` pair in the Rich header is still NOT_MEASURED.** It is a prebuilt
+third-party library and is not from this XDK.
+
+**Which lib variant the retail build linked is NOT_MEASURED.** `XDK/lib/xbox/`
+carries 117 libs, 1.6 GB, including `ltcg` (link-time codegen) variants beside
+ordinary ones. The PDB path names the configuration `Xbox 360MasterWAD`, which
+suggests LTCG, but that is an inference from a folder name and matching is what
+will settle it.
+
+### Operational: MSVC flags and Git Bash
+
+Git Bash rewrites `/c` and `/nologo` into Windows paths before `cl.exe` sees
+them. Invoke the XDK tools from PowerShell, or with `MSYS_NO_PATHCONV=1`.
+Found by watching `cl` warn about a source file called `C:/Program Files/Git/nologo`.
+
+---
+
+## 3. The original source tree
+
+Read out of the image's own assert/`__FILE__` strings.
+
+```
+c:\branches\SB09\main\NG\Source\Engine\System\CoreTasking.cpp
+c:\branches\SB09\main\NG\Source\Engine\System\Tasking.cpp
+c:\branches\SB09\main\NG\Source\Engine\System\Time.cpp
+c:\branches\SB09\main\NG\Source\Engine\UI\Font.cpp
+c:\branches\SB09\main\NG\Source\Engine\Graphics\Builder.cpp
+c:\branches\SB09\main\NG\Source\Engine\Graphics\BuildMemory.cpp
+c:\branches\SB09\main\NG\Source\Engine\Graphics\Display.cpp
+c:\branches\SB09\main\NG\Source\Engine\Graphics\Effect.cpp
+c:\branches\SB09\main\NG\Source\Engine\Graphics\Sampler.cpp
+c:\branches\SB09\main\NG\Source\Engine\Graphics\Scene.cpp
+c:\branches\sb09\main\ng\source\tools\fmod_source\src\src\fmod_memory.h
+```
+
+and the build's own PDB path, which names the configuration:
+
+```
+c:\branches\SB09\main\GM\Engine\Tmp\BuiltOutput\SB09\Xbox 360MasterWAD\SB09MasterWAD.pdb
+```
+
+So: branch `SB09/main`, engine source under `NG/Source/Engine/{System,UI,Graphics,...}`,
+built as configuration **`Xbox 360MasterWAD`**. `NG` is the engine (Heavy Iron's
+next-gen engine); `GM` is the game side.
+
+**These 11 are the files that happen to carry a path string — not the source
+tree.** 1,449-odd translation units exist and 11 are named. This is a floor on
+what is known, not a map.
+*measured 2026-08-28, `tools/strings.py`, a whole-image census of 46,688 strings
+classified into 10 buckets whose counts are asserted to sum to the total*
+
+### Middleware identified
+
+| | version | evidence |
+|---|---|---|
+| Bink | — | 4 dedicated PE sections |
+| Scaleform GFx | — | `ScaleformPlayer`, `ScaleformTexture` |
+| FMOD | — | `fmod_memory.h` path, `.fev`/`.fsb` assets |
+| Havok | `6.5.0-r1` | version string; older ones present as a compat table |
+| libFLAC | `1.2.1 20070917` | banner string |
+
+Matching those is a different problem from matching the game: they are
+third-party libraries, and a matching decomp normally links the original
+binaries rather than reconstructing them.
+
+---
+
+## 4. Sections
+
+RVA equals raw offset for the first three sections only; the rest are
+repositioned, so the unpacked file is **not** a flat memory image and a loader
+must use the section table.
+
+```
+  name       vsize     va        rawptr    RVA==raw?
+  .rdata    000C5914  82000600  00000600  yes
+  .pdata    000297B0  820C6000  000C6000  yes
+  BINKCONS  00002920  820EF800  000EF800  yes
+  .text     008135FC  82100000  000F2200  no
+  BINK      0000FA98  82913600  00905800  no
+  BINKBSS   000003B8  82930000  --------  bss
+  .data     0013467C  82930400  00915400  no
+  BINKDATA  00003D68  82A64C00  00970600  no
+  .tls      0000003D  82A68A00  00974400  no
+  .XBMOVIE  0000000C  82A68C00  00974600  no
+  .edata    00001A82  82A70000  00974800  no
+  .idata    000003E2  82A80000  00976400  no
+  .XBLD     000000C0  82A90000  00976800  no
+  .reloc    00069C90  82A90200  00976A00  no
+```
+
+`.text` is `0x8135FC` = 8,468,988 bytes of code at `82100000`.
+`.pdata` is `0x297B0` = 169,904 bytes = **21,238 unwind rows**, which is the
+compiler's own function table and the best available function inventory.
+
+`.XBLD` is **not** link metadata — it is 192 bytes of float data. Checked, because
+the name invites the other reading.
+
+---
+
+## 5. The matching loop works; the linker does not
+
+`cl.exe /c` runs correctly on this machine and emits one COMDAT section per
+function, which is exactly the granularity per-function matching needs:
+
+```
+?lerp@@YAMMMM@Z   section .text  +0x0..0xc  12 byte(s)
+    00000000  ec020828  fsubs  f0, f2, f1
+    00000004  ec2008fa  fmadds f1, f0, f3, f1
+    00000008  4e800020  blr
+```
+
+`tools/objcode.py` extracts and disassembles that. Capstone has no VMX128, so a
+word it cannot decode is printed raw with a marker rather than skipped — a
+disassembly that silently drops instructions is a disassembly of a different
+function.
+
+**`link.exe` does not start: exit `0xC0000142` STATUS_DLL_INIT_FAILED.** Tried
+with the CWD set to its own directory and with every dependency present
+(`mspdb80`, `mspdbcore`, `msobj80`, `msvcr80/90`, `msvcp80/90` are all beside
+it, and the VC80 CRT is installed system-wide). `cl.exe` from the same folder
+runs fine, so it is specific to the linker's DLL set.
+
+This does **not** block the work. The matching loop is compile-and-compare and
+needs only `cl.exe`; the linker is needed to produce a whole image, which is a
+long way off. `imagexex.exe` (PE → XEX) is present for when it matters.
+*measured 2026-08-28*
+
+---
+
+## 6. Ghidra
+
+Project at `ghidra/ToS`, language `PowerPC:BE:64:A2ALT-32addr` (64-bit PowerISA
+with Altivec, 32-bit addressing — Xenon).
+
+**The PE loader reported "Import succeeded" while parsing the import directory
+as noise** (dozens of `Invalid RVA`) and refusing the exception directory
+outright (`unsupported architecture: 0x1f2`). Neither matters — XEX imports live
+in the XEX header, not `.idata`, and `.pdata` is parsed by `tools/pdata.py` here.
+
+**The memory map was checked rather than believed.** `ReportBlocks.java` hashes
+the first bytes of every block and `tools/verify_ghidra.py` recomputes the same
+hash from the file: **14 of 14 initialised blocks agree, at the right addresses**,
+1 uninitialised (BINKBSS) not checkable. So the map is sound even though the
+loader was noisy.
+
+A first run of that check reported 2 disagreements. Those were a defect in the
+CHECKER — it hashed a fixed 256 bytes from the file against Ghidra's hash of a
+61-byte and a 12-byte block, comparing two different populations.
+
+`ApplyPdata.java` created **20,674** functions of 21,238 rows; 2 already existed,
+0 not in memory, 0 `createFunction` failures, **562 disassembly failures**, and
+the arms sum to 21,238 exactly.
+
+---
+
+## 7b. SCOPE REDUCTION — the real number (2026-08-28, corrected mapping)
+
+Everything in §7 below was measured through the broken `.text` mapping and is
+superseded. Re-run against `build/default.image.exe`:
+
+```
+DISTINCT IMAGE SITES IDENTIFIED   6541
+  at a .pdata function start      5642        <- credible by construction
+  inside a function                  9        <- was 6069 under the bad mapping
+  in a gap                         890        <- leaf functions, no unwind row
+```
+
+**The "inside a function" class was almost entirely an artefact of the shifted
+addresses.** It fell from 6,069 to 9. The elaborate boundary analysis built to
+decide whether those were real was answering a question the mapping bug had
+invented — which is worth remembering: a sound method applied to bad inputs
+produces a sound-looking result about nothing.
+
+| | functions | bytes | of `.text` |
+|---|---|---|---|
+| at a `.pdata` start, any symbol | **5,642** | 2,668,288 | **31.5%** |
+| at a `.pdata` start, unique symbol | 4,710 | 2,523,892 | 29.8% |
+| **REMAINING TO DECOMPILE** | **15,596** | **5,799,676** | **68.5%** |
+
+By library: xgraphics 2,093, d3dx9 1,772, xaudio2 604, d3d9 361, xapilib 301,
+libcMT 217, xaudio 114.
+
+The matches are unambiguous — the whole `D3DXShader` compiler is statically
+linked into the title and now identified by name:
+
+```
+824A60C0  38536 B  ?ImportExpression@Compiler@D3DXShader@@...
+8247E840  30316 B  ?Simplify@Compiler@D3DXShader@@...
+8248C5A0  27796 B  ?OptimizeLoops@Compiler@D3DXShader@@...
+82519828  25448 B  ?IL2IR@CFG@XGRAPHICS@@...
+8245E220  19460 B  ?Vectorize@Compiler@D3DXShader@@...
+```
+
+An independent corroboration: `823B1AD8` matches
+`?Production@CParse@D3DXShader@@IAAXII@Z` at **9,464 bytes**, which is exactly
+the `.pdata` extent recorded for that address by a different tool on a different
+day.
+
+*measured 2026-08-28, 62 non-LTCG release libraries, 133,379 library functions
+examined, 85,618 indexable, 2,133,029 aligned positions scanned, `--min-bytes 32`*
+
+---
+
+## 7k. Ghidra, third run: names applied and the VMX gap partly closed
+
+`ApplyKnowledge.java` runs before analysis and applies everything established:
+
+```
+imports:  207 row(s), 207 named, 207 function(s) created, 0 failed
+rtti:    1296 row(s), 759 named, 537 had no function
+prof:     254 row(s), 254 named
+vmx gaps: 1407 short function(s), 24455 resume point(s) disassembled
+```
+
+**1,043 functions now carry a real name.** The 537 RTTI rows with no function
+are the vtable slots that point at adjustor thunks rather than inventory
+functions — already measured in §7g, not a new loss.
+
+| | run 2 | run 3 |
+|---|---|---|
+| functions | 25,737 | **25,927** |
+| instructions | 1,899,447 (89.7%) | **2,060,734 (97.3%)** |
+| call edges | 73,653 | 73,685 |
+
+**The VMX repair added 161,287 instructions — 7.6% of `.text`.**
+
+### Two things it did NOT do, stated because the script's own counter lied
+
+The script reported `body bytes 6855092 -> 6855092 (+0)`, and that counter is
+**wrong**: Ghidra computes a function's body at creation time and does not
+recompute it when later disassembly fills a hole. Function-body coverage is
+therefore unchanged at 93.7% exact / 90.0% bytes, while the instructions
+genuinely exist. This is the second time in this project that measuring a
+repair by function-body extent produced a false `+0`; the honest instrument is
+the whole-program instruction count from a separate script.
+
+**Call edges gained only 32.** 161k instructions bought almost no new graph,
+which is the expected shape — the recovered code is VMX128 arithmetic, and
+arithmetic does not call anything. The gain is readable code, not connectivity.
+
+The VMX128 words themselves remain undefined in Ghidra: it still cannot decode
+them, and the repair only resumes disassembly *after* each one.
+*measured 2026-08-28*
+
+---
+
+## 7j. Every kernel/XAM import is named — 207 of 207
+
+The XEX header's import table (optional header `0x0103`, file offset `0x28E4`)
+declares two libraries:
+
+```
+xam.xex        110 records
+xboxkrnl.exe   316 records
+```
+
+Each import occupies two records — a variable slot in `.rdata` and a 16-byte
+thunk in `.text` — and the dword at each holds `(type << 24) | ordinal`:
+
+```
+82000600  0000028B   type 0, ordinal 0x28B   (variable slot)
+8291266C  0100028B   type 1, ordinal 0x28B   (thunk word 1)
+82912670  0200028B   type 2                  (thunk word 2)
+82912674  7D6903A6   mtctr r11
+82912678  4E800420   bctr
+```
+
+**The names come from the XDK's own import libraries**, which carry short-import
+records (`Sig1 == 0, Sig2 == 0xFFFF`) pairing an ordinal with a symbol.
+`xboxkrnl.lib` identifies itself as `xboxkrnl.exe@8276.0` — the same XDK build
+the title was compiled against, so both sides come from one source rather than
+a table written from memory. 742 kernel + 390 xam ordinal records.
+
+```
+import records walked 426:  219 variable slots, 207 thunks
+thunks: 207 named, 0 with no ordinal match
+```
+
+`XamUserGetSigninState`, `XamShowDirtyDiscErrorUI`, `XNotifyGetNext`,
+`XamContentCreateEx`, `XMsgStartIORequest` … written to `build/imports.txt`.
+*measured 2026-08-28*
+
+---
+
+## 7i4. VMX128 closed out — exhaustive table check, and an error in the documentation
+
+The earlier checks covered 16 hand-transcribed forms and 33 the compiler
+happened to emit. That left forms verified by nothing. `tools/vmx128_table.py`
+parses **all 80 VX128 entries** out of binutils' source and checks three things
+over the whole population.
+
+**1. The table is unambiguous over the real image.**
+
+```
+distinct opcode-4/5/6 word(s) in .text  24,363
+  matching exactly one VX128 entry      18,983
+  matching NONE (plain VMX/Altivec)      5,380
+  matching MORE THAN ONE                     0
+```
+
+A first version reported **348 ambiguous words** (`vupkhsb128` vs
+`vupkhsh128`). That was my extractor reading `//{ "vupkhsh128", ... }` — lines
+disabled in binutils' source — because the regex ran over the whole file
+instead of skipping comments. The ambiguity was entirely an artefact of the
+tool. Fixed; the real count is zero.
+
+**2. The whole opcode-4/5/6 space decodes.**
+
+```
+opcode-4/5/6 instruction words   58,976
+  a VMX128 form                  44,956  (76.2%)
+  plain VMX/Altivec              14,020  (23.8%)
+  UNDECODED                           0  (0.00%)
+```
+
+The plain forms present include `vmaddfp` (3,971) beside `vmaddfp128` (152),
+and `vspltisw` (254) beside `vspltisw128` (244) — independent confirmation that
+the `128` suffix is a register-allocation outcome and not a distinct operation.
+
+**3. `vmx128.txt` HAS AN ERROR, and it is now identified.**
+
+The document gives `vandc128` and `vnor128` the **same** encoding
+(`|A|1 0 1 0|a|1|`), which cannot both be right. Across 32 forms compared,
+that is the only disagreement with binutils — and Microsoft's encoder settles
+it:
+
+```
+__vandc -> vandc128  143FF271   bits22-25 = 1001
+__vnor  -> vnor128   143FF2B1   bits22-25 = 1010
+__vand  -> vand128   143FF231   bits22-25 = 1000
+__vor   -> vor128    143FF2F1   bits22-25 = 1011
+```
+
+**`vandc128` is 1001.** The document's 1010 duplicates `vnor128` and is used by
+no encoder or decoder. This is a second defect in the reference material, after
+the binutils operand-list bug in `vupkhsb128`/`vupklsb128` (§7i2) — which the
+table dump also explains precisely: binutils declares those entries as
+`{ VD128, VB128, VA128 }`, a three-operand form where the instruction has two.
+
+### Verdict
+
+Decoding is settled. Three sources, every form in the image checked, one error
+found in each of the two reconstructions, and both resolved against the
+compiler that built the game.
+
+**Two things remain NOT_MEASURED and neither blocks moving on:**
+
+- `vmaddcfp128` (175 sites) and `vpkd3d128` (94) have no declared intrinsic in
+  either XDK header. Whether they are reachable from ordinary vector
+  expressions is untested. It matters only when a function containing one is
+  targeted for matching.
+- Ghidra still cannot decode VMX128 (issue #2094, open since 2020). Our own
+  tools can; Ghidra shows the words undefined. Only the SLEIGH fork route
+  changes that, and it is untried.
+*measured 2026-08-28*
+
+---
+
+## 7i3. Writing VMX128, not just reading it — and the "unreachable forms" were not
+
+Reading VMX128 was solved by `ppcdis`. **Matching** needs the other direction:
+given `vmsum3fp128` in the disassembly, what C++ compiles back to it?
+
+`tools/vmx128_intrinsics.py` compiles every vector intrinsic the XDK headers
+declare (142 of them) under enough register pressure to reach vr32..vr127,
+reads the `/FAsc` listing, and attributes mnemonics by a **differential**
+against a baseline with no intrinsic call.
+
+```
+lvx128     14693  <- __lvx          vpermwi128   1578  <- __vpermwi
+stvx128     8273  <- __stvx         vsubfp128     725  <- __vsubfp
+vmulfp128   5259  <- __vmulfp       vmsum4fp128   667  <- __vmsum4fp
+vspltw128   2494  <- __vspltw       vperm128      614  <- __vperm
+vor128      2023  <- __vor          vcsxwfp128    477  <- __vcfsx
+vmsum3fp128 2008  <- __vmsum3fp     vsldoi128     422  <- __vsldoi
+```
+
+### Three wrong versions of this tool, and the third mattered
+
+1. **No register pressure.** With three live vectors the compiler emits the
+   PLAIN form (`vor`, vr0..vr31), never `vor128`. The tool reported "no
+   intrinsic" for intrinsics that demonstrably have one.
+2. **Filler excluded as noise.** The pressure body itself compiles to
+   `lvx128`/`stvx128`, and excluding those made it impossible to ever credit
+   `__lvx` with producing `lvx128` — reporting the two most common
+   instructions in the image as unwritable in C++. Fixed by differential
+   counting against a baseline.
+3. **THE CONCLUSION WAS STILL WRONG.** Even after that, 14 forms and 7.3% of
+   instructions read as "NOT reachable... would block any function using
+   them". Testing those with correct signatures shows what actually happens:
+
+```
+__vmaddfp(s00,s01,s02)   ->  vmaddfp  vr1,vr0,vr13,vr12     <- PLAIN form
+__lvlx((const void*)b,i) ->  lvlx     vr1,r6,r5
+__vspltisw(3)            ->  vspltisw vr1,3
+```
+
+**The `128` suffix is a register-allocation outcome, not a different
+intrinsic.** The same intrinsic emits the plain encoding when its operands
+land in vr0..vr31 and the 128 encoding when they do not. So those forms were
+never unreachable; my probe simply failed to force high registers for those
+particular operations, and I nearly recorded a blocker that does not exist.
+
+For matching this is the good news: you write the intrinsic and reproduce the
+function's structure, and the allocator produces the encoding the original had.
+
+**Two forms have no declared intrinsic at all**: `vmaddcfp128` (175 sites) and
+`vpkd3d128` (94). `__vmaddcfp` and `__vpkd3d` are absent from both headers.
+`vmaddcfp` is plain multiply-add with the destination as an operand, so it is
+probably reachable from ordinary vector arithmetic rather than an intrinsic —
+NOT_MEASURED. `__vupkd3d` and `__vrlimi` DO exist and were found by the
+targeted probe (`vupkd3d128`, `vrlimi128`).
+*measured 2026-08-28*
+
+---
+
+## 7i2. The decisive VMX128 oracle: Microsoft's own encoder
+
+Both earlier oracles were third-party reconstructions. Biallas's own preamble
+says *"I figured this out by looking at various disassemblies, so there might
+be some errors"*, and Ghidra issue #2094 records a later worker finding errors
+in it. binutils' table has the same provenance problem.
+
+**The XDK ships the authoritative encoder.** `cl.exe /FAsc` emits a listing
+carrying both the encoded word and the register names the compiler chose:
+
+```
+0001c  17bef8b5   vmulfp128    vr61,vr62,vr63
+0005c  169be1b5   vmsum3fp128  vr52,vr59,vr60
+```
+
+That is the compiler that built the retail image, stating what it encoded and
+which of the 128 registers it meant.
+
+`ml.exe`, the XDK's PowerPC assembler (also 8153), is **not** usable for this:
+it defines only `vr0..vr31` and rejects the `*128` arithmetic mnemonics
+outright, so it predates the extension. Checked, not assumed.
+
+`tools/vmx128_oracle.py` generates a probe with enough live vectors to force
+the allocator past `vr31`, compiles it, parses the listing and compares:
+
+```
+VMX128 instructions emitted      138
+distinct vector registers         64   (32 of them above vr31)
+  AGREE, mnemonic AND registers  136
+  operands differ                  2
+  mnemonic differs                 0
+```
+
+**The registers above vr31 are the load-bearing part.** A 7-bit register number
+is scattered (`VD = VDh:VD128`, `VA = A:a:VA128`, `VB = VBh:VB128`); with only
+low registers every one of those extra bits is zero and the check would pass
+vacuously.
+
+### A defect found in binutils, using MSVC as the oracle
+
+The 2 disagreements are real and they are binutils' fault:
+
+```
+1A607B85   MSVC:     vupkhsb128 vr51,vr47
+           Biallas:  vupkhsb128 vr(VD128), vr(VB128)      -- two operands
+           binutils: vupkhsb128 v51,v47,v0                -- three
+```
+
+Decoding by the documented layout: `VD128=19, VDh=1 -> vr51`;
+`VB128=15, VBh=1 -> vr47`; **bits 11..15 = 0**, which the document specifies as
+a reserved zero field. binutils prints that reserved field as a third register
+operand. The registers agree exactly and the instruction word is read
+identically, so this is a FORMATTING bug in the disassembler, not a decode
+error — and it affects `vupkhsb128` and `vupklsb128`.
+
+Three sources now: MSVC's encoder, Biallas's tables, binutils' opcode table.
+Two agree against the third on exactly one point, and it is cosmetic.
+*measured 2026-08-28*
+
+---
+
+## 7i. The VMX128 decoder, marked against an independent source
+
+`vmx128.txt` (Biallas, 2006) documents the encoding bit by bit. It and
+binutils' opcode table are two derivations with nothing in common — one a
+compiled opcode/mask list, the other hand-documented from dumpbin output.
+
+`tools/vmx128_check.py` transcribes 16 of the forms straight from the document,
+reassembles the split register fields the way the document specifies
+(`VD = (VDh << 5) | VD128`, `VA = (A << 6) | (a << 5) | VA128`), and compares
+against `ppcdis`:
+
+```
+24,363 distinct opcode-4/5/6 word(s) in .text
+  covered by the 16 transcribed forms   14,617
+  AGREE on mnemonic AND operands        14,617
+  differ                                     0
+```
+
+Operands, not just mnemonics — the reassembled 7-bit register numbers are the
+part a hand transcription is most likely to get wrong, and a mnemonic-only
+check would not catch it.
+
+**The oracle is known to be imperfect and that is stated rather than glossed:**
+Ghidra issue #2094 records a later worker finding errors in `vmx128.txt` while
+writing a SLEIGH implementation. So a disagreement would have been a question,
+not a verdict. There were none.
+
+### Ghidra still cannot decode VMX128, and that is not fixed here
+
+Issue #2094 has been open since 2020; there is no support in mainline. Forks
+exist (pjsoberoi, and 0dinD's rebase onto Ghidra 12.0 with corrections to both
+the SLEIGH and the documentation), and are untried here.
+
+`ApplyKnowledge.java` does NOT fix the decode. It resumes disassembly at the
+word AFTER each undecodable one — sound because VMX128 instructions are all 4
+bytes and none alters control flow — so surrounding code and the call graph
+recover while the VMX128 words themselves stay undefined in Ghidra.
+
+### MSVC switch tables: real, but smaller here than reported
+
+A second Ghidra issue reports `PowerPCAddressAnalyzer` failing on MSVC's
+PowerPC switch pattern (16-bit offsets via `lhzx`, tables in `.rdata` more than
+4096 bytes from the load). Measured over this image rather than assumed:
+
+```
+bctr  (indirect jump)   1219
+  no switch pattern      604  (49.5%)   tail calls / dispatch
+  lwzx 32-bit table      347  (28.5%)
+  bounded, no table      211  (17.3%)
+  lhzx 16-bit table       57  ( 4.7%)   <- the specific pattern reported
+bctrl (indirect call)  13541
+```
+
+So the reported bug can affect at most **57 sites**, not the bulk of them. The
+larger unresolved population is the 347 `lwzx` switches and the 604 with no
+switch shape at all.
+*measured 2026-08-28*
+
+---
+
+## 7h. VMX128 is readable — 44,956 instructions that no tool here could decode
+
+Capstone has no Xenon VMX128, and neither does Ghidra's
+`PowerPC:BE:64:A2ALT-32addr`. That left 1,330 functions truncated in Ghidra and
+every VMX128 word printed as `.long` everywhere else — concentrated in exactly
+the vector maths a game engine is full of.
+
+**Not reimplemented — the real opcode table is used.** binutils' PowerPC
+disassembler carries the extension, gated behind `PPC_OPCODE_VMX_128`, which
+the `"cell"` dialect option sets. `thirdparty/disasm/` holds a copy of
+`ppc-dis.c` and friends (binutils-derived, from XenonRecomp's vendored copy)
+plus `ppcdis_main.c`, built to `build/ppcdis.exe` with MSVC.
+
+Transcribing the encoding by hand was rejected deliberately: the VX128 forms
+use **six different field masks** (`0x3d0`, `0x7f3`, `0x210`, `0x7f0`, `0x730`,
+`0x10`), and a wrong transcription decodes into something plausible.
+
+**Validated against known-good answers before use.** On `sub_822607F0` — the
+function already matched byte-for-byte — it agrees with capstone instruction
+for instruction (the sole difference being `slwi r11,r10,1` against
+`rlwinm r11,r10,1,0,30`, the same instruction in extended and raw mnemonics).
+On a VMX-dense function it decodes what capstone cannot:
+
+```
+827A7EC8  108028C3   capstone: .long        binutils: lvx128 v4,r0,r5
+```
+
+**Coverage over all 2,116,991 words of `.text`:**
+
+```
+undecoded         16,673   0.788%   (data interleaved in code)
+VMX128 decoded    44,956   2.12%    in 55 distinct forms
+```
+
+```
+lvx128 14693   stvx128 8273   vmulfp128 5259   vspltw128 2494
+vor128  2023   vmsum3fp128 2008   vpermwi128 1578   lvlx128 935
+```
+
+`vmsum3fp128` is a three-component dot product; its 2,008 sites are geometry
+and physics.
+
+`tools/ppcdis.py` wraps it, and `tools/disasm.py` and `tools/match.py` both use
+it now — **one decoder for both sides of a diff**, since a comparison where one
+side reads `.long` is not a comparison of instructions. The capstone fallback
+prints a warning rather than degrading silently.
+*measured 2026-08-28*
+
+---
+
+## 7g. Havok without the Havok SDK, and a corrected denominator
+
+**The inventory was ~18% short and every percentage quoted before this was
+computed against it.** `.pdata` is the compiler's unwind table and omits leaf
+functions needing no unwind row. `tools/inventory.py` unions it with Ghidra's
+analysis:
+
+```
+.pdata functions          21,238
+ghidra functions          25,737
+union                     25,737     (0 in .pdata that Ghidra lacks)
+  size from .pdata        21,238
+  size from Ghidra only    4,499
+bytes covered           8,254,979    = 97.5% of .text
+```
+
+### RTTI gives Havok's classes and vtables, with no SDK
+
+Havok was built with RTTI on; the game's own code was not (`/GR-`), so all
+**329 type descriptors are Havok** — 322 `hk*` plus 7 in Havok's anonymous
+namespaces. Walking MSVC's chain backwards then forwards
+(`TypeDescriptor` <- `CompleteObjectLocator` <- `vtable[-1]`):
+
+```
+type descriptors          329
+  with a locator          270      (46 had none)
+  locators                350
+  vtables                 311
+vtable slots read       2,873
+  target is a .pdata fn  1,423     (49.5%)
+distinct functions      1,296
+  in exactly one class   1,021
+```
+
+**This is the answer to not having the Havok libraries.** A byte-matching
+decomp does not have to reconstruct middleware — it has to *identify* it, so it
+can be excluded from scope. RTTI identifies it directly.
+
+**Two wrong turns while tightening the walk, both recorded because the second
+undid the first.** The terminator was "while the slot points into executable
+memory", which I feared ran off one vtable into the next. Requiring each slot
+to name a known function instead collapsed `hkpMotion` from 26 slots to 4 —
+vtables legitimately hold adjustor thunks that are not inventory functions.
+Adding "stop where the next vtable begins" then reported **0** such stops: the
+`CompleteObjectLocator` pointer sits immediately before every vtable and is not
+a code address, so the original rule already terminated correctly. The fear was
+unfounded and the first rule was right.
+
+### Scope, on the corrected denominator
+
+```
+  signal               fns        bytes  share of .text
+  lib                 6332      2759109   32.6%
+  srcpath              352       241004    2.8%
+  havok                251       157868    1.9%
+  rtti_havok           673       168776    2.0%
+  game_profiled          3         8320    0.1%
+  TOTAL known         7611      3335077   39.4%
+  REMAINING          18126      5132887   60.6%
+```
+*measured 2026-08-28*
+
+---
+
+## 7f. Analysis, corrected — and the residual is fully explained
+
+Fresh import with `Non-Returning Functions - Discovered` disabled *before*
+analysis, `.pdata` applied as a preScript so analysis starts from the compiler's
+own function table.
+
+| | broken run | corrected run |
+|---|---|---|
+| functions | 20,795 | **25,737** |
+| instructions | 773,768 | **1,899,447** (89.7% of `.text`) |
+| call edges | 24,835 | **73,653** |
+| with >=1 caller | 6,267 (30%) | **18,028 (70%)** |
+| leaves | 3,085 | 4,782 |
+| wall time | 357 s | **216 s** |
+
+Verified per function against `.pdata` rather than taken on trust:
+
+```
+21,238 of 21,238 present
+  body EXACTLY the .pdata size  19,908  (93.7%)   was 8,454
+  body SHORTER                   1,330            was 9,647
+  byte coverage                   90.0%           was 20.7%
+  median coverage ratio            1.00           was 0.11
+```
+
+**The residual 1,330 is VMX128, and this time the measurement supports it:
+1,156 of the 1,330 (86.9%) contain an opcode-4/5/6 word** — exactly the 1,156
+functions independently counted as containing one. Ghidra's
+`PowerPC:BE:64:A2ALT-32addr` does not decode Xenon's VMX128 extension, so those
+bodies stop early; 585 stop at the first such word exactly.
+
+The same hypothesis was *refuted* against the 60% gap and *confirmed* against
+the 10% one. It was never wrong about VMX128 — it was wrong about which
+population it explained.
+
+### Candidate selection, corrected twice
+
+**Ghidra's "leaf" means "no RESOLVED callee", not "makes no calls".**
+`sub_827FE628` is listed as a leaf and makes two `bctrl` virtual calls. Leaves
+must therefore be required by BOTH the call graph and a static check that no
+instruction sets the link register (`bl`, `bcl`, `bctrl`, `blrl`).
+
+With that, plus "not attributed", "outside the XDK bands", "no VMX128", and
+"has at least one caller": **82 true leaves.** The already-matched
+`sub_822607F0` appears in the list, which is the check that the filter is not
+excluding valid targets.
+
+```
+  address     bytes  callers  floats
+  82154AE8      536       42      66     <- heavily used float routine
+  82700B30      176        9       0
+  825FA9E8      176        8       0
+  827618E8      136        3       0
+  8215E820      104        2       0
+  822607F0      120        2       0     <- already matched
+```
+*measured 2026-08-28*
+
+---
+
+## 7e. `__savegprlr`: one wrong no-return flag cost 60% of the disassembly
+
+Ghidra's first full analysis reported figures that could not be right:
+
+```
+functions      20795     (21,238 were created -- it LOST 443)
+instructions  773768     (.text holds 2,116,991 words -- 36.5%)
+no caller      14528 of 20795   (70%)
+```
+
+Per-function, against the `.pdata` extents:
+
+```
+body EXACTLY the .pdata size   8454
+body SHORTER                   9647
+body LONGER                       0
+median coverage ratio          0.11
+worst: sub_824A60C0, .pdata 38536 bytes, Ghidra body 8 bytes
+```
+
+Eight bytes is two instructions. Those two are:
+
+```
+824A60C0  mflr r12
+824A60C4  bl 0x828A7590
+```
+
+**`828A7590..828A75DC` is MSVC's `__savegprlr` — one routine with sixteen entry
+points**, one per register count, all falling through to a single `blr`.
+`828A97C0..` is the matching `__restgprlr`. **10,856 of 21,238 functions begin
+`mflr r12 ; bl 828A75xx`**, each calling a *different offset into the same
+body*, so 10,856 calls land mid-function.
+
+`Non-Returning Functions - Discovered` concluded those entry points do not
+return — **25 of them flagged**, every one of `828A7590`, `828A7594`, …,
+`828A75CC` plus the restore helpers — and truncated every caller at its second
+instruction.
+
+**A first repair attempt failed, and the failure is worth recording.** Clearing
+the flag and calling `disassemble()` on each truncated function moved the total
+by **+0 bytes**: a function body is computed by flow analysis at creation time,
+and `disassemble()` at an address that already holds an instruction is a no-op.
+Clearing a flag does not retroactively recompute anything. The fix has to be a
+fresh import with the analyzer disabled *before* analysis runs.
+
+The VMX128 explanation was tried first and **refuted by measurement**: only
+5.4% of functions contain an opcode-4/5/6 word, and truncating at the first one
+would still leave ~96% coverage, not 39%.
+
+**This matters beyond Ghidra.** Any matched function large enough to save
+registers will call `__savegprlr`/`__restgprlr`, so the emitted prologue must
+target the correct entry offset. `sub_822607F0` was small enough to avoid them.
+*measured 2026-08-28*
+
+---
+
+## 7d. FIRST BYTE MATCH — `sub_822607F0`, 2026-08-28
+
+```
+target  822607F0  120 byte(s)
+ours    ?BuildGridStripIndices@@YAXHHHHPAG@Z  120 byte(s)
+30 word(s) compared: 30 identical, 0 differ
+```
+
+Reproduces from a clean build directory. Recorded in `MATCHED.md`;
+re-checkable with `python tools/match.py src/grid_indices.cpp 822607F0`.
+
+Flags `/O2 /Gy /GS- /fp:fast`. It generates 16-bit indices for a grid drawn as
+one triangle strip, with degenerate indices stitching successive rows.
+
+**How the target was chosen, which is the transferable part.** A first match
+must be a LEAF — a function calling nothing — or a mismatch cannot be
+attributed to the source you wrote rather than to a callee that does not exist
+yet. `tools/candidates.py` finds leaves statically (no instruction sets the
+link register) among unattributed functions: **199 of 14,992 are leaves, 1.3%**,
+of which 147 are 400 bytes or under.
+
+**A label in that tool was wrong and is corrected:** "unattributed" is not the
+same as "the title's own code". Several of the smallest candidates
+(`823054D4`, `82344774`, `823FB7A0`) sit inside the XDK block at
+`822F03E8..82523A1C` — they are XDK functions that merely failed to byte-match.
+Candidates must be filtered against the attributed regions in §7c.
+
+**Three attempts, and the second was worse than the first.** Attempt 1 got the
+instruction sequence structurally right at 124 bytes against 120. Attempt 2
+introduced a `clrlwi` — a `u16` truncation materialised because the increment
+and the store competed for one variable — and dropped to 0 of 30 words. Attempt
+3 read the target's own register discipline out of the disassembly: it computes
+`base+1` into its own register *before* either store, uses it for the second,
+then adopts it as the new base and compares *that* against the limit. Writing
+that shape explicitly produced the exact match.
+
+The lesson is that the register allocation IS the specification. Guessing at
+plausible C and hoping is slower than reading which value the target keeps live
+and for how long.
+
+---
+
+## 7c. Consolidated attribution — what actually has to be decompiled
+
+`tools/attribute.py` merges four independent signals. A function is counted
+once, and the evidence classes are kept separate rather than summed into one
+confident figure.
+
+```
+  signal               fns        bytes  share of .text
+  lib                 5642      2668288   31.5%    byte-for-byte XDK match
+  srcpath              350       240848    2.8%    references a middleware source path
+  havok                251       157868    1.9%    pushes a Havok timer name
+  game_profiled          3         8320    0.1%    pushes a Ttz name (the title's own)
+  TOTAL known         6246      3075324   36.3%
+  REMAINING          14992      5392640   63.7%
+```
+
+`lib` is a byte match and is strong. `srcpath` and `havok` are attribution by a
+reference the function *makes*, which is weaker — a game function could log a
+middleware path — so they are reported separately and never merged into the
+byte-match figure.
+
+Middleware by family: fmod 251, ogg_vorbis 50, havok 38, sfx 10.
+
+### The linker grouped it, so the map is contiguous
+
+```
+  82100000..821294A0    169 KB   185 fn  lib     <- the D3D/XTL band
+  822F03E8..82523A1C   2.31 MB  3972 fn  lib     <- one huge XDK block
+  8273AEE8..827528D4     97 KB    72 fn  havok
+  827B92F0..827BFF14     28 KB    25 fn  havok
+  828A74A0..82908510    397 KB   922 fn  lib     <- the CRT
+```
+
+So the title's own engine lives mainly in the gaps — roughly
+`82129000..822F0000` and `82523A1C..828A74A0` — and that is where decompilation
+effort belongs. The `82100000..821294A0` band agrees with the D3D entry-point
+addresses recorded independently elsewhere, which is a check on the whole
+attribution rather than on one match.
+
+### Profiler names, tightened
+
+The first extraction produced names like `144 Et` by latching onto any nearby
+`lis`/`addi` pair. It now requires the full chain — `mftb rT`, then
+`stw rT, D(rBuf)` with the same register, then `stw rN, (D-4)(rBuf)` with the
+same buffer, then the pair whose *destination* is `rN` — and refuses to report
+unless it reproduces a name read by hand from `sub_826731D8` ("TtrcSphere").
+
+```
+717 mftb site(s): 579 named (80.8%), 122 no address pair,
+                  13 no timestamp store, 3 no name store,
+                  0 resolved to something that was not a string
+224 distinct names, ALL 224 non-numeric   (was 326 with noise)
+```
+
+The names are Havok monitor-stream markers — `Tt` 138, `St` 56, `Lt` 27, `Et` 2.
+Exactly **three** are the title's own, by the `Ttz` prefix:
+
+```
+821D3D48  3716 B  TtzCam2Player_update
+82241BF0  2228 B  TtzNPCSteering_ApplySteering_hover
+822CA548  2376 B  TtzSceneUpdate_CheckingTransparent
+```
+
+`sub_821D3D48` reads as a camera update: `this` in r3, a float delta in f1,
+fields at `+0x16C`, `+0x174`, `+0x1EC`, `+0x2C8`.
+*measured 2026-08-28*
+
+---
+
+## 7. Library matching — SUPERSEDED (measured through the broken mapping)
+
+`tools/libmatch.py` matches XDK library code against the image so that code
+which links from the original `.lib` need not be decompiled at all.
+
+**Two bugs, each of which produced exactly 0 matches** — the failure shape this
+project cares most about, because an empty result reads like a fact:
+
+1. *Relocations.* Library object code carries placeholder bytes the linker
+   patches. Every instruction word a relocation touches is masked and the match
+   judged on the rest, with the compared byte count reported per match.
+2. *`.pdata` was the wrong search space.* It covers 92.5% of executable bytes
+   and what it omits is largely leaf functions needing no unwind data — most of
+   the CRT. Indexing candidates on `.pdata` starts found 0 while a whole-image
+   masked scan found `strncmp`, `longjmp` and `memchr` immediately.
+
+Validated against known-good answers before use: **5 of 6** functions located
+by an independent whole-image scan reproduce with the correct symbol name.
+
+**Run over 62 non-LTCG release libraries**, 133,379 library functions examined,
+85,618 indexable, 2,133,120 aligned positions scanned:
+
+```
+raw sites identified   6540
+  at a .pdata start     104
+  inside a .pdata row  6069
+  in a gap              367
+```
+
+**FIRM LOWER BOUND: 399 functions, 171,972 bytes, 2.03% of `.text`** — the
+sites at a function start or in a gap, whose library symbol matches exactly one
+place. These are unambiguous and large: `EmitExpression@CCompiler@D3DXShader`
+(6,912 unmasked bytes), `jpeg_fdct_float@D3DX`, `png_write_find_filter@D3DX`,
+`BltTriangle3D@CBlt@XG_D3DXTex`, `MultiByteToWideChar`, `SetFilePointerEx`.
+By library: xgraphics 132, xaudio2 107, d3dx9 59, d3d9 29, xapilib 22, libcMT 20.
+
+**THE UPPER BOUND IS NOT MEASURED, AND MY FIRST FILTER WAS WRONG.** I discarded
+all 6,069 "inside a `.pdata` row" matches as false positives, on the reasoning
+that a match landing mid-function must be coincidence. Checking what PRECEDES
+each one refutes that:
+
+```
+after nop/zero padding   3104  (51.1%)
+after blr                1261  (20.8%)
+mid-stream               1704  (28.1%)
+```
+
+**72% sit at an apparent function boundary.** Candidate readings, none of them
+established: a `.pdata` row can cover more than one function; or these are
+library bodies INLINED into callers; or they are coincidences that happen to
+follow padding. Until that is settled the honest scope reduction is
+"at least 2%, plausibly much more", and the 399 is the only number to quote.
+
+*measured 2026-08-28; the 6,540 raw sites from one run at `--min-bytes 32`,
+the precedence census over all 6,069*
+
+---
+
+## 8. THE .text MAPPING WAS WRONG, AND MOST RESULTS ABOVE ARE INVALIDATED
+
+*found 2026-08-28, while closing an unrelated gap*
+
+**The unpacked XEX is a MEMORY IMAGE: RVA == offset in the buffer.** The PE
+headers still carry `PointerToRawData` from the original file layout, and every
+tool written here believed it. For `.text` the two differ by `0xDE00`, so every
+byte read from `.text` onward was the wrong byte.
+
+The first three sections have `RVA == PointerToRawData`, which is why nothing
+looked wrong until `.text`.
+
+**It was settled by a control, not by whether the output looked like code** —
+which matters, because the wrong mapping disassembles cleanly:
+
+```
+822F8BC8 via PointerToRawData:  lfs f13,0x2df0(r8) / stw r10,0xbc(r1) / lfs ...
+822F8BC8 via RVA == offset:     mflr r12 / bl 828a75c8 / addi r31,r1,-0x1f0 / stwu
+```
+
+The entry point must begin with a prologue. Only one mapping delivers that.
+
+### The verification that could not fail
+
+Section 6 records "14 of 14 initialised blocks agree, at the right addresses"
+and calls the Ghidra memory map sound. **That check was vacuous.** Ghidra's PE
+loader maps by `PointerToRawData`; `tools/verify_ghidra.py` read the file by
+`PointerToRawData`. The two agreed because they shared the same defect. Two
+derivations of one fact with nothing forcing them to be *independent* is not a
+cross-check — it is one derivation, run twice.
+
+The catch is that it was still worth running: it did find two real checker bugs.
+What it could never find was a defect common to both sides.
+
+### Invalidated
+
+- **`libmatch.py`, all 6,540 sites including the 399 "firm" ones.** The bytes
+  compared were real image bytes, so the matches are probably real code — but at
+  addresses reported `0xDE00` too high, which is also why so many appeared to
+  land "inside" a `.pdata` function. The whole run must be redone.
+- **`xref.py`, including the Time.cpp result.** "0 references to 82065B68" is
+  NOT_MEASURED, not a finding. `Time.cpp` may yet be locatable.
+- **Ghidra's program**, for `.text` and every later section.
+- **The 562 disassembly failures.** 85 of them read as zero words only because
+  the mapping pointed at unmapped space. The VMX128 classification (464 of 562,
+  82.6%) is drawn from bytes that were the wrong bytes.
+- **`strings.py` addresses at or beyond `.text`.** The classification counts hold
+  and the source paths are in `.rdata`, where the mapping coincides, so §3 is
+  unaffected.
+
+### NOT invalidated
+
+- The XEX unpacking (§1) — verified against page descriptors and block sums,
+  neither of which involves the section table.
+- The toolchain identification (§2) — the Rich header lives in the DOS stub,
+  where RVA == raw.
+- **The `.pdata` inventory (§4), 21,238 functions with sizes** — `.pdata` is one
+  of the three sections whose mapping coincides, and the decode was marked
+  against four arms. This is the one substantial result that survives.
+- The source tree (§3) and middleware list.
+
+### The fix
+
+`tools/flatten_pe.py` rewrites `PointerToRawData := VirtualAddress` (and grows
+`SizeOfRawData` to cover `VirtualSize`) into `build/default.image.exe`, so the
+headers describe the file as it actually is. It verifies that **0 bytes outside
+the section table changed** and that the entry point disassembles as a prologue.
+`tools/peimage.py` now maps by RVA and documents why.
+
+**`build/default.image.exe` is the file everything should use from now on.**
+
+### Confirmed by a control that shares nothing with either mapping
+
+`tools/verify_mapping.py` scores both mappings against the `.pdata` extents,
+which take no part in choosing a mapping. Under a correct mapping a function's
+last word must be a terminator at exactly the byte `.pdata` says it ends.
+
+```
+                     prologue    terminator    BOTH     first word zero
+PointerToRawData        72.2%          4.8%     3.6%          85
+RVA == offset           98.6%         99.6%    98.2%           0
+```
+
+**The terminator test is the load-bearing half.** The prologue test alone barely
+discriminates (72% vs 99%) because a wrong mapping still yields decodable
+instructions. Placing a return on the exact final byte of 21,150 of 21,238
+functions is what a wrong mapping cannot do. It also independently confirms the
+`.pdata` size decode.
+
+### Re-run results
+
+Ghidra, re-imported from the corrected file:
+
+```
+rows read           21238
+  created           21238
+  disassembly failed    0
+  createFunction failed 0
+program function count now 21238
+```
+
+**All 562 "disassembly failures" were the mapping.** There were none. The VMX128
+classification recorded earlier was drawn from the wrong bytes and is withdrawn.
+
+The earlier Ghidra reconciliation still holds and is now moot: 20,676 + 258
+`FUN_` functions Ghidra found by following flow = 20,934, exactly the old count.
+The 79 logged `CreateFunctionCmd` errors were at non-`.pdata` addresses, so they
+came from Ghidra's own flow-following and not from `ApplyPdata` — the script's
+`createFunction failed 0` was correct.
+
+---
+
+## 9. What the image says about its own source
+
+`tools/srcfiles.py` resolves every `lis`+`addi`/`ori` pair landing on a source
+path: **188 distinct paths referenced by code**, of which **11 are the title's
+own** and 177 are middleware (FMOD, ogg/vorbis, Havok).
+
+The `__FILE__` strings are **not** used by asserts inside those files. Each is
+stored by a static initializer that registers its translation unit into a global
+list — for `Time.cpp` that is at `82908BA0`, writing the string into a record and
+bumping a counter at `[82A3521C]`. So the string does not locate the file's code,
+which is why an xref for it returns one distant hit. That conclusion survives the
+mapping fix: re-run correctly, `82065B68` still has **0 data references and 1
+code reference**, and the code reference is the registration.
+
+`tools/profnames.py` harvests the engine's profiler scope names: around each
+`mftb` the code stores a literal name and a timestamp into a per-thread buffer at
+`[r13]+0x30`. **717 sites, 540 carrying a readable name, 326 distinct names over
+216 functions.**
+
+Most are **Havok's** (`TtNarrowPhase`, `StBroadphase`, `TtGJK Ray Cast`,
+`hkpShapeCollection::`), so they label middleware. A few are the game's own,
+distinguished by a `Ttz` prefix: `TtzCam2Player_update`,
+`TtzNPCSteering_ApplyStee`, `TtzSceneUpdate_CheckingT`.
+
+**The name list contains noise and is NOT yet trustworthy.** Entries like
+`144 Et` show the look-back latching onto the wrong `lis`/`addi` pair and
+resolving to an arbitrary printable address. The extraction needs to require the
+pair that actually feeds the `stw` beside the `mftb` before any of these names is
+used to label a function.
+*measured 2026-08-28*
+
+---
+
+## 9. Open, and what is not known
+
+- **Two Ghidra numbers do not reconcile and this is unresolved.** `ApplyPdata`
+  created 20,674 and found 2 existing, which is 20,676; the program then
+  reported a function count of **20,934**. The 258 difference is unexplained.
+  Separately, 79 `CreateFunctionCmd` errors were logged ("body contains
+  referring thunk") while the script's own `createFunction failed` counter read
+  **0** — so either the errors came from `disassemble()` following flow, or the
+  counter is measuring the wrong thing. `DumpFunctions.java` is written and NOT
+  YET RUN; it exports the whole set so the two populations can be diffed
+  instead of two counts being compared.
+  **Nothing should be concluded from the 20,934 until that diff is done.**
+- **The 562 disassembly failures are UNCLASSIFIED.** The leading hypothesis is
+  Xenon VMX128, which is not standard Altivec and which Ghidra's A2ALT variant
+  may not decode; 562 of 21,238 is 2.6%, which is suggestively close to the
+  VMX128 density of this image, but that number came from a different project
+  and has not been re-derived here. Not measured: what the first word at those
+  addresses actually is. One histogram of primary opcodes settles it.
+- **`link.exe` fails to start** — see §5. Not blocking.
+- **prodid → tool names** — NOT_MEASURED, see §2.
+- **Which lib variant (ltcg or not) the retail build linked** — NOT_MEASURED.
+- **The `2909` toolchain in the Rich header** — NOT_MEASURED; not from this XDK.
+- **The source tree beyond 11 files** — NOT_MEASURED, see §3.
+- No function has been matched yet. The loop is proven on synthetic code only.
