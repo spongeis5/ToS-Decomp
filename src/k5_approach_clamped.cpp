@@ -45,16 +45,37 @@
 //     representative sits in the `(target - *p)` line, after m, and both
 //     adds come out with `*p` in rA as the image has them.
 //
-// Ruled out, all still 14 of 25 with the identical transposition unless
-// noted: a member function on a struct whose float is at +0 (MATCHED.md's
-// member lever, and this is exactly its stated signature -- transposed
-// registers with the first argument an object pointer); the member form with
-// `*p` spelled out; `60.0f * (dt * rate)`; a named 60.0f local with and
-// without parentheses; `v` declared after `m` (12 of 25); `v` declared first
-// (12 of 25); `m` declared before `t` (10 of 25); an inlined helper for the
-// product; an inlined helper returning the clamped factor. /O2 /Os is worse
-// structurally -- it tail-merges the store and blr into ONE copy, 24 words
-// against the image's 25 -- and the transposition survives it too.
+// THIRTEEN SOURCE SHAPES were measured and all of them are still 14 of 25
+// with the identical transposition unless noted: a member function on a
+// struct whose float is at +0 (MATCHED.md's member lever, and this is
+// exactly its stated signature -- transposed registers with the first
+// argument an object pointer); the member form with `*p` spelled out;
+// `60.0f * (dt * rate)`, which MSVC canonicalises straight back; a named
+// 60.0f local with and without parentheses; `v` declared after `m` (12 of
+// 25); `v` declared first (12 of 25); `m` declared before `t` (10 of 25); an
+// inlined helper computing the product; an inlined helper returning the
+// clamped factor; a TWO-LEVEL inlined helper, since inlining depth is what
+// moved sub_82164040; the product passed to a helper with the constant as
+// its second parameter; and the clamp writing into a second variable so the
+// product and the clamped value are separate vregs that coalesce.
+//
+// THE FLAG AXIS IS EXHAUSTED, not merely untried: `tools/flagsweep.py`
+// compiles all 72 combinations, 0 failed, and the best is this one.
+//
+//      10/25   100 B    22 combinations, e.g. /O2 /Gy /GS- /fp:fast
+//       4/25    96 B    14 combinations, e.g. /O2 /Os /Gy /GS- /fp:fast
+//       2/25   100 B    14 combinations, /Os with /fp:precise
+//       0/25   104 B    22 combinations, /fp:precise
+//
+// /O2 /Os is worse STRUCTURALLY -- it tail-merges the store and the blr into
+// one copy, 24 words against the image's 25 -- and the transposition
+// survives it as well, so it is not the /Os transposition signature.
+//
+// This is a register-ALLOCATION stall, the class MATCHED.md names as the one
+// the permuter's mutations do not reach. That is a mechanism, and per this
+// project's own record a mechanism does not bound the search: the next thing
+// to try is something that changes register PRESSURE rather than statement
+// order or inlining depth.
 
 #include "types.h"
 

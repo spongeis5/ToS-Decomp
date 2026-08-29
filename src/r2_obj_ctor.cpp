@@ -68,7 +68,53 @@
 // 0..4 only, the word at +16 splits 4 / 1 / 5 / 22: the base sets (0, 1, 1)
 // and the derived resets the first two to (3, 0).
 //
-// MEASUREMENT: see the note at the bottom of this file.
+// MEASURED: 18 of 34 non-relocated words at /O2 /Os, at the EXACT size of
+// 168 bytes -- up from 1 of 26 at 120.
+//
+// THE "INLINING BOUNDARY A SINGLE TRANSLATION UNIT CANNOT EXPRESS" WAS
+// WRONG. README.md listed this function, sub_82583290 and sub_82700B30
+// together as needing one, on the grounds that MSVC's dead-store elimination
+// removes duplicated stores the retail build keeps. The observation is
+// right -- written flat, all three duplicated stores go and the body is 120
+// bytes -- and the conclusion was not: a REAL BASE-CLASS HIERARCHY is that
+// boundary, and it lives inside one translation unit.
+//
+//     struct A { void* f04; u8 f08; virtual void va(); };          // at +0
+//     struct B { Flags g; ...bits...; char* f18; virtual void vb(); };
+//     struct D : A, B { ... };                                     // B at +12
+//
+// A's constructor writes A's vptr, B's writes B's, and D's writes BOTH again
+// -- the pair 8207D308 / 8207D300, eight bytes apart, which this file had
+// already read as one class's two vtables. `f18 = 0` in B's body and
+// `f18 = buf` in D's are likewise two different functions' stores, so DSE
+// keeps them. That is 160 bytes, from 120.
+//
+// THE LAST EIGHT BYTES ARE AN INLINED HELPER ON THE BITFIELD WORD. The
+// target carries a DEAD `addi r10,r3,16` -- the address of the +16 bitfield
+// word, formed and never read -- which MATCHED.md records as the fingerprint
+// of an inlined helper whose pointer argument was folded into displacements.
+// Giving the derived class's second bitfield write its own helper
+//
+//     static void SetG(Flags* f) { f->g0 = 3; f->g1 = 0; }
+//
+// restores the address computation AND forces the +16 word to be stored and
+// RELOADED for that write rather than kept live in a register: 168 bytes,
+// the exact size, and 18 of 34. A bare `Flags* f = &g;` local does the same;
+// so do a `Flags&` parameter, a helper taking `B*`, and two levels of
+// helper. All five are 18 of 34, so the lever is the pointer, not the call.
+//
+// WHAT IS STILL WRONG, all of it in the middle third: our dead address is
+// `this+12` where the target's is `this+16` (MSVC folds our `&g` back to the
+// B subobject's base); B's vptr store is issued six slots early; the +22
+// byte is read into r31 where the target uses r4, the parameter register it
+// has finished with; and the two derived vtable addresses land in swapped
+// registers. Three orderings of B's constructor body were measured
+// (g/h/f15/i, h/f15/i/g, g/i/f15/h) at 18, 17 and 17, so the order already
+// here is the best of them.
+//
+// FLAGS: /O2 /Os. Plain /O2 is 15 of 34 at the same size -- three registers
+// coalesced differently, the usual /Os signature.
+
 
 struct VT82700DF8;
 extern const VT82700DF8 kVT_8207D1D8;
@@ -76,78 +122,116 @@ extern const VT82700DF8 kVT_8208B464;
 extern const VT82700DF8 kVT_8207D308;
 extern const VT82700DF8 kVT_8207D300;
 
-struct Obj
+/* The +16 word, as one bitfield group. Its address is what the target's dead
+   `addi r10,r3,16` computes, so it is a thing the source names. */
+struct Flags
 {
-    /* 0x000 */ const VT82700DF8* vt0;
-    /* 0x004 */ void* f04;
-    /* 0x008 */ u8    f08;
-    /* 0x009 */ u8    pad09[3];
-    /* 0x00C */ const VT82700DF8* vt0C;
-    /* 0x010 */ u32   g0 : 4;
-                u32   g1 : 1;
-                u32   g2 : 5;
-                u32   g3 : 22;
-    /* 0x014 */ u8    h0 : 1;
-                u8    h1 : 1;
-                u8    h2 : 1;
-                u8    h3 : 1;
-                u8    h4 : 1;
-                u8    h5 : 1;
-                u8    h6 : 1;
-                u8    h7 : 1;
-    /* 0x015 */ u8    f15;
-    /* 0x016 */ u8    i0 : 1;
-                u8    i1 : 1;
-                u8    i2 : 1;
-                u8    i3 : 1;
-                u8    i4 : 4;
-    /* 0x017 */ u8    pad17;
-    /* 0x018 */ char* f18;
-    /* 0x01C */ s32   f1C;
-    /* 0x020 */ f64   f20;
-    /* 0x028 */ s32   f28;
-    /* 0x02C */ u8    pad2C[0x187 - 0x2C];
-    /* 0x187 */ char  buf[1];
+    u32 g0 : 4;
+    u32 g1 : 1;
+    u32 g2 : 5;
+    u32 g3 : 22;
 };
-ASSERT_OFFSET(Obj, vt0C, 0x0C);
-ASSERT_OFFSET(Obj, f15,  0x15);
-ASSERT_OFFSET(Obj, f18,  0x18);
-ASSERT_OFFSET(Obj, f1C,  0x1C);
-ASSERT_OFFSET(Obj, f20,  0x20);
-ASSERT_OFFSET(Obj, f28,  0x28);
-ASSERT_OFFSET(Obj, buf,  0x187);
 
-void Construct(Obj* o, void* a, f64 t)
+/* Base at +0: its vtable is 8207D1D8 and D replaces it with 8207D308. */
+struct A
 {
-    o->vt0 = &kVT_8207D1D8;
-    o->f04 = a;
-    o->f08 = 0;
+    /* 0x00 */ /* vptr */
+    /* 0x04 */ void* f04;
+    /* 0x08 */ u8    f08;
+    /* 0x09 */ u8    pad09[3];
 
-    o->vt0C = &kVT_8208B464;
-    o->g0 = 0;
-    o->g1 = 1;
-    o->g2 = 1;
-    o->h0 = 0;
-    o->h1 = 1;
-    o->h2 = 0;
-    o->h3 = 0;
-    o->h4 = 0;
-    o->h5 = 0;
-    o->h6 = 0;
-    o->f15 = 0;
-    o->i0 = 1;
-    o->i1 = 0;
-    o->i2 = 0;
-    o->i3 = 0;
-    o->f18 = 0;
+    A(void* a);
+    virtual void va();
+};
 
-    o->vt0 = &kVT_8207D308;
-    o->vt0C = &kVT_8207D300;
-    o->f18 = o->buf;
-    o->f1C = 0;
-    o->f20 = t;
-    o->f28 = 0;
-    o->buf[0] = 0;
-    o->g0 = 3;
-    o->g1 = 0;
+/* Base at +12: its vtable is 8208B464 and D replaces it with 8207D300. */
+struct B
+{
+    /* 0x0C */ /* vptr */
+    /* 0x10 */ Flags g;
+    /* 0x14 */ u8    h0 : 1;
+               u8    h1 : 1;
+               u8    h2 : 1;
+               u8    h3 : 1;
+               u8    h4 : 1;
+               u8    h5 : 1;
+               u8    h6 : 1;
+               u8    h7 : 1;
+    /* 0x15 */ u8    f15;
+    /* 0x16 */ u8    i0 : 1;
+               u8    i1 : 1;
+               u8    i2 : 1;
+               u8    i3 : 1;
+               u8    i4 : 4;
+    /* 0x17 */ u8    pad17;
+    /* 0x18 */ char* f18;
+
+    B();
+    virtual void vb();
+};
+
+struct D : A, B
+{
+    /* 0x1C */ s32  f1C;
+    /* 0x20 */ f64  f20;
+    /* 0x28 */ s32  f28;
+    /* 0x2C */ u8   pad2C[0x187 - 0x2C];
+    /* 0x187 */ char buf[1];
+
+    D(void* a, f64 t);
+    virtual void va();
+    virtual void vb();
+};
+
+ASSERT_OFFSET(A, f04, 0x04);
+ASSERT_OFFSET(A, f08, 0x08);
+ASSERT_SIZE(A, 0x0C);
+ASSERT_OFFSET(B, f15, 0x09);
+ASSERT_OFFSET(B, f18, 0x0C);
+ASSERT_SIZE(B, 0x10);
+
+A::A(void* a)
+{
+    f04 = a;
+    f08 = 0;
+}
+
+B::B()
+{
+    g.g0 = 0;
+    g.g1 = 1;
+    g.g2 = 1;
+    h0 = 0;
+    h1 = 1;
+    h2 = 0;
+    h3 = 0;
+    h4 = 0;
+    h5 = 0;
+    h6 = 0;
+    f15 = 0;
+    i0 = 1;
+    i1 = 0;
+    i2 = 0;
+    i3 = 0;
+    f18 = 0;
+}
+
+/* The dead `addi r10,r3,16` says this write went through a POINTER to the
+   bitfield word rather than through `this`, and that is also what forces the
+   store-and-reload of +16 that the target does and a register-resident value
+   would not. */
+static void SetG(Flags* f)
+{
+    f->g0 = 3;
+    f->g1 = 0;
+}
+
+D::D(void* a, f64 t) : A(a), B()
+{
+    f18 = buf;
+    f1C = 0;
+    f20 = t;
+    f28 = 0;
+    buf[0] = 0;
+    SetG(&g);
 }

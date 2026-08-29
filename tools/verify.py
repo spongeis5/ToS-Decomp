@@ -126,6 +126,23 @@ def load_matches():
         if not line or line.startswith("#"):
             continue
         f = line.split()
+        # REFUSE a malformed row with a message, rather than dying on an
+        # IndexError. A source path of 32 characters fills an agent's
+        # `%-32s` with no padding, so the address is glued to it:
+        #
+        #     src/m56_set_five_floats_flag.cpp821A4318
+        #
+        # That row has one field. This function runs at MODULE IMPORT, so the
+        # traceback arrived before a single check had printed and said
+        # nothing about the manifest -- the same shape of confusion the
+        # restore sentinel was written for.
+        if len(f) < 2:
+            print("MALFORMED MANIFEST ROW: only %d field(s)" % len(f))
+            print("    %r" % line)
+            print("")
+            print("A source path of 32 characters or more leaves no space")
+            print("before the address under `%-32s`. Separate the columns.")
+            sys.exit(2)
         sym, flags = None, None
         for extra in f[2:]:
             if extra.startswith("flags="):
@@ -184,8 +201,14 @@ def main():
     # compile through xdkcc constantly, and anything compiled inside that
     # window reads text that is wrong on purpose -- a result that looks like
     # an ordinary mismatch and gets written into a manifest.
-    results.append(check("negative-control lock, 4 cases (2 must refuse)",
+    results.append(check("negative-control lock, 7 cases (3 must refuse)",
                          ["tools/test_lock.py"]))
+    # A mutation that never compiles and a mutation that never helps look
+    # identical from outside -- both just fail to find anything. mut_temp
+    # was the second kind for a long time. These check that the two new
+    # mutations FIRE and that what they emit is valid C++.
+    results.append(check("permuter mutations fire and compile, 6 cases",
+                         ["tools/test_mutations.py"]))
     results.append(check("MATCHED.md table matches the manifest",
                          ["tools/matched_table.py", "--check"]))
     results.append(check("backslash-heredoc hook, 7 cases",
@@ -239,6 +262,9 @@ def main():
     import xdkcc
     xdkcc.LOCK.parent.mkdir(parents=True, exist_ok=True)
     xdkcc.LOCK.write_text(str(os.getpid()), encoding="utf-8")
+    # Children inherit this, so build.py -- which every control runs as a
+    # subprocess -- is allowed through while unrelated processes are not.
+    os.environ["TOS_VERIFY_LOCK"] = str(os.getpid())
     print("  (holding build/.negative_controls.lock -- other processes")
     print("   compiling from src/ will be refused until this section ends)\n")
     results.append(negative("wrong struct offset -> compile error",
@@ -302,6 +328,7 @@ def main():
         xdkcc.LOCK.unlink()
     except OSError:
         pass
+    os.environ.pop("TOS_VERIFY_LOCK", None)
 
     print("")
     n_ok = sum(1 for r in results if r)

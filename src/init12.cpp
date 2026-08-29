@@ -41,6 +41,29 @@ void Init12(S* s, int a, int b, int c, int unused,
     // its store. MSVC knows the caller's parameter area cannot be the
     // object, so the loads float freely and no source-level read order
     // reaches them.
+    //
+    // THE ADDRESS-OF-MEMBER PIN DOES NOT REACH THEM EITHER, and this is the
+    // clean negative for that lever -- it matched three other functions in
+    // the same batch (sub_827007F8, sub_825FE880, sub_82784F90), all of them
+    // a store MSVC had slid past another STORE. Here what has to move is a
+    // store past five LOADS from the caller's frame, and the pin says
+    // nothing about those. Five pinnings are byte-identical to the baseline:
+    // `int* p2 = &s->f[2]`, an `int&` reference to it, the tail six through
+    // one `int* p6`, the head three through one `int* p3`, and all twelve
+    // through `int* p = s->f`.
+    //
+    // Also byte-identical: the unused fifth parameter declared `float`
+    // instead of `int`, which was worth testing because a float argument
+    // consumes r7's slot without using r7 and is the ordinary reason a
+    // register parameter is skipped. It changes nothing.
+    //
+    // And a control that confirms the store ORDER here is right: moving
+    // `f[2] = c` to the end of the function drops the score to 5 of 19, so
+    // store order IS source order in this function and the order below is
+    // the target's. All 72 flag combinations tools/flagsweep.py builds give
+    // the identical 76 bytes and 13 of 19 -- including /Ou, the compiler's
+    // own prescheduling switch, which is the one flag that could plausibly
+    // have decided a pure scheduling tie.
     s->f[3] = d;  s->f[4] = e;  s->f[5]  = f;
     s->f[2] = c;
     s->f[0] = a;  s->f[1] = b;

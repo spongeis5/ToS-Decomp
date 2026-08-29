@@ -52,32 +52,49 @@
 // /O2 /Os it is 76 bytes, the rotlwi is there, and 13 of 17 words are right.
 // Measure this one at /Os or the diff is describing a different function.
 //
-// WHAT IS LEFT at /Os is the POSITION OF ONE STORE and nothing else:
+// MATCHED at /O2 /Os, and the answer is THE ADDRESS-OF-MEMBER LEVER.
+//
+// What was left was the position of one store and nothing else:
 //
 //      target  lis, stw r4,4, li r11,0, addi r10, stb r11,8, cmplwi,
 //              stw r10,0, stw r5,12, beq-
 //      ours    lis, stw r4,4, li r11,0, stw r5,12, addi r10, stb r11,8,
 //              cmplwi, stw r10,0, beq-
 //
-// `stw r5,12(r3)` -- the text store -- is issued four slots early, into the
+// `stw r5,12(r3)` -- the text store -- was issued four slots early, into the
 // gap between `li r11,0` and the `addi` that finishes the vtable address.
-// The target fills that slot with the addi itself and puts the text store
-// last, after the vtable store.
+// Writing it through a pointer TO the member puts it back where the target
+// has it, 17 of 17:
 //
-// STORE ORDER IS NOT SOURCE ORDER HERE AT ALL. All 24 permutations of the
-// four stores were compiled at /Os and they produce exactly TWO schedules --
-// the one above whenever `owner` is written before `text`, and the same
-// thing with those two swapped otherwise. The other two stores never move.
-// Eight structural shapes give the same: the length as an if/else, as a
-// zero-initialised accumulator declared first and declared last, computed
-// before the stores, the text stored from a local copy of `s`, the vtable
-// address named in a local, and a real C++ constructor with the vptr
-// emitted by the compiler.
+//      const char** pt = &text;
+//      *pt = s;
 //
-// So the four stores are scheduled by cost and readiness, and the source's
-// order only decides the tie between the two whose values are already in
-// registers on entry.
-
+// This is MATCHED.md's sub_827FEE48 lever used on a STORE rather than on a
+// load. Two constant offsets off one base provably cannot alias, so MSVC is
+// free to slide the text store into the scheduling gap; taking the member's
+// address removes that proof and the store stays where it was written. The
+// same change on the VTABLE member instead does nothing (13 of 17), so it is
+// the moved store that has to be pinned, not the one it moved past.
+//
+// AND IT MUST BE A BARE LOCAL POINTER: a `static void SetPtr(const char**,
+// const char*)` helper called with `&text` is 13 of 17, byte-identical to
+// the baseline. That is the OPPOSITE of sub_825FAC00, where eleven bare
+// `int*` spellings failed and only an inlined `Pack(int*, int, int)` helper
+// reached the match. So the lever has two forms and which one works is not
+// predictable from the shape -- try both.
+//
+// STORE ORDER IS STILL NOT SOURCE ORDER HERE. All 24 permutations of the
+// four stores were compiled at /Os and produce exactly TWO schedules -- the
+// one above whenever `owner` is written before `text`, and the same thing
+// with those two swapped otherwise. Eight structural shapes give the same:
+// the length as an if/else, as a zero-initialised accumulator declared first
+// and declared last, computed before the stores (84 bytes, 1 of 17 -- much
+// worse), the text stored from a local copy of `s`, the vtable address named
+// in a local, and a real C++ constructor with the vptr emitted by the
+// compiler. A real constructor WITH the address-of lever also reaches 17 of
+// 17, so the member-function-versus-constructor axis carries nothing here
+// and the pointer carries all of it.
+//
 extern "C" size_t strlen(const char*);
 #pragma intrinsic(strlen)
 
@@ -104,6 +121,9 @@ void MsgObject::Init(void* o, const char* s)
     owner  = o;
     flag   = 0;
     vt     = &kVTable_8207D218;
-    text   = s;
+
+    const char** pt = &text;
+    *pt = s;
+
     length = s ? (u32)strlen(s) : 0;
 }

@@ -27,24 +27,46 @@
 // WHEN A STORE OF A VTABLE ADDRESS COMES FIRST AND WILL NOT MOVE, THE SOURCE
 // IS A CONSTRUCTOR, not an initialise-this-struct function.
 //
-// NOT MATCHED: 8 of 10 words. The two that differ are the FIRST TWO STORES,
-// transposed and nothing else -- we emit `stw r11,8(r3)` where the target
-// emits `stw r9,0(r3)`, and vice versa. The four setup instructions ahead of
-// them (lis, li r11,0, addi r9, li r8,1) are identical in both, so the
-// vtable address is ready at exactly the same cycle in both and this is not
-// the gap-filling exception above: it is a pure TIE-BREAK between two ready
-// stores. The target issues the one whose value was defined LATER (r9, from
-// the addi at slot 3); we issue the one defined EARLIER (r11, from the li at
-// slot 2).
+// MATCHED at /O2, and the last two words came out with THE ADDRESS-OF-MEMBER
+// LEVER applied to the FIRST member store.
 //
-// Eight class and constructor shapes were compiled at BOTH levels and all
-// eight put the vptr store second: a member initialiser list; an unused
-// constructor parameter; a second virtual function; the zeros written
-// through a named local; `enabled` as `bool` rather than `u8`; an empty base
-// class carrying the virtual (which splits the vptr store into the base
-// constructor and is not this function); `this` copied into a named local;
+// What was wrong was the first two stores, transposed and nothing else: we
+// emitted `stw r11,8(r3)` where the target emits `stw r9,0(r3)`, and vice
+// versa. The four setup instructions ahead of them (lis, li r11,0, addi r9,
+// li r8,1) are identical in both, so the vtable address is ready at exactly
+// the same cycle either way -- it was a pure TIE-BREAK between two ready
+// stores, and the target issues the one whose value was defined LATER.
+//
+// Writing the first member store through a pointer to the member
+//
+//      s32* p = &f08;
+//      *p = 0;
+//
+// removes MSVC's proof that +0 and +8 cannot alias, so it can no longer
+// reorder the two, and the compiler-emitted vptr store -- which is planted
+// first, before any user code -- stays first. 10 of 10.
+//
+// The variants say the pin has to be on the member that MOVED: `&f08` is 10
+// of 10, an `s32&` reference to it is 10 of 10, and routing all five zeroes
+// through one `s32* p` is 10 of 10, while pinning `&enabled` instead leaves
+// the baseline's 8 of 10 untouched. As on sub_827007F8 an inlined
+// `SetI(s32*, s32)` helper does NOT work -- 8 of 10, byte-identical to the
+// baseline -- so the bare local pointer and the helper form of this lever
+// are not interchangeable.
+//
+// A REAL BASE CLASS IS THE WRONG ANSWER here, and it is worth saying so
+// because it is the first thing the constructor levers suggest: moving the
+// virtual into an empty base splits the vptr store into the base
+// constructor and scores 4 of 10.
+//
+// Eight class and constructor shapes were compiled at BOTH levels before
+// this and all eight put the vptr store second: a member initialiser list;
+// an unused constructor parameter; a second virtual function; the zeros
+// written through a named local; `enabled` as `bool` rather than `u8`; an
+// empty base class carrying the virtual; `this` copied into a named local;
 // and the baseline. At /O2 /Os the vtable register changes from r9 to r10
-// and the transposition remains, so the flag does not reach it either.
+// and the transposition remains, so the flag never reached it either -- and
+// with the pin in place /Os is 7 of 10, so this one wants plain /O2.
 struct Listener
 {
     /* 0x00 */ /* vptr */
@@ -63,7 +85,8 @@ struct Listener
 
 Listener::Listener()
 {
-    f08     = 0;
+    s32* p  = &f08;
+    *p      = 0;
     f0C     = 0;
     f10     = 0;
     f14     = 0;

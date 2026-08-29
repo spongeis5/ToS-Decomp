@@ -36,6 +36,27 @@
 // The loop is the ordinary rotated `for`: the count test is peeled out in
 // front and the increment plus `blt+` closes the bottom.  The zero return is
 // shared by the peeled guard and the fall-out, so it is written once, last.
+//
+// NOT MATCHED.  0 of 22 words, and ours is 3 words LONGER, because MSVC
+// applies the LOOP-INVARIANT-DELTA transform to the two subscripts:
+//
+//      subf r7,r4,r3           a - b, once, before the loop
+//   L: lbzx r10,r7,r11         a[i] as *(p + delta)
+//      lbz  r9,0(r11)          b[i] through a walking pointer
+//      addi r8,r8,1            ... and a THIRD induction variable for the
+//      addi r11,r11,1              count, because the bound stayed an index
+//
+// Three induction variables where the target has one, which also frees r3
+// and r4 as scratch -- the target keeps both base pointers live for the two
+// `lbzx` all the way down.  This is the same transform MATCHED.md records
+// for an inlined hand-written strcmp, where the fix was to call the real
+// strcmp; there is no library function for this fold.
+//
+// Ruled out, all identical or worse: /O2 /Os (still the delta form, 0 of
+// 22), and a guarded do/while instead of the rotated `for` (0 of 22).  The
+// fold itself is not in question -- the eleven instructions from `extsb` to
+// the second `or` are byte-identical in every attempt; only the addressing
+// and the induction variables differ.
 
 #include "types.h"
 

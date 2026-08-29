@@ -38,6 +38,30 @@
 // `mtctr` + `bdnz` is a counted loop, so the trip count is computed once.
 //
 // 1 of 29 words is relocated.
+//
+// NEAR MISS, and the mechanism is INDUCTION-VARIABLE ELIMINATION, not a
+// statement order. Retail carries THREE inductions through the loop -- the
+// ctr, the guest address in r10, and the output pointer in r9 using the
+// update-form `stbu r8,1(r9)`. Every spelling tried instead lets MSVC notice
+// that `out + 1 + i` and `addr + 1 + i` differ by a constant, hoist
+// `subf r8,r4,r5` out of the loop and drop the output pointer entirely,
+// storing with `stbx r8,<delta>,<address>`. Once that happens every register
+// downstream is renamed and the score is 0 to 3 of 27.
+//
+// Measured, all with the delta transform:
+//   * `out[i + 1] = ReadByte(c, addr + 1 + i)` at /O2   -- 3 of 27, 116 bytes
+//   * the same at /O2 /Os                               -- 1 of 25, 108 bytes
+//   * two explicit locals, `*d = ...; d++; a++;` at /O2 -- 0 of 27, 120 bytes
+// The relationship the transform exploits holds in every spelling of the
+// loop, so this is not reachable by reordering statements; it wants a
+// mutation that changes register pressure, which is the gap
+// tools/permuter.py still has.
+//
+// Two smaller facts that ARE settled and should not be re-derived: the
+// doubled `clrlwi 24` then `clrlwi 28` needs the helper to return something
+// wider than u8 with an explicit `(u8)` at the use, and `addi r9,r5,1`
+// followed by `addi r9,r9,-1` means `out + 1` is a real expression evaluated
+// BEFORE the count is known -- it is dead on the skip path.
 
 #include "types.h"
 
@@ -56,20 +80,20 @@ struct MemCtx
 
 extern const u8 g_runLen[16];
 
-static u8 ReadByte(MemCtx* c, u32 a)
+static u32 ReadByte(MemCtx* c, u32 a)
 {
     return c->dir->pages[a >> 12][a & 0xFFF];
 }
 
 u32 ReadRun(MemCtx* c, u32 addr, u8* out)
 {
-    u8 b = ReadByte(c, addr);
-    out[0] = b;
+    u32 v = ReadByte(c, addr);
+    out[0] = (u8)v;
 
-    u32 n = g_runLen[b & 15];
+    u32 n = g_runLen[(u8)v & 15];
 
     for (u32 i = 0; i < n; i++)
-        out[i + 1] = ReadByte(c, addr + 1 + i);
+        out[i + 1] = (u8)ReadByte(c, addr + 1 + i);
 
     return n + 1;
 }

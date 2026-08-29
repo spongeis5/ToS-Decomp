@@ -306,6 +306,211 @@ def mut_temp(text, rng):
     return out if out != text else None
 
 
+def _pointer_decls(text):
+    """[(type, name)] for every `T* name` this source declares.
+
+    Textual, and it does not need to be better than that: the sources this
+    project writes declare their struct types by name a few lines above the
+    function, so the type is recoverable without a parser. That is the whole
+    reason the mutations below can do what `mut_temp` could not.
+    """
+    code_only = SPAN_RE.sub("", text)
+    out = []
+    for m in re.finditer(r"\b(?:const\s+)?(\w+)\s*\*\s*(\w+)\s*[,)=;]",
+                         code_only):
+        ty, nm = m.group(1), m.group(2)
+        if ty in ("return", "sizeof", "void") or nm in ("const",):
+            continue
+        if (ty, nm) not in out:
+            out.append((ty, nm))
+    return out
+
+
+def mut_constview(text, rng):
+    """Read SOME uses of `p->` through a named `const T* view = p;`.
+
+    THE LEVER THIS EXISTS FOR. `sub_82667EE0` (VectorGrow) was one word short
+    on a `mullw`'s operand order, which is decided by which read of a field
+    becomes the CSE representative. A named const-qualified view of the same
+    pointer breaks the value-number tie and it comes out 32 of 32.
+
+    Two details are load-bearing and both were measured:
+
+      The local must be NAMED. An inline cast and an inlined `const`
+      accessor are both folded back to the same value number and change
+      nothing, which is why `mut_temp`'s `(void)(expr);` never moved
+      anything.
+
+      Only SOME uses are rewritten. Rewriting all of them just renames the
+      pointer and restores the tie; the point is to split the reads into two
+      value numbers. So a random non-empty proper subset is chosen.
+
+    Its known limit, from the arena twins `sub_82606EC8`/`sub_82606FD8`: the
+    view has to name a field reached through a POINTER, not a global's
+    lis/addi address expression. This mutation therefore only fires where a
+    pointer declaration exists, which is the same condition.
+    """
+    if "__cv" in text:
+        return None
+    decls = _pointer_decls(text)
+    if not decls:
+        return None
+    rng.shuffle(decls)
+    for ty, nm in decls:
+        # READS only, and only OUTSIDE comments.
+        #
+        # Two separate mistakes lived here. Writes: `__cv->prev = 0;` assigns
+        # through a const pointer and is error C2166, which 31 of 40 seeds
+        # produced. And comments: every source in this project opens with the
+        # target's disassembly, and those listings are annotated with things
+        # like `h->flags`. Searching the raw text made the FIRST use a
+        # position in the header comment, before any function brace, so the
+        # insertion point could not be found and the mutation silently
+        # returned None on every real source while passing on a synthetic one
+        # that had no comments.
+        spans = [(m.start(), m.end()) for m in SPAN_RE.finditer(text)]
+
+        def in_comment(pos):
+            return any(a <= pos < b for a, b in spans)
+
+        uses = []
+        for m in re.finditer(r"\b" + re.escape(nm) + r"\s*->\s*\w+", text):
+            if in_comment(m.start()):
+                continue
+            # ADDRESS-OF is not a read either. `&__cv->watch` has type
+            # `LNode* const*` and will not initialise an `LNode**`
+            # (error C2440).
+            before = text[:m.start()].rstrip()
+            if before.endswith("&"):
+                continue
+            # A generous lookahead, and one that steps over a subscript:
+            # `p->arr[i] = 0` is a write, and matching only `->name` then
+            # looking for `=` sees the `[` and calls it a read.
+            after = text[m.end():m.end() + 24]
+            after = re.sub(r"^\s*\[[^\]]*\]", "", after)
+            if re.match(r"\s*(?:[-+*/%&|^]=|<<=|>>=|=(?!=))", after):
+                continue
+            uses.append(m.start())
+        if len(uses) < 2:
+            continue
+
+        # WHERE the declaration goes. This used to take the first `) {` in
+        # the file, which is the first FUNCTION in the file -- so on a source
+        # with a small static helper above the real one, `const LList* __cv
+        # = h;` landed in the helper where `h` does not exist, and every
+        # single mutation failed to compile with "undeclared identifier".
+        # The permuter reported it as "discarded" and the mutation looked
+        # like it was simply never firing.
+        #
+        # If `nm` is a LOCAL, the view must come after its declaration; if it
+        # is a PARAMETER, after the opening brace of the function that takes
+        # it. Both are found by looking backwards from the first use.
+        decl_here = None
+        for m in re.finditer(r"\b(?:const\s+)?" + re.escape(ty)
+                             + r"\s*\*\s*" + re.escape(nm) + r"\s*=[^;]*;",
+                             text):
+            if m.end() <= uses[0]:
+                decl_here = m.end()
+        if decl_here is None:
+            braces = [m.end() for m in re.finditer(r"\)\s*\n?\s*\{", text)
+                      if m.end() <= uses[0]]
+            if not braces:
+                continue
+            decl_here = braces[-1]
+        at = decl_here
+
+        # Only uses in the SAME function body. A source with two functions
+        # that both take a `T* p` had its declaration put in the first and
+        # its uses rewritten in both, giving "'__cv' : undeclared identifier"
+        # in the second. Walk the braces forward from the insertion point to
+        # find where this body ends.
+        depth = 0
+        end = len(text)
+        for i in range(at, len(text)):
+            c = text[i]
+            if c == "{":
+                depth += 1
+            elif c == "}":
+                if depth == 0:
+                    end = i
+                    break
+                depth -= 1
+        uses = [u for u in uses if at <= u < end]
+        if len(uses) < 2:
+            continue
+        # A proper, non-empty subset: renaming every use restores the tie.
+        k = rng.randrange(1, len(uses))
+        chosen = set(rng.sample(uses, k))
+        out = []
+        last = 0
+        for pos in sorted(uses):
+            if pos < at or pos not in chosen:
+                continue
+            out.append(text[last:pos])
+            out.append("__cv")
+            last = pos + len(nm)
+        if not out:
+            continue
+        out.append(text[last:])
+        rewritten = "".join(out)
+        decl = "\n    const %s* __cv = %s;" % (ty, nm)
+        return rewritten[:at] + decl + rewritten[at:]
+    return None
+
+
+def mut_addrof(text, rng):
+    """Store through `T** pp = &o->field;` instead of assigning `o->field`.
+
+    Two constant offsets off one base provably cannot alias, so MSVC freely
+    hoists a later load above a store. Taking the member's address stops it:
+    `sub_827FEE48` went from 9 of 11 to 11 of 11 on exactly this, and
+    `sub_8216E778` needed it at all three update sites at once.
+
+    Textual and deliberately narrow -- it only fires on a whole-statement
+    assignment `a->b = c;`, which is the shape the lever was measured on.
+    """
+    if "__pp" in text:
+        return None
+    code_only = SPAN_RE.sub("", text)
+    hits = list(re.finditer(r"\n([ \t]+)(\w+)\s*->\s*(\w+)\s*=\s*([^;=][^;]*);",
+                            code_only))
+    if not hits:
+        return None
+    h = rng.choice(hits)
+    obj, fld, val = h.group(2), h.group(3), h.group(4)
+    stmt = "%s->%s = %s;" % (obj, fld, val)
+    if text.count(stmt) != 1:
+        return None
+
+    # The field's type is not recoverable textually, and cl 15.00 has no
+    # `auto`. A one-line function template supplies the type instead: it is
+    # well-typed for any field, it takes the member's ADDRESS, and it adds a
+    # call boundary -- which agent measurement on sub_825FAC00 showed is
+    # sometimes required on top of the address itself (a bare `int*` local
+    # sat at 16 of 26 there; an inlined `static void Pack(int*, ...)` reached
+    # 28 of 28).
+    # T is deduced from the POINTER only. Deducing it from both parameters
+    # makes `__store_through(&n->prev, 0)` ambiguous -- the field is `Node*`
+    # and the literal is `int` -- which is error C2782 and killed 12 of 40
+    # seeds. `__id<T>::type` is a non-deduced context, so the value simply
+    # converts to whatever the field is.
+    helper = ("template <class T> struct __id { typedef T type; };\n"
+              "template <class T>\n"
+              "static __forceinline void __store_through("
+              "T* __pp, typename __id<T>::type __v)\n"
+              "{ *__pp = __v; }\n\n")
+    new = "__store_through(&%s->%s, %s);" % (obj, fld, val)
+    out = text.replace(stmt, new, 1)
+    if "__store_through" not in text:
+        # Insert the helper above the first function definition, after the
+        # includes and type declarations it may depend on.
+        anchor = re.search(r"\n(?=[A-Za-z_][\w:<>, \*&]*\s+[\w:~]+\s*\([^;]*\)"
+                           r"\s*\n?\s*\{)", out)
+        at = anchor.start() + 1 if anchor else 0
+        out = out[:at] + helper + out[at:]
+    return out if out != text else None
+
+
 def mut_sign(text, rng):
     """Swap int/unsigned on one declaration."""
     subs = [(r"\bint\b", "unsigned"), (r"\bunsigned\b", "int"),
@@ -387,6 +592,8 @@ MUTATIONS = [
     ("member", mut_member),
     ("compare", mut_compare),
     ("inline", mut_inline),
+    ("constview", mut_constview),
+    ("addrof", mut_addrof),
     ("temp", mut_temp),
     ("sign", mut_sign),
 ]

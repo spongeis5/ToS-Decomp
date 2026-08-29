@@ -32,6 +32,14 @@
 // source read comes later: the base at +12 is read by the first comparison,
 // the count and size only inside the second term.
 //
+// The free-list splice needs a NAMED temporary and the stores in the image's
+// own order. Written the obvious way -- `*(void**)p = b->freeList;
+// b->freeList = p;` -- MSVC sinks the store to +16 past the refcount
+// decrement: 24 of 29, with exactly those four words rotated. A load's
+// position relative to a store it might alias is source order (sub_82600AD0),
+// and here the load has to be lifted out of the second statement for the
+// store order to be expressible at all.
+//
 // `addic.` records into CR0 and `bnelr` reads it, so the decrement and the
 // zero test are one expression: `if (--b->used == 0)`.
 //
@@ -73,8 +81,9 @@ void PoolFree(Pool* pool, void* p)
     {
         if (BlockOwns(b, p))
         {
-            *(void**)p = b->freeList;
+            void* next = b->freeList;
             b->freeList = p;
+            *(void**)p = next;
 
             if (--b->used == 0)
                 PoolCompact(pool);

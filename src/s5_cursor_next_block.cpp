@@ -37,7 +37,38 @@
 // constant-fold across the merge. That is also why the second `cmplwi` tests
 // `n` again rather than `d`.
 //
-// MEASUREMENT (recorded, see the bottom of this file for the current score).
+// NOT MATCHED: 12 of 21 words at /O2 /Os, 84 bytes against 88.
+//
+// The one missing word is `rotlwi r10,r10,0` at 82780C64 -- a move to ITSELF,
+// which MATCHED.md records as the fingerprint of a common subexpression being
+// COPIED. From the `next` load onward r10 and r11 are transposed as well: the
+// target REUSES the register that held `b` for `n`, and every spelling tried
+// allocates a fresh one.
+//
+// One word came from BRANCH POLARITY on the inner guard: testing `d == 0`
+// rather than `n == 0` after the conditional adjust is 12 of 21 where testing
+// `n` is 11. They are the same condition -- `d` is null exactly when `n` is --
+// so this is a spelling choice and not a semantic one, and it is worth a word.
+//
+// THIRTEEN SHAPES MEASURED, all 84 bytes and none past 12 of 21:
+//
+//   * reusing `b` for the next pointer instead of declaring `n` -- which was
+//     the direct reading of the register reuse -- 11 of 21, byte-identical
+//     to the baseline;
+//   * the same with `d` unnamed, with `d` copied into a second local, and
+//     with the swap written through the other side;
+//   * the block header as a real base-class upcast rather than a cast;
+//   * the offset named before the mark store;
+//   * reading `c->mark` back after storing it, and reading `c->pos` back --
+//     the memory-round-trip forwarding that produced `mr r10,r7` in the
+//     arena -- both byte-identical;
+//   * the difference computed as `(u32)d - (u32)b`, and through an
+//     `unsigned` local;
+//   * the block base recomputed in the tail through a longer chain.
+//
+// So the copy is not reachable from how the difference or the pointer is
+// spelled. What it would take is for `d` to be live in two places at once,
+// and nothing in a function this short creates that pressure.
 
 struct CurBlk
 {
@@ -69,7 +100,7 @@ void CursorNextBlock(BlkCursor* c)
     char*   d = n ? (char*)n + 8 : 0;
 
     c->pos = d;
-    if (n == 0)
+    if (d == 0)
         return;
 
     c->mark = d;

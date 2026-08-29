@@ -51,6 +51,16 @@
 // are fixed by the guard -- which is consistent with this being unreachable
 // from the source and is the reason to stop.
 //
+// EIGHTEEN MORE SHAPES were measured on the twin's source this session and
+// are recorded in f_arena_alloc.cpp. The finding worth carrying here is that
+// the requirement and the code size are in DIRECT CONFLICT: MSVC's rule puts
+// in rA the operand whose source read comes later, so the target's
+// `add r3,cursor,base` needs the base read BEFORE the guard -- and all six
+// ways of doing that collapse the two duplicated tails into one and take the
+// body from 40 words to 36 or fewer (144-152 bytes, 1 to 4 words right).
+// Twelve shapes that keep the base read in the tail are all 160 bytes and
+// all 33 of 35 with the same two words transposed.
+//
 // So: same class as MATCHED.md's "What still resists". One operand-selection
 // decision, reachable from neither source order nor flags.
 

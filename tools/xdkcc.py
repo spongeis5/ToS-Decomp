@@ -115,7 +115,88 @@ def _blocked_by_negative_controls():
         return None
     if holder == os.getpid():
         return None                     # verify.py itself, doing the test
+    # ...and its CHILDREN. Every negative control runs build.py as a
+    # subprocess, which has a different pid, so a pid-only check refused the
+    # very builds the controls exist to run. They then failed for the wrong
+    # reason -- a refusal message instead of the C2118 or hash mismatch each
+    # one looks for -- and four controls reported NOT CAUGHT. The controls
+    # caught the regression, which is the entire argument for having them.
+    #
+    # verify.py exports its pid, and the environment is inherited by
+    # everything it spawns, so descendants pass and unrelated processes do
+    # not.
+    if os.environ.get("TOS_VERIFY_LOCK", "") == str(holder):
+        return None
+    # A DEAD holder holds nothing. verify.py releases the lock in the normal
+    # path, but it was killed by a command timeout while holding it and every
+    # tool in the project then refused to compile -- permanently, and with a
+    # message confidently explaining that a verify was running when none was.
+    # A guard that cannot be cleared is worse than the race it prevents.
+    if not _pid_alive(holder):
+        # Clearing the lock is only half of it. The holder died WHILE a
+        # source file was corrupted, and that file is still corrupted on
+        # disk; releasing the lock without putting it back just lets everyone
+        # compile the wrong text, which is the exact failure the lock exists
+        # to prevent. verify.py restores from this sentinel at startup, but
+        # nothing else did -- so table_index.cpp sat with a deliberately
+        # wrong ASSERT_SIZE and objdiff_export reported it as COMPILE FAILED.
+        _restore_sentinel()
+        try:
+            LOCK.unlink()
+        except OSError:
+            pass
+        return None
     return holder
+
+
+SENTINEL = ROOT / "build/.verify_restore.json"
+
+
+def _restore_sentinel():
+    """Put back whatever a killed verify.py left corrupted. -> [paths]."""
+    if not SENTINEL.exists():
+        return []
+    import json
+    try:
+        saved = json.loads(SENTINEL.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    done = []
+    for rel, text in saved.items():
+        try:
+            (ROOT / rel).write_text(text, encoding="utf-8")
+            done.append(rel)
+        except OSError:
+            pass
+    if done:
+        sys.stderr.write(
+            "xdkcc: a killed tools/verify.py left %d file(s) corrupted by a\n"
+            "negative control; restored %s before compiling.\n"
+            % (len(done), ", ".join(done)))
+    try:
+        SENTINEL.unlink()
+    except OSError:
+        pass
+    return done
+
+
+def _pid_alive(pid):
+    """Is `pid` a live process? On Windows, ask the OS rather than signal 0."""
+    if pid <= 0:
+        return False
+    if os.name != "nt":
+        try:
+            os.kill(pid, 0)
+            return True
+        except OSError:
+            return False
+    try:
+        out = subprocess.run(
+            ["tasklist", "/FI", "PID eq %d" % pid, "/NH"],
+            capture_output=True, text=True, timeout=10).stdout
+    except Exception:
+        return True          # cannot tell: assume alive, i.e. keep refusing
+    return str(pid) in out
 
 
 def compile_obj(src, obj, flags=None, workdir=None):

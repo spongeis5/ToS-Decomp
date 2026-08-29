@@ -18,6 +18,41 @@
 //
 // `mr r9,r3` up front and `li r3,0` in the middle: the object pointer has to
 // vacate r3 because the function returns 0.
+//
+// MATCHED at /O2 /Os, and the answer is ONE FIELD'S SIGNEDNESS.
+//
+// The target materialises -1 TWICE -- `li r10,-1` at 825E013C, used for the
+// four stores at +60/+64/+68/+76, and `li r7,-1` at 825E0148, used ONCE, for
+// the last store at +144. Every ordinary spelling common-subexpressions the
+// two into a single register, which makes the body 168 bytes instead of 172
+// and shifts every instruction after 825E0148 by a word: 12 of 36. The whole
+// difference in this function was that one missing `li`.
+//
+// TWO CONSTANTS THAT COMPARE EQUAL ARE NOT ONE VALUE NUMBER IF THEIR TYPES
+// DIFFER. Declaring the last field `u32` and writing
+//
+//     d->f90 = 0xFFFFFFFFu;
+//
+// gives 37 of 37. `(u32)-1` on a `u32` field does the same. `~0` on an `s32`
+// field does NOT -- it folds back to the same signed -1 and stays at 12 of
+// 36 -- so it is the TYPE of the constant that splits the value number, not
+// the way the bits are written. That is worth having as a general lever: a
+// constant materialised twice where once would do is a signedness tell, in
+// the same family as MATCHED.md's "a second `cmplwi` on a register just
+// compared is a SIGNEDNESS SPLIT", reached from the constant pool instead of
+// from a comparison.
+//
+// Four other shapes were measured and all stay at 168 bytes: the four -1s
+// through a named `const s32` local with a literal at the tail; the last two
+// fields written by an inlined helper on a two-field sub-struct (which is
+// worse, 10 of 36, because it reorders the pair); `~0`; and all nine float
+// stores moved after all twenty integer stores, which changes nothing at all
+// and is a clean confirmation of the two-stream rule -- the interleaving is
+// dual-issue scheduling, not source order.
+//
+// FLAGS: /O2 /Os. At plain /O2 the same source is 172 bytes and 32 of 37 --
+// the constants and stores are right and five registers differ, the /Os
+// coalescing signature.
 
 struct Defaults
 {
@@ -52,7 +87,7 @@ struct Defaults
     /* 0x7C */ f32  f7C;
     /* 0x80 */ char unk0080[0x0C];
     /* 0x8C */ s32  f8C;
-    /* 0x90 */ s32  f90;
+    /* 0x90 */ u32  f90;
 };
 ASSERT_OFFSET(Defaults, f14, 0x14);
 ASSERT_OFFSET(Defaults, f2C, 0x2C);
@@ -93,6 +128,6 @@ int InitDefaults(Defaults* d, s32 owner)
     d->f78 = -666.0f;
     d->f7C = -666.0f;
     d->f8C = 0;
-    d->f90 = -1;
+    d->f90 = 0xFFFFFFFFu;
     return 0;
 }

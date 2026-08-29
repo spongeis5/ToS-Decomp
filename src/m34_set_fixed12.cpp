@@ -17,9 +17,18 @@
 //      andi. r10,r9,65519
 //      sth  r11,4(r3) ; sth r10,6(r3) ; blr
 //
-// `fctidz` + `stfd` to the red zone + `lwz` of the LOW word is MSVC's whole
-// float-to-int sequence on this target; the second arm converts from f1
-// again, so it is `(int)v` and not a reuse of `v * 16`.
+// `fctidz` + `stfd` to the red zone + `lwz` of the LOW word is the UNSIGNED
+// conversion, and that one word decides the type. `fctiwz` is signed-only, so
+// MSVC reaches for the 64-bit convert and keeps the low half whenever the
+// destination is `unsigned`; writing `(int)` gives `fctiwz` and nothing else
+// in the function changes -- 3 of 29, every register renamed downstream.
+// The second arm converts from f1 again, so it is a fresh `(u32)v` and not a
+// reuse of `v * 16`.
+//
+// `clrlwi.` doing the mask and the test in ONE instruction is the /Os form of
+// that pair; at /O2 it splits into `clrlwi` plus a `cmpwi cr6` and the whole
+// tail shifts by a word. Same one-word signature as sub_827156B8. The `ori`
+// in the first arm agrees -- retail writes into r11, /O2 gives it a fresh r8.
 //
 // `rlwimi rD,rS,0,20,31` inserts rS's low twelve bits into rD's low twelve
 // with no rotate, over a value that arrived by `lhz` -- so the field is the
@@ -35,6 +44,29 @@
 // twelve bits (256 * 16 == 4096).
 //
 // 4 of 29 words are relocated.
+//
+// NEAR MISS: 17 of 25 non-relocated words at /O2 /Os, 120 bytes against 116.
+// The FIRST arm is exact -- every word from 82761808 to 82761850 agrees --
+// and the whole residue is in the second, where retail issues `lhz r9,6(r3)`
+// between the `fctidz` and the `stfd` and we issue it after the `rlwimi`.
+// That one slot decides the rest: with the flags load late, MSVC makes the
+// CONVERTED VALUE the rlwimi destination (`rlwimi r10,r11,0,16,19`, inserting
+// the old high nibble into the new value) instead of the packed word
+// (`rlwimi r11,r10,0,20,31`), and then needs an `mr r11,r10` to get the
+// result into the register the `sth` wants -- the four extra bytes.
+//
+// Ruled out, all identical at /O2 /Os:
+//   * `f->flags &= ~0x10` versus `f->flags = (u16)(fl & 0xFFEF)` with `fl`
+//     named ahead of the packed statement -- the load is folded straight back
+//     and does not move, so the narrow-field naming lever does not reach it;
+//   * declaring all three chains as locals in retail's own issue order
+//     (packed, then the conversion, then flags), which is the direct
+//     application of the sub_8216C240 declaration-order lever;
+//   * plain /O2, which additionally splits `clrlwi.` and loses arm 1 as well
+//     (3 of 25).
+// The `(u32)` conversion and the level are both settled and neither is the
+// remaining question; what is left is which operand MSVC picks as the rlwimi
+// destination, and no spelling tried has moved it.
 
 #include "types.h"
 
@@ -52,7 +84,7 @@ void SetFixed(FixedPair* f, float v)
 {
     if (v < 256.0f)
     {
-        int n = (int)(v * 16.0f);
+        u32 n = (u32)(v * 16.0f);
 
         if (n & 15)
         {
@@ -62,6 +94,10 @@ void SetFixed(FixedPair* f, float v)
         }
     }
 
-    f->packed = (u16)((f->packed & 0xF000) | ((int)v & 0x0FFF));
-    f->flags &= ~0x10;
+    u16 p = f->packed;
+    u32 m = (u32)v;
+    u16 fl = f->flags;
+
+    f->packed = (u16)((p & 0xF000) | (m & 0x0FFF));
+    f->flags = (u16)(fl & 0xFFEF);
 }

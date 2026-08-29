@@ -35,18 +35,48 @@
 // the /Os signature -- size-directed strength reduction rather than register
 // coalescing -- and it is worth two words on its own.
 //
-// MEASUREMENT (see the probes below): the best shape is EmitSpan at /O2 /Os,
-// 176 bytes against the target's 180 and 44 of 45 words compared. Every
-// instruction is right; the ONE missing word is `lwz r10,24(r3)` at 82772F3C,
-// the reload of l->index. The target reloads it because its bool lands in r11
-// -- the register that held the index -- while ours lands in r10 and leaves
-// the index live, so no reload is needed. That is a register-assignment
-// choice, and the register numbers are the only thing wrong afterwards.
-//   EmitSpanB (`bool bad` named first)     : see probe
-//   EmitSpanC (`u32 pos` named first)      : 168 B, the pos load hoisted to
-//                                            the second instruction, 2 of 42
+// NOT MATCHED: 8 of 41 non-relocated words at /O2 /Os, 176 bytes against
+// 180. The ONE missing instruction is `lwz r10,24(r3)` at 82772F3C, the
+// reload of l->index, and everything after it is displaced by that word --
+// which is why the score is 8 and not 40. The cause is a register choice:
+// the target's materialised bool lands in r11, the register that held the
+// index, so the index has to be reloaded; ours lands in r10 and leaves the
+// index live.
 //
-// STILL 9 of 11 at /O2 /Os, 176 bytes against 180.
+// TWO NUMBERS IN THIS FILE WERE WRONG AND ARE WORTH THE CORRECTION.
+//
+// It said "44 of 45 words compared", which reads as a near-match and is not
+// one: 44 is the COUNT of words compared, and the identical count is 8. A
+// single displaced instruction moves every word after it, so "one missing
+// word" and "eight words right" are the same measurement, and quoting the
+// first without the second is how a stall comes to look finished.
+//
+// And `python tools/sweep.py --attempts` reports this row as `9 of 11`,
+// which is not EmitSpan at all. sweep scores every function in the object
+// and keeps the best; the inlined `OutOfRange` helper is emitted as its own
+// 44-byte COMDAT, and 9 of its 11 words happen to agree with the first 11
+// words of a 180-byte target. A helper left in a file therefore raises that
+// file's reported score without any of it being about the function being
+// attempted. The four EmitSpanB/C/D shape probes that used to sit here made
+// it worse still, and have been deleted -- their measurements are below.
+//
+// SHAPE PROBES, all at /O2 /Os, sizes against the target's 180:
+//
+//     EmitSpan, the guard in a static bool helper   176 B, 8 of 41  <- this
+//     the same with a two-level `Count(l)` helper   176 B, 8 of 41
+//     `bool bad = OutOfRange(l);` named first       176 B, 8 of 41
+//     the guard taking (index, runs)                176 B, 6 of 41
+//     the guard taking (index, count)               176 B, 6 of 41
+//     the index named in a local inside the guard   176 B, 6 of 41
+//     the two `||` terms swapped                    172 B, 0 of 40
+//     an int-returning guard instead of bool        160 B, 3 of 37
+//     one unsigned test instead of the `||` pair    148 B, 1 of 34
+//     `u32 pos = l->pos;` named first               168 B, 2 of 42
+//
+// The last three are the informative ones: they say the guard really is a
+// two-term `||` returning `bool`, because collapsing it to one unsigned
+// comparison or to an `int` loses the materialised 0/1 and 20 to 30 bytes
+// with it. What no spelling reaches is which REGISTER that 0/1 lands in.
 //
 // THE NAMED-CONST-VIEW LEVER WAS THE RIGHT IDEA AND IT OVERSHOOTS. The
 // target reloads `l->index` at 82772F3C with nothing stored in between,
@@ -67,11 +97,8 @@
 //     byte-identical.
 //
 // So the reload is reachable but not while keeping the bool, and the bool is
-// what makes the rest of the function right. What the target actually needs
-// is for the bool to land in r11 -- the register holding the index -- which
-// is what forces the reload there; ours lands in r10 and leaves the index
-// live. That is a register-assignment choice, not a CSE one, and the const
-// view reaches the CSE only.
+// what makes the rest of the function right. That is a register-assignment
+// choice, not a CSE one, and the const view reaches the CSE only.
 
 struct Run
 {
@@ -127,52 +154,4 @@ int EmitSpan(Layout* l)
     }
     return Emit(l, l->text->chars + l->pos, l->pos,
                 l->text->length - l->pos, 0);
-}
-
-/* ---- shape probes; pick with --sym ---- */
-
-int EmitSpanB(Layout* l)
-{
-    bool bad = OutOfRange(l);
-
-    if (!bad)
-    {
-        Run* r = &l->runs->runs[l->index];
-        if (l->pos < r->start)
-            return Emit(l, l->text->chars + l->pos, l->pos,
-                        r->start - l->pos, 0);
-        return Emit(l, l->text->chars + r->start, r->start, r->f04, r->f08);
-    }
-    return Emit(l, l->text->chars + l->pos, l->pos,
-                l->text->length - l->pos, 0);
-}
-
-int EmitSpanC(Layout* l)
-{
-    bool bad = OutOfRange(l);
-    u32  pos = l->pos;
-
-    if (!bad)
-    {
-        Run* r = &l->runs->runs[l->index];
-        if (pos < r->start)
-            return Emit(l, l->text->chars + pos, pos, r->start - pos, 0);
-        return Emit(l, l->text->chars + r->start, r->start, r->f04, r->f08);
-    }
-    return Emit(l, l->text->chars + pos, pos, l->text->length - pos, 0);
-}
-
-int EmitSpanD(Layout* l)
-{
-    if (OutOfRange(l))
-        return Emit(l, l->text->chars + l->pos, l->pos,
-                    l->text->length - l->pos, 0);
-
-    {
-        Run* r = &l->runs->runs[l->index];
-        if (l->pos < r->start)
-            return Emit(l, l->text->chars + l->pos, l->pos,
-                        r->start - l->pos, 0);
-        return Emit(l, l->text->chars + r->start, r->start, r->f04, r->f08);
-    }
 }

@@ -36,6 +36,13 @@
 //
 // `cmplw cr6,r10,r8` puts the node's field in rA: written `p->key == h`.
 //
+// `mr r10,r4` is the whole reason the walk needs a SEPARATE local. Advancing
+// the parameter itself -- `while (*s) { ...; s++; }` -- lets MSVC run `lbzu`
+// straight off r4 and the copy disappears, which is 96 bytes against the
+// image's 100 and 1 of 24 words, every register renamed downstream. The
+// pointless-looking move is the tell that the source did not consume the
+// parameter.
+//
 // Nothing is relocated: 25 of 25 words are compared.
 
 #include "types.h"
@@ -60,11 +67,12 @@ ASSERT_OFFSET(NameTable, chain, 0x48);
 HashNode* FindByName(NameTable* t, const char* s)
 {
     u32 h = 0;
+    const char* c = s;
 
-    while (*s != 0)
+    while (*c != 0)
     {
-        h = h * 131 + *s;
-        s++;
+        h = h * 131 + *c;
+        c++;
     }
 
     for (HashNode* p = t->chain; p->next != 0; p = (HashNode*)p->next)

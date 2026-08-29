@@ -41,6 +41,41 @@
 // MATCHED.md's table (`cmplwi rX,0 ; addi rY,rX,n ; bne- ; li rY,0`), so the
 // two handlers take different base subobjects of the same argument -- the
 // first the whole thing, the second a base at offset 4.
+//
+// MATCHED, and the answer is ONE NAMED LOCAL PER ARM. Written with the
+// adjusted pointer as an argument expression -- `HandleOne((Handled*)((char*)o
+// + o->adjust), a)` -- the body is 84 bytes and 0 of 19 words; naming it
+//
+//     Handled* h = (Handled*)((char*)o + o->adjust);
+//     HandleOne(h, a);
+//
+// in EACH arm is 88 bytes and 20 of 20, at either optimisation level.
+//
+// WHAT THE NAME BUYS is the `mr r10,r3` at the top -- the fourth
+// instruction, and the whole word the short version is missing. Written as
+// an argument, the adjusted pointer is evaluated as late as MSVC likes
+// (arguments go right to left, so the upcast is materialised first) and the
+// second arm becomes upcast-then-adjust: `cmplwi ; addi r4,r3,4 ; bne- ;
+// li r4,0` with `a` still in r3, so no copy of r3 is ever needed. Named, the
+// adjustment is computed FIRST in each arm, which puts `add r3,...` ahead of
+// the upcast's branch -- and once r3 is written there, `a` has to be saved
+// somewhere before the branch, which is the copy. The dead-looking `mr` at
+// the top is therefore a consequence of a statement order two branches away.
+//
+// This is MATCHED.md's "naming a sub-expression as a local" lever
+// (sub_82154A68), and it is the second time in this batch that it decided
+// whether a value is computed early or late rather than which register it
+// lands in.
+//
+// Seven other shapes were measured, all 84 bytes (or 80) and all 0 of 19,
+// which is what makes the naming the answer rather than one option: the kind
+// byte in a local; the two arms as a `switch` (80 bytes -- MSVC builds a
+// different compare chain); two flat `if`s with a `return` between them; the
+// adjust BYTE in a local instead of the whole pointer; both parameters
+// copied into locals up front; and the second call's two arguments named in
+// the emitted order with the upcast first. Naming the upcast as well as the
+// pointer is also 20 of 20, so the upcast's name carries nothing -- only the
+// adjusted pointer's does.
 
 struct KindNode
 {
@@ -75,7 +110,13 @@ void HandleTwo(Handled* h, ArgBase* a);
 void DispatchKind(ArgFull* a, KindNode* o)
 {
     if (o->kind == 1)
-        HandleOne((Handled*)((char*)o + o->adjust), a);
+    {
+        Handled* h = (Handled*)((char*)o + o->adjust);
+        HandleOne(h, a);
+    }
     else if (o->kind == 2)
-        HandleTwo((Handled*)((char*)o + o->adjust), static_cast<ArgBase*>(a));
+    {
+        Handled* h = (Handled*)((char*)o + o->adjust);
+        HandleTwo(h, static_cast<ArgBase*>(a));
+    }
 }

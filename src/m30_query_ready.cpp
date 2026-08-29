@@ -16,18 +16,29 @@
 // `flags & K` and not a bool-returning accessor (that would rotate the bit
 // down to 31).
 //
-// The field at 272 is loaded TWICE with nothing stored between, and the two
-// loads are in different blocks: two separate `if` statements, not one
-// expression. The second block is reached both by falling through the first
-// and by the `blt-`, which is what pins the shape --
+// ONE `if` with a short-circuit condition, not two statements. Written as two
+// separate `if (...) { *out = 0; return 0; }` the first body is planted INLINE
+// as the fall-through of its own test and the polarity of the bit-3 test
+// inverts to `bne-`: 9 of 24, and four bytes too long. That is the
+// sub_8219FCD8 lever seen from the outer side -- a sequence of `if`s gives
+// each guard a private exit, while one expression makes every true term share
+// the same forward branch.
 //
-//      if (pos >= end && (flags & 8) == 0)  { *out = 0; return 0; }
-//      if (flags & 0x100)                   { *out = 0; return 0; }
+// The condition reads straight off the branch targets:
 //
-// with the `blt-` being the `&&` failing its first term and jumping straight
-// to the second statement. The two `*out = 0` exits are then TAIL-MERGED into
-// the single block C, and the outer guard's `*out = 1` shares block D with
-// the fall-out.
+//      A && ((B && C) || D)
+//
+//   A  s != 0                 !A -> the *out = 1 block          beq- 82591508
+//   B  pos >= end             !B -> skip to the D term          blt- 825914E8
+//   C  (flags & 8) == 0        C -> the *out = 0 block          beq- 825914F8
+//   D  flags & 0x100          !D -> the *out = 1 block          beq- 82591508
+//
+// The two exits are each a full `li ; li r3,0 ; stb ; blr`, which is the
+// duplication an `if` body ending in `return` plus a fall-through return
+// gives -- not a shared store fed by a merged value.
+//
+// The field at 272 is loaded TWICE with nothing stored between, because the
+// two terms sit in different blocks.
 //
 // `cmplw` (not `cmpw`) on both halves of the comparison: unsigned.
 //
@@ -69,19 +80,11 @@ int QueryFinished(Player* p, u8* out)
 {
     Stream* s = p->stream;
 
-    if (s != 0)
+    if (s != 0 && ((p->cursor->pos >= s->end && (p->flags & 8) == 0)
+                   || (p->flags & 0x100)))
     {
-        if (p->cursor->pos >= s->end && (p->flags & 8) == 0)
-        {
-            *out = 0;
-            return 0;
-        }
-
-        if (p->flags & 0x100)
-        {
-            *out = 0;
-            return 0;
-        }
+        *out = 0;
+        return 0;
     }
 
     *out = 1;

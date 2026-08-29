@@ -1123,3 +1123,83 @@ src/k3_delta_copy.cpp            8282E258  -
 src/k4_slot_remove.cpp           826DD4A0  ?SlotRemove@@YAXPAUSlotOwner@@PAUSlotItem@@@Z
 src/k6_swap_forward.cpp          822E0D80  -
 src/k7_state_enter.cpp           822B7F60  -
+src/l9_deep_ready_a.cpp          8219ED88  IsReadyKind7
+src/l10_deep_ready_b.cpp         8224BA20  IsReadyKind7
+src/l11_kind1_not_pending.cpp    822598E0  IsKind1AndIdle
+src/l12_format_size.cpp          82674E98  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/l14_table_lookup.cpp         8215BCF0
+src/k8_apply_state.cpp           822547C8  -
+src/m28_ring_push.cpp           827DA5E0  -                                     flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/m29_set_frame_axes.cpp      822152C0
+src/m30_query_ready.cpp         825914B8
+src/m31_hash_find_node.cpp      8261B1A8
+src/m32_list_find_key48.cpp     82547880
+src/m33_pool_free.cpp           82627BB8  ?PoolFree@@YAXPAUPool@@PAX@Z
+src/m37_vec_remove.cpp          8268D810  ?VecOwnerRemove@@YAXPAUVecOwner@@PAX@Z
+src/m38_pair_find_or_add.cpp    82158850
+src/m39_ensure_config.cpp       82542518
+src/n9_desc_equal.cpp            826B2618
+src/n10_pair_integrate.cpp       8277DFF0               -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/n11_setup_or_uniform.cpp     82150E18
+src/n12_compact_nulls.cpp        826C6298
+src/n13_compact_nulls2.cpp       826DB0A0
+src/l13_add_scaled.cpp           8214FDE8  Accumulate
+src/l16_after_last_sep.cpp       827B7660  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/l17_set_sel_pending.cpp      82249E18
+src/n14_read_le32.cpp            82791438  ReadEntryLe32          flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/n15_slot_clear.cpp           82631F30  ClearSlot
+src/n16_dsp_sink_ctor.cpp        8257EC60  DspSink
+src/l19_physics_system_ctor.cpp  82638B48  ??0hkpPhysicsSystem@@QAA@XZ
+src/l20_shape_collection_ctor.cpp 826F99A0  ??0hkpShapeCollection@@QAA@IE@Z
+src/m40_untag_plus8.cpp         826A7950
+src/m41_elem4_at0.cpp           82727138
+src/m42_forward_zeros.cpp       827882D0
+src/m43_clear_rec516.cpp        82157C58
+src/m44_store_two_globals.cpp   8224E9F0
+src/m45_set_name64.cpp          82251AB0
+src/m46_global_chain_call.cpp   8225D080
+src/m47_guard_count_call.cpp    82271898
+src/m48_table_elem.cpp          822D2510
+src/m49_guard_flag_call.cpp     822D91C8
+src/n18_flag_move_notify.cpp     821FC180
+src/n19_list_ctor_dup.cpp        825DEB20              
+src/n20_find_by_name.cpp         826225E8
+src/m50_copy_vec116.cpp         821A5160
+src/m51_prefix_and_format.cpp   821F6250
+src/m52_out_two_consts.cpp      8224EA18
+src/m53_bind_global_first.cpp   822AC580
+src/m54_guard_global_flag.cpp   821F7AF8
+src/m55_push_global_list.cpp    82156728
+src/m56_set_five_floats_flag.cpp 821A4318
+src/m57_init_two_consts.cpp     82250DB8
+src/m59_two_flags_dispatch.cpp  8223C1F0
+src/l21_global_pair_first.cpp    82606158
+src/l22_release_handle_8.cpp     82897128
+src/l24_deep_not_neg1.cpp        821A2258
+src/l26_upcast_64.cpp            8224B698
+src/l27_mark_bits_18.cpp         8224CD60
+src/l28_clear_and_mark.cpp       82261D20
+src/l31_short_not_neg1.cpp       82151670
+src/l32_table_key.cpp            8215BCB0
+src/m58_release_if_not_default.cpp 82706950  -                                     flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/m60_wstrcopy_n.cpp          82581448
+src/m61_clear_and_addref.cpp    825ACB20
+src/m62_clamp_float.cpp         8215A9F8
+src/l29_col0_length.cpp          82691B70  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/l30_col1_length.cpp          82691B88  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/l38_set_deep_float.cpp       821FF7B8
+src/l39_post_if_enabled.cpp      822481D8
+src/l40_bounds_at.cpp            82265E90
+src/l41_kind_filter.cpp          82807B50
+src/m63_sum_below_limit.cpp     822DF630
+src/m65_clear_eight_slots.cpp   8283F298
+src/m66_count_set_bits.cpp      8215A278
+src/m67_set_identity_quat.cpp   82250DE0  ?ResetNode@@YAXPAUNode2D@@@Z
+src/m64_value_or_vcall.cpp      827EE558  -                                     flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/m68_cached_id_or_default.cpp  82251218
+src/m69_pick_code.cpp           821F61B8
+src/m71_sync_point_delta.cpp    82786628
+src/l43_store_quad.cpp           82698E08  SetRow
+src/l46_count_list.cpp           825476F8
+src/l48_fill_neg1.cpp            827249B8
+src/l47_index_of.cpp             82265EC0

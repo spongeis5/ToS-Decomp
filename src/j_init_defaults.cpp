@@ -42,6 +42,27 @@
 //     own option list, including /Ou (prescheduling) and /Os: every one is
 //     116 bytes and none beats 5 of 29.
 //
+// THE ADDRESS-OF-MEMBER PIN MAKES IT WORSE, in every placement, and that is
+// the useful new negative. It was the obvious move -- the lever matched
+// three other functions in this batch by stopping MSVC sliding a store into
+// a scheduling gap, and what is wrong here is exactly that the setup slides
+// -- but pinning removes the compiler's freedom in the direction that was
+// already right:
+//
+//     baseline                                5 of 21
+//     the vtable store through `void** pv`    5 of 21   (byte-identical)
+//     `&a24` pinned                           3 of 21
+//     `&a04`..`&a10` through one `s32*`       1 of 21
+//     `&a4C` pinned                           1 of 21
+//     the three 1.0f stores through `f32*`    1 of 21
+//     the 8.0f/19.0f pair through `f32*`      2 of 21
+//
+// And on the bitfield's read-modify-write, which is the access that is most
+// obviously in the wrong place -- the `lbz` is our second instruction and
+// the target's tenth -- six pinnings all drop it to 1 of 21: a `Bits*`, a
+// `Bits&`, a `u8*` with the mask written out, a `SetHi(Bits*, u8)` helper, a
+// `SetHi(u8*, u8)` helper, and the pointer declared before all the stores.
+//
 // So the free choice here is instruction order between the setup block and
 // the stores, which is the same family as the six entries in MATCHED.md's
 // "What still resists".

@@ -46,6 +46,30 @@
 //     three words read into locals in the target's order, the block inlined
 //     with a named `Totals*` local, and both orders of the parameter list --
 //     scoring 29, 29, 29, 26, 29 and 29.
+//
+// NOW 31 OF 47, from the ADDRESS-OF-MEMBER PIN on the first totals field:
+//
+//     u16* p = &t->t20;
+//     *p = (u16)(*p + a);
+//
+// Two constant offsets off one base provably cannot alias, so MSVC is free
+// to issue the +22 store before the +20 store; taking the first field's
+// address removes that proof and the store order becomes the source's
+// ascending 20, 22, 24, which is the target's. That lever matched three
+// other functions in this batch outright (sub_827007F8, sub_825FE880,
+// sub_82784F90) and it is worth two words here.
+//
+// It does not finish the block, and WHERE IT STOPS IS RECORDED: the target
+// reads t24, t22, t20 -- descending -- with all three loads ahead of every
+// store, while the pinned version issues t20's store as soon as its add is
+// ready. Six more shapes were measured against that: pinning `&t24` instead
+// (28), pinning both ends (28), routing all three fields through one `u16*`
+// (26), the pin plus all three fields read into locals in descending order
+// first (196 bytes, 1 of 47 -- the locals cost a word each), the same with
+// `&t22` pinned (196 bytes, 1 of 47), the three sums named before any store
+// (31, the same as the plain pin), and `+=` compound assignment (29). The
+// deltas named as locals in the target's load order before the call is 24,
+// which is worse than passing them as arguments.
 
 #include "types.h"
 
@@ -97,7 +121,8 @@ static void AddTo(s32* p, s32 v)
 
 static void AddTotals(Totals* t, s32 a, s32 b, s32 c)
 {
-    t->t20 = (u16)(t->t20 + a);
+    u16* p = &t->t20;
+    *p = (u16)(*p + a);
     t->t22 = (u16)(t->t22 + b);
     t->t24 = (u16)(t->t24 + c);
 }

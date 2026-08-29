@@ -49,6 +49,46 @@
 // dot products stored before any of the three divides; and the whole thing
 // written out as three inline expressions with no helpers, which is 172 bytes
 // because it CSEs all three rows.
+//
+// THE SIZE IS NOW EXACTLY RIGHT: 188 bytes, down from 224, by naming ALL SIX
+// intermediates -- three dot products and three squared lengths -- as locals
+// before any store. That is MATCHED.md's sub_82154A68 lever ("naming a
+// sub-expression as a local lets the values be computed up front"), and it
+// is what produces the target's fully software-pipelined block of eighteen
+// loads and eighteen multiplies ahead of the four stores. Naming only the
+// three dot products is 196 bytes; naming none is 224.
+//
+// The word count does not follow the size: still 1 of 47 at /O2 and 2 at
+// /Os. Every load, every `fmuls`/`fmadds` and every `fdivs` is present and
+// the schedule interleaves them the way the target does, but the float
+// register assignment is different throughout, which is the same class of
+// stall as sub_82691C50 before `float s[6]` cracked it.
+//
+// EIGHT SHAPES MEASURED IN THIS ROUND, with their sizes, so the size axis is
+// on the record even where the words are not:
+//
+//     dots and lens named first        188 B   1 of 47   <- this
+//     the whole thing returned BY VALUE 188 B  1 of 47
+//     three dots named first           196 B   1 of 47
+//     two-level Axis() helper          212 B   0 of 47
+//     `f32* px = &out->x` pinned       224 B   1 of 47
+//     pin + the row-0 dot in a local   220 B   1 of 47
+//     helpers taking `const Row&`      224 B   1 of 47
+//     the baseline                     224 B   1 of 47
+//
+// THE BY-VALUE RETURN IS ALSO 188 BYTES, which matters because that
+// signature -- r3 as the hidden return buffer rather than an out parameter
+// -- is what solved sub_821A5270 in this same batch. Here the two are
+// indistinguishable by size and by score, so this file keeps the out-pointer
+// form and records that the other is equally close.
+//
+// THE ADDRESS-OF PIN DOES NOT EXPLAIN THE DEAD STORE. `f32* px = &out->x`
+// was the obvious reading of `stfs f4,0(r3)` surviving nine instructions
+// before being overwritten -- a pinned store is exactly what dead-store
+// elimination cannot remove -- and it costs 36 bytes rather than buying
+// anything. So the dead store has another cause, and the load census (row 0
+// loaded three times, rows 1 and 2 six times each) is still the strongest
+// unexplained fact about this function.
 
 struct V3  { f32 x; f32 y; f32 z; };
 struct Row { f32 x; f32 y; f32 z; f32 w; };
@@ -68,8 +108,15 @@ static float LenSq3(const Row* a)
 
 void ProjectOntoAxes(V3* out, const Mtx43* m, const V3* v)
 {
-    out->x = Dot3(&m->r0, v);
-    out->x = out->x / LenSq3(&m->r0);
-    out->y = Dot3(&m->r1, v) / LenSq3(&m->r1);
-    out->z = Dot3(&m->r2, v) / LenSq3(&m->r2);
+    f32 d0 = Dot3(&m->r0, v);
+    f32 l0 = LenSq3(&m->r0);
+    f32 d1 = Dot3(&m->r1, v);
+    f32 l1 = LenSq3(&m->r1);
+    f32 d2 = Dot3(&m->r2, v);
+    f32 l2 = LenSq3(&m->r2);
+
+    out->x = d0;
+    out->x = d0 / l0;
+    out->y = d1 / l1;
+    out->z = d2 / l2;
 }

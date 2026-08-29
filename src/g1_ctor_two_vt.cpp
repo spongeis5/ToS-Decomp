@@ -26,26 +26,48 @@
 // common-subexpressioned across both zeroing calls, and then folded away
 // into r3-relative displacements, leaving the computation itself behind.
 //
-// NEAR MISS: 25 of 29 non-relocated words, at /O2 /Os, with the size exactly
-// right at 140 bytes and 6 of the 35 words relocated and so not compared.
-// The four that differ are ONE scheduling window, and nothing else in the
-// function is wrong:
+// MATCHED at /O2 /Os, 29 of 29, with the size exactly right at 140 bytes
+// and 6 of the 35 words relocated and so not compared.
+//
+// What was wrong was ONE SCHEDULING WINDOW and nothing else in the function:
 //
 //   want  li r10,1 ; lis r9,vtB@ha ; li r11,0 ; stw r10,20 ; addi r10,r9 ; stw r11,24
 //   got   lis r10,vtB@ha ; li r11,0 ; li r9,1 ; addi r10,r10 ; stw r11,24 ; stw r9,20
 //
-// The second vtable's high half is materialised one slot too early and the
-// +20 store falls behind the +24 store as a result -- which is MATCHED.md's
-// "store order is source order EXCEPT across an address computation".
+// The second vtable's high half was materialised one slot too early and the
+// +20 store fell behind the +24 store as a result.
 //
-// What was measured, so it is not re-tried:  five placements of the vtable
-// store (after f37 25, between the Zero4 and f36 22, after f40/f44 22,
-// before the second Zero4 16, last 16); the float block as a helper on
-// either half, inline on either half, and a helper taking Item* instead of
-// Quad*; the vtable through a named local; one vtable type instead of two;
-// the base as its own inlined function; and both orders of the +20 store
-// against the three zeroes.  Then all 72 flag combinations
-// `tools/flagsweep.py` builds: 28 give 25 of 35 and 44 give 24, none more.
+// THE ADDRESS-OF-MEMBER PIN FIXES IT:
+//
+//      s32* p = &it->f20;
+//      *p = 1;
+//
+// Two constant offsets off one base provably cannot alias, so MSVC is free
+// to issue the +24 store first and let the +20 store fall into the gap
+// behind the vtable's `lis`/`addi`; taking the member's address removes that
+// proof and the two stores stay in source order. Pinning the +24/+28/+32
+// group through one `s32*` instead is equally 29 of 29 -- either side of the
+// pair works, because it is the PAIR's freedom to swap that has to go. What
+// does NOT work is routing f20 through f32 all through one pointer (25 of
+// 29): that pins the group against the vtable store as well and puts the
+// address computation back where it was.
+//
+// This is MATCHED.md's sub_827FEE48 lever used on a STORE, the third time in
+// this batch -- sub_827007F8 and sub_825FE880 are the others, and all three
+// were a store MSVC had slid into a scheduling gap.
+//
+// Also measured and NOT the answer: pinning the second vtable store itself
+// (25 of 29), and moving that store up to sit right after `f20 = 1` (16 of
+// 29). Before the pin, five placements of the vtable store were tried (after
+// f37 25, between the Zero4 and f36 22, after f40/f44 22, before the second
+// Zero4 16, last 16); the float block as a helper on either half, inline on
+// either half, and a helper taking Item* instead of Quad*; the vtable
+// through a named local; one vtable type instead of two; the base as its own
+// inlined function; and both orders of the +20 store against the three
+// zeroes. Then all 72 flag combinations `tools/flagsweep.py` builds: 28 give
+// 25 of 35 and 44 give 24, none more -- so the flag axis was exhausted and
+// the answer was a source shape after all.
+//
 // Writing the two float groups inline instead of through the helper is 136
 // bytes -- dead-store elimination takes one of them, so the helper is what
 // keeps both, not the `lwsync` alone.
@@ -104,7 +126,8 @@ void ConstructItem(Item* it, u16 kind)
     it->vt = (const VTa*)&kVT_82085DD8;
     Zero4(&it->q);
     __lwsync();
-    it->f20 = 1;
+    s32* p = &it->f20;
+    *p      = 1;
     it->f24 = 0;
     it->f28 = 0;
     it->f32 = 0;

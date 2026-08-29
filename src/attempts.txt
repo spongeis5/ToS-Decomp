@@ -55,3 +55,16 @@ src/g4_pair_related.cpp          82673EC8
 src/g5_chunked_bit.cpp           8216C240
 src/g8_accumulate_stats.cpp      82673020
 src/g3_float_to_int.cpp          826306F8
+src/k5_approach_clamped.cpp      821AEC78
+src/l15_fold_compare_n.cpp       8215AA28
+src/l18_global_level_set.cpp     8225D5D0
+src/m34_set_fixed12.cpp          82761808
+src/m35_read_run.cpp             82790B18
+src/m36_adjust_counts.cpp        825DB4C0
+src/n17_find_paired.cpp          82631F78
+src/n21_outer_inner_ctor.cpp     82273AE8
+src/l23_memcpy_globals.cpp       82158E50
+src/l25_set_name.cpp             821FA140
+src/m70_hash_until_brace.cpp    82600960  ?LookupName@@YAIPBD@Z
+src/m72_upper_in_place.cpp      8215A8F0  ?UpperInPlace@@YAXPAE@Z
+src/l45_cmp_bytes_n.cpp          825409E8

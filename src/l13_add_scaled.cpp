@@ -20,6 +20,19 @@
 // written as a helper over the vector at 0x98 and the compiler re-folds its
 // three accesses back onto r11, stranding the addi.
 //
+// THE SEPARATE fmuls AND fadds ARE A MEMORY ROUND-TRIP.  Under /fp:fast
+// MSVC contracts `d = d + s * k` into one `fmadds` -- measured, both as
+// three `+=` statements and as three named product locals, which is 1 of 17.
+// Holding the three products in a LOCAL ARRAY instead separates them: the
+// multiply writes memory and the add reads it, so instruction selection sees
+// two trees and never matches the fmadd pattern, and the store/load pair is
+// forwarded away afterwards.  That is the same lever recorded for constant
+// folding -- a memory round-trip survives where a local does not.
+//
+// /fp:precise also un-contracts them, but it is the wrong answer here: it
+// reorders the whole body (8 of 21) and nothing else in this function could
+// distinguish the model, which is exactly the trap MATCHED.md records.
+//
 // All three products are computed before any destination component is
 // loaded, which needs no lever here: both vectors hang off ONE pointer at
 // constant offsets, so MSVC can prove the stores do not alias the loads.
@@ -57,9 +70,15 @@ ASSERT_OFFSET(BodyOwner, body, 0x5C);
 
 static void AddScaled(Vec3* d, const Vec3* s, float k)
 {
-    d->x += s->x * k;
-    d->y += s->y * k;
-    d->z += s->z * k;
+    float p[3];
+
+    p[0] = s->x * k;
+    p[1] = s->y * k;
+    p[2] = s->z * k;
+
+    d->x = d->x + p[0];
+    d->y = d->y + p[1];
+    d->z = d->z + p[2];
 }
 
 void Accumulate(BodyOwner* o, float k)

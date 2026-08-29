@@ -41,7 +41,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from peimage import Image, load_inventory
 from libmatch import trim_padding
-from match import can_shrink
+from match import can_shrink, can_extend
 from coffreloc import functions_with_relocs
 import build as buildmod
 
@@ -163,7 +163,19 @@ def main(argv):
             picked = [f for f in fns if ("?" + want_sym + "@@") in f[0]] or \
                      [f for f in fns if want_sym in f[0]]
         else:
+            # No symbol column: take the LARGEST function, which is exactly
+            # what match.py does in the same situation. Failing instead
+            # dropped eight near-misses out of the export -- and a near-miss
+            # missing from objdiff is the one thing objdiff is for. Rows in
+            # attempts.txt rarely carry a symbol column, because an agent
+            # appends them before anyone knows which function will matter.
+            #
+            # This is a fallback, not a guess about the manifest: build.py
+            # still REFUSES an ambiguous manifest row, because there a wrong
+            # pick would be spliced into .text.
             picked = fns
+            if len(picked) > 1:
+                picked = [max(fns, key=lambda f: len(f[1]))]
         if len(picked) != 1:
             print("  %-28s %08X  ambiguous symbol" % (src.name, target))
             failed += 1
@@ -197,7 +209,23 @@ def main(argv):
         for r in relocs:
             if r.off + 4 <= len(mask):
                 mask[r.off:r.off + 4] = bytes(4)
-        if can_shrink(code, bytes(mask), tbytes, target, tsize):
+
+        # ...and it can be TOO SHORT, which is the other half and was
+        # missing. The inventory records BinAlloc at 8262F5D0 as 60 bytes;
+        # the function is 136. match.py and build.py both grow it with
+        # can_extend, so both call it a match -- while this exported a
+        # 60-byte target against our correct 136-byte base and objdiff
+        # showed 0.00%, with a `b 3c` in the target branching past its own
+        # last instruction. Anyone reading that would go looking for a bug
+        # in a function that has been correct for weeks.
+        #
+        # Both reconciliations, in the same order match.py applies them.
+        # This is the fifth tool to decide an extent, and the rule stands:
+        # import the shared predicates, do not re-derive the answer.
+        grown = can_extend(img, inv, code, bytes(mask), target, tsize)
+        if grown is not None:
+            tbytes, tsize = grown, len(code)
+        elif can_shrink(code, bytes(mask), tbytes, target, tsize):
             tbytes, tsize = tbytes[:len(code)], len(code)
         # Relocations are resolved against the overlapping prefix only.
         reloc_ref = tbytes[:len(code)] if tsize >= len(code) else             tbytes + bytes(len(code) - tsize)

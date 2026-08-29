@@ -11,7 +11,7 @@ the inventory is wrong in both directions, short where a tail call's dead
 `blr` was not counted and long where one `.pdata` row covers several
 frameless bodies.
 
-**1083 functions, 26540 bytes.** Verify all of them, plus the reconstructing
+**1193 functions, 33496 bytes.** Verify all of them, plus the reconstructing
 build and six negative controls, with one command:
 
 ```bash
@@ -22,7 +22,7 @@ Every match is also a row in `src/manifest.txt`, so `tools/build.py` compiles
 it, resolves its relocations against the retail bytes and splices it into
 `.text`. Nothing here is a match on `match.py`'s word-comparison alone.
 
-SPLIT: 265 hand-written, 18348 bytes; 818 generated, 8192 bytes.
+SPLIT: 375 hand-written, 25304 bytes; 818 generated, 8192 bytes.
 <!-- the line above is regenerated; edit tools/matched_table.py, not this -->
 
 The two halves are not comparable and the count should never be quoted
@@ -37,7 +37,7 @@ half does, however much larger it gets. (The counts live in the SPLIT line
 above, which is regenerated; repeating them here is how a document comes to
 contradict itself two commits later.)
 
-**The retail build did NOT use one optimisation level everywhere.** 101 of
+**The retail build did NOT use one optimisation level everywhere.** 114 of
 these need `/O2 /Os`; the rest need plain `/O2`. See "Flags are a property of
 the translation unit" below -- this was claimed the other way round for a
 while and the claim was wrong.
@@ -134,6 +134,7 @@ while and the claim was wrong.
 | `821FF908` | 168 | 14 | `e_can_use.cpp` | - | `/O2` |
 | `822021F8` | 16 | 14 | `stride116.cpp` | - | `/O2` |
 | `8220F810` | 72 | 14 | `g_vec3_pick.cpp` | - | `/O2` |
+| `822B7F60` | 352 | 14 | `k7_state_enter.cpp` | - | `/O2` |
 | `82540968` | 124 | 14 | `m_stricmp.cpp` | StrCompareNI | `/O2` |
 | `82677058` | 8 | 14 | `m_fwd_84.cpp` | - | `/O2` |
 | `826919A8` | 76 | 14 | `e_mtx23_xform.cpp` | - | `/O2 /Os` |
@@ -169,6 +170,7 @@ while and the claim was wrong.
 | `82167FE0` | 212 | 10 | `j_scale_pair.cpp` | - | `/O2` |
 | `822020B0` | 16 | 10 | `chain2_156.cpp` | - | `/O2` |
 | `822165C0` | 128 | 10 | `p2_kind_pos.cpp` | - | `/O2` |
+| `822547C8` | 624 | 10 | `k8_apply_state.cpp` | - | `/O2` |
 | `82287E80` | 160 | 10 | `p3_slot_search.cpp` | - | `/O2` |
 | `8262FE10` | 60 | 10 | `k_short_release.cpp` | - | `/O2` |
 | `8262FF90` | 52 | 10 | `k_global_release_tls.cpp` | - | `/O2` |
@@ -274,6 +276,7 @@ while and the claim was wrong.
 | `825478F8` | 116 | 5 | `f6_list_find_key.cpp` | - | `/O2` |
 | `8259C778` | 104 | 5 | `f1_bitread16.cpp` | - | `/O2` |
 | `825A36C0` | 128 | 5 | `f7_rate_from_scale.cpp` | - | `/O2` |
+| `825CB000` | 72 | 5 | `k1_round_pct.cpp` | - | `/O2 /Os` |
 | `825E3598` | 24 | 5 | `vcall_global_2.cpp` | - | `/O2 /Os` |
 | `825E35C8` | 24 | 5 | `vcall_global_4.cpp` | - | `/O2 /Os` |
 | `825E35E0` | 40 | 5 | `d1_vcall_global_6.cpp` | - | `/O2 /Os` |
@@ -283,7 +286,9 @@ while and the claim was wrong.
 | `825FAC00` | 112 | 5 | `f3_pack_three_fields.cpp` | SlotSet | `/O2` |
 | `826009D8` | 48 | 5 | `d3_pool_pop_free.cpp` | - | `/O2` |
 | `82698EE8` | 104 | 5 | `f2_pair_lookup.cpp` | - | `/O2` |
+| `826B26A8` | 76 | 5 | `k2_field_scaled.cpp` | - | `/O2 /Os` |
 | `826C1470` | 8 | 5 | `b7_inner_at40.cpp` | - | `/O2` |
+| `826DD4A0` | 96 | 5 | `k4_slot_remove.cpp` | ?SlotRemove@@YAXPAUSlotOwner@@PAUSlotItem@@@Z | `/O2` |
 | `827103D8` | 52 | 5 | `d4_handler_or_default.cpp` | - | `/O2 /Os` |
 | `827245C0` | 28 | 5 | `ring_index.cpp` | - | `/O2` |
 | `8272CB68` | 16 | 5 | `load_global_store.cpp` | - | `/O2` |
@@ -296,13 +301,118 @@ while and the claim was wrong.
 | `827FE808` | 16 | 5 | `and_byte.cpp` | - | `/O2 /Os` |
 | `827FEE48` | 44 | 5 | `d2_link_front_flag.cpp` | - | `/O2 /Os` |
 | `8280D210` | 112 | 5 | `f4_skip_free_slots.cpp` | - | `/O2 /Os` |
+| `8282E258` | 92 | 5 | `k3_delta_copy.cpp` | - | `/O2` |
 | `82836078` | 324 | 5 | `h8_rotate_triples.cpp` | - | `/O2` |
+| `8214FDE8` | 84 | 4 | `l13_add_scaled.cpp` | Accumulate | `/O2` |
+| `82150E18` | 128 | 4 | `n11_setup_or_uniform.cpp` | - | `/O2` |
+| `82158850` | 124 | 4 | `m38_pair_find_or_add.cpp` | - | `/O2` |
+| `8215BCF0` | 80 | 4 | `l14_table_lookup.cpp` | - | `/O2` |
 | `821838E8` | 16 | 4 | `h3_fwd_global_arg.cpp` | - | `/O2` |
 | `8219B9A0` | 16 | 4 | `h2_fwd_two_fields.cpp` | - | `/O2` |
+| `8219ED88` | 84 | 4 | `l9_deep_ready_a.cpp` | IsReadyKind7 | `/O2` |
+| `821A5390` | 40 | 4 | `n7_state2_or_flag.cpp` | - | `/O2` |
+| `821A93E0` | 24 | 4 | `l7_sub_kind2.cpp` | - | `/O2` |
+| `821F7B18` | 40 | 4 | `n8_reset_two_floats.cpp` | - | `/O2` |
+| `821FC180` | 128 | 4 | `n18_flag_move_notify.cpp` | - | `/O2` |
+| `821FE858` | 24 | 4 | `l8_store_then_vcall0.cpp` | - | `/O2` |
 | `82203890` | 16 | 4 | `h1_inner_bit0.cpp` | - | `/O2` |
+| `822152C0` | 96 | 4 | `m29_set_frame_axes.cpp` | - | `/O2` |
+| `82218FB0` | 36 | 4 | `n1_submit12.cpp` | - | `/O2` |
+| `82249E18` | 92 | 4 | `l17_set_sel_pending.cpp` | - | `/O2` |
+| `8224BA20` | 84 | 4 | `l10_deep_ready_b.cpp` | IsReadyKind7 | `/O2` |
+| `82251AC8` | 24 | 4 | `m20_clear_and_zero64.cpp` | - | `/O2` |
+| `82252EF8` | 36 | 4 | `n2_flag_dispatch2.cpp` | - | `/O2` |
+| `822598E0` | 72 | 4 | `l11_kind1_not_pending.cpp` | IsKind1AndIdle | `/O2` |
+| `822AE7C0` | 32 | 4 | `m24_init_and_notify.cpp` | - | `/O2` |
 | `822D2528` | 24 | 4 | `table624.cpp` | - | `/O2` |
+| `822D2550` | 24 | 4 | `m21_table_byte.cpp` | - | `/O2` |
+| `822D3E60` | 36 | 4 | `n3_arg_kind_1or2.cpp` | - | `/O2` |
+| `822E0D80` | 16 | 4 | `k6_swap_forward.cpp` | - | `/O2` |
+| `82542518` | 124 | 4 | `m39_ensure_config.cpp` | - | `/O2` |
+| `82547880` | 116 | 4 | `m32_list_find_key48.cpp` | - | `/O2` |
+| `825492B8` | 32 | 4 | `m25_out_or_err37.cpp` | - | `/O2` |
+| `8257EC60` | 128 | 4 | `n16_dsp_sink_ctor.cpp` | DspSink | `/O2` |
+| `825914B8` | 96 | 4 | `m30_query_ready.cpp` | - | `/O2` |
+| `825B9970` | 20 | 4 | `l1_clear_triple_b.cpp` | - | `/O2` |
+| `825B9E20` | 20 | 4 | `l2_low3_clear.cpp` | - | `/O2` |
+| `825BE3D8` | 36 | 4 | `n4_zero5_ret0.cpp` | - | `/O2` |
+| `825DB730` | 20 | 4 | `l3_bits300_set.cpp` | - | `/O2 /Os` |
+| `825DEB20` | 132 | 4 | `n19_list_ctor_dup.cpp` | - | `/O2` |
+| `825FF468` | 36 | 4 | `n5_set_bit_pair.cpp` | - | `/O2` |
 | `82600AD0` | 28 | 4 | `list_insert.cpp` | - | `/O2` |
+| `8261B1A8` | 100 | 4 | `m31_hash_find_node.cpp` | - | `/O2` |
+| `826225E8` | 128 | 4 | `n20_find_by_name.cpp` | - | `/O2` |
+| `82627BB8` | 116 | 4 | `m33_pool_free.cpp` | ?PoolFree@@YAXPAUPool@@PAX@Z | `/O2` |
+| `82631F30` | 72 | 4 | `n15_slot_clear.cpp` | ClearSlot | `/O2` |
+| `82638B48` | 92 | 4 | `l19_physics_system_ctor.cpp` | ??0hkpPhysicsSystem@@QAA@XZ | `/O2` |
+| `8264B718` | 32 | 4 | `m26_current_entry_byte.cpp` | - | `/O2` |
+| `82674E98` | 84 | 4 | `l12_format_size.cpp` | - | `/O2 /Os` |
+| `826770C8` | 20 | 4 | `l4_lock_if_present.cpp` | - | `/O2` |
+| `826770F8` | 20 | 4 | `l5_unlock_if_present.cpp` | - | `/O2` |
+| `8268D810` | 120 | 4 | `m37_vec_remove.cpp` | ?VecOwnerRemove@@YAXPAUVecOwner@@PAX@Z | `/O2` |
+| `826B2618` | 144 | 4 | `n9_desc_equal.cpp` | - | `/O2` |
+| `826C6298` | 124 | 4 | `n12_compact_nulls.cpp` | - | `/O2` |
+| `826DB0A0` | 124 | 4 | `n13_compact_nulls2.cpp` | - | `/O2` |
+| `826F99A0` | 68 | 4 | `l20_shape_collection_ctor.cpp` | ??0hkpShapeCollection@@QAA@IE@Z | `/O2` |
+| `82726170` | 28 | 4 | `m23_elem12_addr.cpp` | - | `/O2` |
+| `8272CB78` | 36 | 4 | `n6_copy4_bytes.cpp` | - | `/O2` |
+| `8277DFF0` | 132 | 4 | `n10_pair_integrate.cpp` | - | `/O2 /Os` |
+| `827865F0` | 24 | 4 | `m22_relative_point_call.cpp` | - | `/O2` |
+| `82786608` | 32 | 4 | `m27_relative_rect_call.cpp` | - | `/O2` |
+| `82790F80` | 20 | 4 | `l6_vcall0_second_arg.cpp` | - | `/O2 /Os` |
+| `82791438` | 128 | 4 | `n14_read_le32.cpp` | ReadEntryLe32 | `/O2 /Os` |
 | `827A7C98` | 20 | 4 | `store_two.cpp` | - | `/O2` |
+| `827B7660` | 84 | 4 | `l16_after_last_sep.cpp` | - | `/O2 /Os` |
+| `827DA5E0` | 92 | 4 | `m28_ring_push.cpp` | - | `/O2 /Os` |
+| `82151670` | 28 | 3 | `l31_short_not_neg1.cpp` | - | `/O2` |
+| `82156728` | 36 | 3 | `m55_push_global_list.cpp` | - | `/O2` |
+| `82157C58` | 20 | 3 | `m43_clear_rec516.cpp` | - | `/O2` |
+| `8215A278` | 56 | 3 | `m66_count_set_bits.cpp` | - | `/O2` |
+| `8215A9F8` | 44 | 3 | `m62_clamp_float.cpp` | - | `/O2` |
+| `8215BCB0` | 28 | 3 | `l32_table_key.cpp` | - | `/O2` |
+| `821A2258` | 24 | 3 | `l24_deep_not_neg1.cpp` | - | `/O2` |
+| `821A4318` | 36 | 3 | `m56_set_five_floats_flag.cpp` | - | `/O2` |
+| `821A5160` | 28 | 3 | `m50_copy_vec116.cpp` | - | `/O2` |
+| `821F61B8` | 60 | 3 | `m69_pick_code.cpp` | - | `/O2` |
+| `821F6250` | 28 | 3 | `m51_prefix_and_format.cpp` | - | `/O2` |
+| `821F7AF8` | 32 | 3 | `m54_guard_global_flag.cpp` | - | `/O2` |
+| `821FF7B8` | 44 | 3 | `l38_set_deep_float.cpp` | - | `/O2` |
+| `8223C1F0` | 40 | 3 | `m59_two_flags_dispatch.cpp` | - | `/O2` |
+| `822481D8` | 44 | 3 | `l39_post_if_enabled.cpp` | - | `/O2` |
+| `8224B698` | 24 | 3 | `l26_upcast_64.cpp` | - | `/O2` |
+| `8224CD60` | 24 | 3 | `l27_mark_bits_18.cpp` | - | `/O2` |
+| `8224E9F0` | 20 | 3 | `m44_store_two_globals.cpp` | - | `/O2` |
+| `8224EA18` | 28 | 3 | `m52_out_two_consts.cpp` | - | `/O2` |
+| `82250DB8` | 36 | 3 | `m57_init_two_consts.cpp` | - | `/O2` |
+| `82250DE0` | 56 | 3 | `m67_set_identity_quat.cpp` | ?ResetNode@@YAXPAUNode2D@@@Z | `/O2` |
+| `82251218` | 56 | 3 | `m68_cached_id_or_default.cpp` | - | `/O2` |
+| `82251AB0` | 20 | 3 | `m45_set_name64.cpp` | - | `/O2` |
+| `8225D080` | 20 | 3 | `m46_global_chain_call.cpp` | - | `/O2` |
+| `82261D20` | 24 | 3 | `l28_clear_and_mark.cpp` | - | `/O2` |
+| `82265E90` | 44 | 3 | `l40_bounds_at.cpp` | - | `/O2` |
+| `82265EC0` | 68 | 3 | `l47_index_of.cpp` | - | `/O2` |
+| `82271898` | 20 | 3 | `m47_guard_count_call.cpp` | - | `/O2` |
+| `822AC580` | 28 | 3 | `m53_bind_global_first.cpp` | - | `/O2` |
+| `822D2510` | 20 | 3 | `m48_table_elem.cpp` | - | `/O2` |
+| `822D91C8` | 20 | 3 | `m49_guard_flag_call.cpp` | - | `/O2` |
+| `822DF630` | 52 | 3 | `m63_sum_below_limit.cpp` | - | `/O2` |
+| `825476F8` | 64 | 3 | `l46_count_list.cpp` | - | `/O2` |
+| `82581448` | 40 | 3 | `m60_wstrcopy_n.cpp` | - | `/O2` |
+| `825ACB20` | 40 | 3 | `m61_clear_and_addref.cpp` | - | `/O2` |
+| `82606158` | 20 | 3 | `l21_global_pair_first.cpp` | - | `/O2` |
+| `82691B70` | 24 | 3 | `l29_col0_length.cpp` | - | `/O2 /Os` |
+| `82691B88` | 24 | 3 | `l30_col1_length.cpp` | - | `/O2 /Os` |
+| `82698E08` | 60 | 3 | `l43_store_quad.cpp` | SetRow | `/O2` |
+| `826A7950` | 16 | 3 | `m40_untag_plus8.cpp` | - | `/O2` |
+| `82706950` | 36 | 3 | `m58_release_if_not_default.cpp` | - | `/O2 /Os` |
+| `827249B8` | 68 | 3 | `l48_fill_neg1.cpp` | - | `/O2` |
+| `82727138` | 16 | 3 | `m41_elem4_at0.cpp` | - | `/O2` |
+| `82786628` | 60 | 3 | `m71_sync_point_delta.cpp` | - | `/O2` |
+| `827882D0` | 16 | 3 | `m42_forward_zeros.cpp` | - | `/O2` |
+| `827EE558` | 52 | 3 | `m64_value_or_vcall.cpp` | - | `/O2 /Os` |
+| `82807B50` | 44 | 3 | `l41_kind_filter.cpp` | - | `/O2` |
+| `8283F298` | 52 | 3 | `m65_clear_eight_slots.cpp` | - | `/O2` |
+| `82897128` | 20 | 3 | `l22_release_handle_8.cpp` | - | `/O2` |
 | `82216918` | 304 | 2 | `m_line_of_sight.cpp` | TtCheckLineOfSight | `/O2` |
 | `822607F0` | 120 | 2 | `grid_indices.cpp` | - | `/O2` |
 | `8267ACC0` | 236 | 2 | `m_hkpworld_ctor.cpp` | ??0hkpWorld@@QAA@XZ | `/O2` |
@@ -853,6 +963,28 @@ hoists `li r3,-1` into the entry block and renames every register after it
 assignment in the second block where the image has it (57 of 57). **No
 `if`/`else` spelling expresses "the failure value is set on one path only";
 the position of the materialisation is the thing to control.**
+
+**`fadds` operand order IS source-readable, and an earlier note here was too
+broad.** The existing claim that commutative float operand order carries no
+information is about `a * b` against `b * a` -- the SAME two values in either
+order -- and that stands. It does not cover which of two DIFFERENT values
+lands in the A slot, and that one follows the ordinary `add` read-order rule.
+On `sub_821AEC78`, declaring `f32 v = *p;` before `m` puts the other operand
+in rA in both adds; spelling `*p` out at each use moves the CSE
+representative after `m` and both come out with `*p` in rA. Worth separating,
+because the broad reading of the old note says not to try.
+
+**`/fp:fast` reassociation is triggered by a NAMED LOCAL too, not just a
+literal.** The note above is written about `a * C * b` with `C` a constant;
+naming `f32 k = 60.0f;` and writing `dt * rate * k` reassociates to
+`(dt * k) * rate` and loses the first multiply just as hard.
+
+**The AND-mask index lever works on `stwx` as well as `lwzx`.**
+`sub_826DD4A0` was 23 of 24 with the STORE's operand order inverted;
+`o->items[IndexOf(o, it) & 0x3FFFFFFF] = 0;` is 24 of 24. Same mechanism and
+same invisibility -- the mask is absorbed into the `rlwinm` the `* 4` already
+needed. (The index is negative on one path there and wraps to the same
+address, so the mask changes nothing the function computes.)
 
 **An AND-mask on an index flips `lwzx` operand order, and the mask is
 invisible.** `sub_8215ED28`, 12 of 12, from `items[i & 0x3FFFFFFF]`. MSVC

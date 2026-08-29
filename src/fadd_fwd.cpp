@@ -25,6 +25,25 @@
 // because it is the one value the tail call cannot start without, and pays
 // the `mr` to do it. Nothing at the source level was found that changes
 // that ordering, and /O2 /Os does not either.
+//
+// THE LEVER THAT SOLVED THE OTHER SHUFFLE DOES NOT WORK HERE, and that is
+// worth recording because the two functions look like the same problem.
+// sub_8215E5B0 is also a register shuffle in front of a tail call, also
+// carried a wrong `mr`, and came out by FORWARDING the callee's result --
+// which keeps r3 live out and changes what the copy sequencer stages. Seven
+// forwarding shapes were compiled here at both levels and every one is
+// byte-identical to the void baseline, `mr r11,r3` included:
+//
+//     return void* / int / float / bool from the tail call
+//     the sum written inline in the call rather than named
+//     the whole thing as a member function returning the result
+//     a non-virtual member call on `s->target` whose result is returned
+//
+// The difference is that sub_8215E5B0's shuffle is a copy CYCLE -- r3 gets
+// r5's value while r4 gets a load through r3 -- so something must be staged
+// and the return type decides what. Here there is no cycle: one float load
+// simply has to survive r3 being overwritten, and MSVC always solves that
+// the same way. 1 of 5 words, 24 bytes against 20.
 struct FSrc { char unk0000[0x30]; void* target; char unk0034[0x58 - 0x34];
               f32 b; f32 a; };
 ASSERT_OFFSET(FSrc, target, 0x30);

@@ -129,6 +129,40 @@
 // declaring base and other as u32 fields holding pointers so the addition
 // is a pure integer add, written both ways; the cursor advance written
 // `need + cursor`; and the swap stores written in the other order.
+//
+// EIGHTEEN MORE SHAPES, and the first six of them CLOSE THE OBVIOUS ROUTE.
+// The rule says rA holds the operand whose source read comes LATER, so the
+// target's `add r3,cursor,base` requires the BASE to be read before the
+// guard's cursor read. Six ways of doing that were compiled and every one
+// collapses the two tails, exactly as the note above predicted, and the body
+// drops from 40 words to 36 or fewer:
+//
+//     base read at the top, re-read after the swap      148 B,  4 of 32
+//     the same with the re-read spelled `g_arena.other` 144 B,  3 of 31
+//     the base read hoisted into the guard by a comma   148 B,  4 of 32
+//     base read early, swap written the other way round 152 B,  1 of 33
+//     base read early into a tail-only local            152 B,  1 of 33
+//
+// So the requirement and the code size are in direct conflict: reading the
+// base before the guard is what the operand order needs and what the tail
+// duplication cannot survive. That is a stronger statement than "no shape
+// tried works", and it is why this is being left.
+//
+// Twelve more that keep the base read in the tail, all 160 bytes and all
+// 33 of 35 with the same two words transposed: the cursor and base named as
+// tail locals in either declaration order (168 B, 20 of 35 -- the locals
+// cost two words); an inlined `At(base, cursor)` helper and an
+// `At(cursor, base)` helper, with the sum written both ways inside, which is
+// the parameter-order form of the declaration-order lever; the advance
+// written first and the pointer second; an explicitly duplicated tail in
+// both arms (152 B, 4 of 33); u32 fields with the sum written `cursor +
+// base`; a const view driving the guard; and the tail's cursor and base
+// reads each spelled through a longer chain via an `extern Arena* const`
+// (164 B / 156 B, both far worse -- the extra indirection is a real load).
+//
+// The long-chain pair is the informative one: it is the CSE-defeat lever
+// from sub_821FF908, which is the other way to move a value's read position,
+// and it cannot be applied to a global without adding an instruction.
 
 #include "types.h"
 

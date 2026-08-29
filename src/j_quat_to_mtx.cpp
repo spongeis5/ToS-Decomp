@@ -67,6 +67,36 @@
 //     (prescheduling). Every one is 176 bytes; /O2 is 25, /O2 /Os and /O1 are
 //     8. So the level is /O2 and the flag explanation is exhausted.
 
+// EXHAUSTIVE ON THE ONE AXIS THAT LOOKED LIKE THE ANSWER. The two wrong
+// `fmuls` at 82154F1C and 82154F24 compute the same six cross products in a
+// different ORDER -- the target's schedule is wz, xy, wy, wx, xz, yz and this
+// source's comes out wz, wx, wy, xy, xz, yz -- so the declaration order of
+// the six products was the obvious lever. ALL 720 PERMUTATIONS were compiled
+// at /O2. Every one is 176 bytes, the correct size, and the best score over
+// all 720 is 25 of 40 -- the order already in this file. Sixteen orderings
+// tie at 24, and the rest are worse; none reaches 26.
+//
+// So the schedule of the six products is not chosen by their source order,
+// and the fifteen remaining words are float REGISTER assignment downstream of
+// that choice. /O2 /Os is 8 of 40 for every one of the 720, so the level is
+// settled as plain /O2.
+//
+// THE ARRAY-STAGING LEVER WAS TRIED AND DOES NOT REACH IT. That is the shape
+// that took sub_82691C50 from 31 of 39 to 39 of 39, and it is the natural
+// next move when the instructions are right and the float registers are not.
+// Four stagings are all 176 bytes and none beats the scalars:
+//
+//     six scalars (this file)          25 of 40
+//     `float c[6]` + `float d[3]`      25 of 40
+//     one `float p[9]` for everything  25 of 40
+//     the three `1.0f -` terms named   25 of 40
+//     the quaternion snapshotted first 19 of 40   (worse)
+//
+// Byte-identical output for the first four, so MSVC flattens the arrays back
+// to the same value numbers here -- unlike sub_82691C50, where the array was
+// a SNAPSHOT of memory that could otherwise alias the destination. Here the
+// products are already pure arithmetic on values in registers, so there is
+// nothing for the staging to pin.
 struct Quat { f32 x; f32 y; f32 z; f32 w; };
 ASSERT_OFFSET(Quat, z, 0x08);
 ASSERT_OFFSET(Quat, w, 0x0C);

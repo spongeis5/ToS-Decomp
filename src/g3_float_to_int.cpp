@@ -30,7 +30,20 @@
 // So this is `(int)f` written by hand rather than through `fctiwz`, and the
 // result is exact truncation toward zero for every finite input.
 //
-// MEASURED, NOT MATCHED: 1 of 36 words, 148 bytes against 144.  Every
+// THE STACK SLOT IS THE FIRST WORD AND IT IS READABLE. The target spills the
+// incoming float to `-16(r1)` -- a compiler temp in the leaf red zone --
+// while `*(s32*)&f` on the PARAMETER uses the parameter's own home slot at
+// `+20(r1)`. So the reinterpretation goes through a local, not through the
+// parameter's address, and `f32 t = f; b = *(s32*)&t;` is the spelling that
+// produces it. Five ways of staging it are all identical (a local copy, a
+// `union { f32; s32; }` local, that union inside an inlined helper, a
+// pointer cast inside an inlined helper, and a one-element array), so this
+// pins the STORAGE and says nothing about how the bits were named.
+//
+// With it, and at /O2 /Os, the body is 144 bytes -- the correct size, which
+// the parameter-address form only reaches at /Os and never at /O2.
+//
+// MEASURED, NOT MATCHED: 3 of 36 words at /O2 /Os.  Every
 // instruction the target uses appears in our output and no others, but the
 // order and the register assignment are almost entirely different, because
 // this transcription is the DATAFLOW read back out of the listing and not
@@ -53,7 +66,8 @@
 
 s32 FloatToInt(f32 f)
 {
-    s32 b = *(s32*)&f;
+    f32 t = f;
+    s32 b = *(s32*)&t;
     s32 e = ((b >> 23) & 0xFF) - 127;
     s32 z = ((b & 0x7FFFFFFF) - 1) >> 31;
     s32 v = b & ~z;
