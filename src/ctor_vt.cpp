@@ -18,7 +18,7 @@
 #include "types.h"
 
 struct VTable;
-extern const VTable kVTable;
+extern const VTable kVTable_82004D04;
 
 struct Object
 {
@@ -35,6 +35,6 @@ ASSERT_OFFSET(Object, b,  0x0C);
 void Construct(Object* o)
 {
     o->a  = 0;
-    o->vt = &kVTable;
+    o->vt = &kVTable_82004D04;
     o->b  = 0;
 }

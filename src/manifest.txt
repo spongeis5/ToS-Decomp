@@ -23,5 +23,5 @@ src/null_tailcall.cpp           826A3350
 src/vcall_arg2.cpp              82600BB0
 src/global_field.cpp            82600BD8
 src/ctor_vt.cpp                 821A4628
-src/set_vtable.cpp              826FE5C8
-src/set_vtable.cpp              826FE5B8
+src/set_vtable.cpp              826FE5B8  SetVTableD170
+src/set_vtable.cpp              826FE5C8  SetVTableD180

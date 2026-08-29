@@ -253,6 +253,34 @@ def main(argv):
                           % (off, tname, sym[:34],
                              "%08X" % addr if addr is not None else "--", why))
 
+    # A LINKER CONSISTENCY CHECK, which the splice does not get for free.
+    # Each site's relocation is solved independently against the retail bytes,
+    # so two sources can both declare `extern kVTable` and quietly resolve it
+    # to two different addresses -- the bytes come out right and nothing
+    # complains. A real link cannot do that: one symbol has one address.
+    # Without this check the source model can drift arbitrarily far from
+    # something that could ever be linked, while every byte still verifies.
+    by_symbol = {}
+    for site, tname, sym, addr, _why in resolved:
+        by_symbol.setdefault(sym, {}).setdefault(addr, []).append(site)
+    conflicts = {s: v for s, v in by_symbol.items() if len(v) > 1}
+    if conflicts:
+        print("")
+        print("WOULD NOT LINK: %d symbol(s) resolve to more than one address."
+              % len(conflicts))
+        print("Every byte below still verifies -- each site is patched from")
+        print("the image independently -- but one name cannot have two")
+        print("addresses, so the SOURCE MODEL is wrong even though the bytes")
+        print("are right. This is the class of error a splice hides and a")
+        print("real link would refuse.")
+        print("")
+        for sym, addrs in sorted(conflicts.items()):
+            print("  %s" % sym)
+            for addr, sites in sorted(addrs.items()):
+                print("      %08X  referenced from %s"
+                      % (addr, ", ".join("%08X" % s for s in sites)))
+        print("")
+
     print("")
     if resolved:
         print("Addresses recovered from the retail bytes -- these are facts the")

@@ -28,10 +28,12 @@ bytes identical to the retail image. Not a port, not a re-implementation.
 ## Where the project is
 
 ```
-functions known                30,984     (.pdata 21,238 + discovery 9,746)
-.text covered by the inventory  99.8%     (8,451,454 of 8,467,964 bytes)
-attributed as NOT the game's    7,611     (39.4% of .text)
-call-graph edges               85,315
+functions known                30,630     (.pdata 21,238 + discovery 9,392)
+.text covered by the inventory  99.6%     (8,432,420 of 8,467,964 bytes)
+attributed as NOT the game's    8,238     (39.4% of .text BYTES)
+remaining to decompile         22,392     (60.6%)
+call-graph edges               85,314
+vetted match candidates         4,247
 FUNCTIONS MATCHED                  15
 ```
 
@@ -63,11 +65,17 @@ image, the inventory, the XDK compiler and the comparison are all intact.
 
 | signal | functions | strength |
 |---|---|---|
-| `lib` | 6,332 | byte-for-byte match against an XDK library object — strong |
-| `rtti_havok` | 673 | Havok vtable recovered from MSVC RTTI |
-| `srcpath` | 352 | the function references a middleware source path — weak |
+| `lib` | 6,453 | byte-for-byte match against an XDK library object — strong |
+| `rtti_havok` | 1,178 | Havok vtable recovered from MSVC RTTI |
+| `srcpath` | 353 | the function references a middleware source path — weak |
 | `havok` | 251 | pushes a Havok profiler timer name — weak |
 | `game_profiled` | 3 | pushes a `Ttz` name, so it IS the title's own |
+
+These are the counts on the CURRENT inventory. They were stale for a while:
+`attribution.txt` had been generated against the older 25,737-function
+inventory and still summed to it, so `lib` read 6,332 and `rtti_havok` 673.
+Derived files do not regenerate themselves — `tools/verify.py` does not yet
+check for staleness, which is a known gap.
 
 `srcpath` and `havok` are attribution by a reference a function *makes*. They
 are deliberately not merged with the byte matches and have never been
@@ -197,8 +205,9 @@ Head to head on this image:
 
 | | Ghidra | `discover.py` |
 |---|---|---|
-| functions beyond `.pdata` | 4,499 | **9,746** |
+| functions beyond `.pdata` | 4,332 | **9,392** |
 | of Ghidra's, rediscovered | — | **99.7%** (13 missed) |
+| non-code wrongly listed as functions | 167 | **0** |
 | call-graph edges | 73,686 | **85,315** |
 | correct sizes, on the 15 whose true size the build establishes | 13/15 | **15/15** |
 | wall clock | a 12 GB headless run | **1.1 s** |
@@ -212,13 +221,20 @@ this image have that shape.
 **How the extra 5,260 were checked**, because "found more" is not the same as
 "found real":
 
-* 102 of 6,126 branch-sweep starts (1.7%) fall inside a known function, and
+* a discovered start must DECODE as an instruction. There is a 3.3 KB data
+  blob at the tail of `.text` (`8291266C..8291334C`) and words inside `.text`
+  that are data happen to decode as `bl`/`b` with targets landing in it. 206
+  non-functions entered that way — 167 as `bl` targets, and **Ghidra lists
+  the same 167**. Both sides are filtered before comparing.
+* 102 of the branch-sweep starts (1.7%) fall inside a known function, and
   the biggest cluster is 15 entry points into one 84-byte host — the
   `__restgprlr` register-restore helper, whose multiple entry points are
   documented in §7e and are legitimate.
-* the data-pointer scan finds 47,493 aligned data words pointing into code,
-  and **83.9% land exactly on an already-known function start** — that hit
-  rate is the evidence the remaining ones are credible.
+* the data-pointer scan finds 26,255 words pointing into code and **70.9%
+  land exactly on an already-known function start**. `.pdata` is excluded
+  from that statistic: it is the unwind table, so every word in it points at
+  a function start by definition, and including it reported 83.9% — a number
+  inflated by a table that is a list of the very thing being predicted.
 * the data-pointer-only candidates disassemble as textbook accessors
   (`lwz r11,off(r3) / rlwinm r3,r11,... / blr`) — small vtable-only methods
   with no unwind row, which is exactly the population that should be missing.

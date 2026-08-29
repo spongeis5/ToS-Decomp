@@ -42,6 +42,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from peimage import Image, load_functions, load_inventory
+import ppcdis
 
 OUT = Path("build/discovered.txt")
 GHIDRA = Path("build/ghidra_fn_v2.txt")
@@ -147,20 +148,34 @@ def data_pointers(img, ranges, known, interior=None):
     """
     hits, confirmed = set(), 0
     total = rejected_align = rejected_interior = 0
+    per_section = []
     for s in img.sections:
         if s["exec"] or not (s["rawsz"] or s["vsize"]):
+            continue
+        # .pdata is EXCLUDED, and this is the important one. It is the unwind
+        # table: 8-byte entries whose first word is a function address. Every
+        # one of its 21,238 words therefore "points at a known function
+        # start", and counting that as evidence that code-looking data words
+        # tend to be real entry points is circular -- it is a list of entry
+        # points. Including it reported a 83.9% hit rate; the real figure
+        # over the sections that carry actual references is 70.9%.
+        # It contributes no new candidates either, since we already have it.
+        if s["name"] == ".pdata":
             continue
         size = s["vsize"] or s["rawsz"]
         data = img.read(s["va"], size)
         if data is None:
             continue
         n = len(data) // 4
+        sec_total = sec_conf = sec_new = 0
         for w in struct.unpack(">%dI" % n, data[:n * 4]):
             if not any(a <= w < b for a, b in ranges):
                 continue
             total += 1
+            sec_total += 1
             if w in known:
                 confirmed += 1
+                sec_conf += 1
                 continue
             if w & 3:
                 rejected_align += 1
@@ -169,7 +184,11 @@ def data_pointers(img, ranges, known, interior=None):
                 rejected_interior += 1
                 continue
             hits.add(w)
-    return hits, confirmed, total, rejected_align, rejected_interior
+            sec_new += 1
+        if sec_total:
+            per_section.append((s["name"], sec_total, sec_conf, sec_new))
+    return (hits, confirmed, total, rejected_align, rejected_interior,
+            per_section)
 
 
 def main(argv):
@@ -218,13 +237,22 @@ def main(argv):
         s = pstarts[i]
         return s if s < va < s + psize.get(s, 0) else None
 
-    (ptr_new, ptr_confirmed, ptr_total,
-     rej_align, rej_interior) = data_pointers(img, ranges, known, interior)
+    (ptr_new, ptr_confirmed, ptr_total, rej_align, rej_interior,
+     per_section) = data_pointers(img, ranges, known, interior)
     print("DATA POINTERS -- for functions only ever reached through a vtable,")
     print("which no `bl` names:")
-    print("  aligned data words pointing into code %8d" % ptr_total)
-    print("  of those, on an ALREADY-KNOWN start   %8d  (%.1f%%)"
-          % (ptr_confirmed, 100.0 * ptr_confirmed / max(ptr_total, 1)))
+    print("  .pdata is EXCLUDED: it is the unwind table, so every word in it")
+    print("  points at a function start by definition and counting it as")
+    print("  evidence would be circular. It adds no candidates either.")
+    print("")
+    print("  %-10s %-9s %-11s %-8s %s"
+          % ("section", "pointers", "on a known", "new", "hit rate"))
+    for name, st, sc, sn in per_section:
+        print("  %-10s %-9d %-11d %-8d %.1f%%"
+              % (name, st, sc, sn, 100.0 * sc / max(st, 1)))
+    print("  %-10s %-9d %-11d %-8d %.1f%%"
+          % ("total", ptr_total, ptr_confirmed, len(ptr_new),
+             100.0 * ptr_confirmed / max(ptr_total, 1)))
     print("  rejected, not 4-byte aligned          %8d" % rej_align)
     print("  rejected, inside a .pdata function    %8d" % rej_interior)
     print("  landing somewhere not yet known       %8d" % len(ptr_new))
@@ -236,6 +264,47 @@ def main(argv):
     print("")
 
     found |= ptr_new
+
+    # A DISCOVERED START MUST DECODE AS AN INSTRUCTION.
+    #
+    # The sweep's range check rejects a branch whose target leaves the
+    # executable sections, and it rejected none -- from which this tool
+    # previously concluded that every opcode-18 word in .text is a real
+    # branch. That was wrong. There is a 3.3 KB data blob at the tail of
+    # .text, 8291266C..8291334C, and words inside .text that are data happen
+    # to decode as `bl`/`b` with targets landing in it. 206 non-functions
+    # entered the inventory that way -- 167 as `bl` targets, 43 as `b`
+    # targets, only 6 from the data scan -- and 167 of them reached the
+    # candidate list, where each is a target someone would spend hours
+    # writing C for.
+    #
+    # `.pdata` starts are exempt: it is the compiler's own table, and all
+    # 21,238 of them decode.
+    undecodable = set()
+    if ppcdis.available():
+        cand = sorted(found - pset)
+        firsts = []
+        for a in cand:
+            d = img.read(a, 4)
+            firsts.append(int.from_bytes(d, "big") if d else 0)
+        if cand:
+            dec = ppcdis.words(firsts, cand[0])
+            undecodable = {cand[i] for i, x in enumerate(dec)
+                           if x[2].strip().startswith(".long")}
+        found -= undecodable
+        print("DECODABILITY: a function start has to be an instruction.")
+        print("  discovered starts checked            %8d" % len(cand))
+        print("  first word does not decode, rejected %8d" % len(undecodable))
+        if undecodable:
+            print("  they span %08X..%08X"
+                  % (min(undecodable), max(undecodable)))
+        print("")
+    else:
+        print("DECODABILITY CHECK SKIPPED: build/ppcdis.exe is missing.")
+        print("  Falling back to capstone would reject real VMX128 starts, so")
+        print("  no filter is applied rather than a wrong one. Build it first.")
+        print("")
+
     beyond = sorted(found - pset)
     print("  TOTAL starts beyond .pdata            %8d" % len(beyond))
     OUT.write_text("# address  (function starts: branch sweep + data pointers)\n"
@@ -336,6 +405,22 @@ def main(argv):
             except (ValueError, IndexError):
                 pass
         gset = gh - pset
+        # Apply the SAME decodability filter to Ghidra's list. It lists 167
+        # entries in the 8291266C..8291334C data blob and every one of them
+        # fails to decode, so Ghidra makes the same mistake this tool used to.
+        # Comparing a filtered set against an unfiltered one would score those
+        # 167 as functions we "missed", which is backwards.
+        if ppcdis.available() and gset:
+            gl = sorted(gset)
+            gf = [int.from_bytes(img.read(a, 4) or bytes(4), "big") for a in gl]
+            gd = ppcdis.words(gf, gl[0])
+            gbad = {gl[i] for i, x in enumerate(gd)
+                    if x[2].strip().startswith(".long")}
+            if gbad:
+                print("  Ghidra entries that are not code, excluded from both")
+                print("  sides so the comparison is like for like:  %8d"
+                      % len(gbad))
+            gset -= gbad
         bset = set(beyond)
         print("COMPARISON with Ghidra's contribution (from %s):" % GHIDRA.name)
         print("  Ghidra function starts               %8d" % len(gh))

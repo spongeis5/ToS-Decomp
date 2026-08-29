@@ -82,8 +82,8 @@ MATCHES = [
     ("src/vcall_arg2.cpp", "82600BB0", None),
     ("src/global_field.cpp", "82600BD8", None),
     ("src/ctor_vt.cpp", "821A4628", None),
-    ("src/set_vtable.cpp", "826FE5C8", None),
-    ("src/set_vtable.cpp", "826FE5B8", None),
+    ("src/set_vtable.cpp", "826FE5B8", "SetVTableD170"),
+    ("src/set_vtable.cpp", "826FE5C8", "SetVTableD180"),
     ("src/string_utils.cpp", "82540728", "StrLen"),
     ("src/string_utils.cpp", "82540750", "StrCopy"),
     ("src/owner_clear.cpp", "82677028", "ClearAndHandle"),
@@ -103,6 +103,14 @@ def main():
                          [".claude/hooks/test_no_backslash_heredoc.py"]))
     results.append(check("reconstructing build (.text reproduces)",
                          ["tools/build.py"]))
+
+    # A symbol resolving to two addresses verifies byte for byte and could
+    # never link. build.py reports it; nothing should be reporting it.
+    rc, out = run(["tools/build.py"])
+    linkable = "WOULD NOT LINK" not in out
+    print("  %-42s %s" % ("no symbol resolves to two addresses",
+                          "ok" if linkable else "FAIL -- see build.py output"))
+    results.append(linkable)
 
     print("")
     print("MATCHES -- %d function(s)\n" % len(MATCHES))
@@ -137,6 +145,24 @@ def main():
         "struct E { /* 0x1C */ char unk0000[0x1C]; void* v; };",
         "DOES NOT REPRODUCE",
         also=("ASSERT_OFFSET(E, v, 0x18);", "ASSERT_OFFSET(E, v, 0x1C);")))
+    # The image itself: every number here is a claim about one specific
+    # image, so a different one must be refused rather than silently used.
+    import shutil
+    img = ROOT / "build/default.pe.exe"
+    bak = ROOT / "build/default.pe.exe.verify"
+    shutil.copy(str(img), str(bak))
+    d = bytearray(img.read_bytes())
+    d[0x500000] ^= 0xFF
+    img.write_bytes(bytes(d))
+    try:
+        rc, out = run(["tools/build.py"])
+    finally:
+        shutil.move(str(bak), str(img))
+    caught = rc != 0 and "not the image" in out
+    print("  %-42s %s" % ("corrupted image -> refused",
+                          "ok" if caught else "FAIL -- NOT CAUGHT"))
+    results.append(caught)
+
     results.append(negative(
         "wrong manifest address -> caught",
         "src/manifest.txt",

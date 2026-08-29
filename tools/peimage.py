@@ -4,16 +4,59 @@ One derivation of "where does this guest address live in the file", used by
 every tool, rather than each tool growing its own copy that can drift.
 """
 
+import hashlib
+import os
 import struct
+import sys
 from pathlib import Path
 
 IMAGE = Path("build/default.pe.exe")
 FUNCTIONS = Path("build/functions.txt")
 
+# The image this project's every number is about.
+#
+# Nothing pinned this until an audit asked what would happen if the image were
+# regenerated from a different dump. The answer was: every address, every
+# match and every count would silently be about a different program, and no
+# tool would say so. A byte-matching decompilation is a claim about ONE image,
+# so the image is named here and checked on load.
+#
+# If a legitimately different build is intended -- another region, a title
+# update -- set TOS_ALLOW_IMAGE_MISMATCH=1 and update these, deliberately and
+# in a commit of their own.
+EXPECTED_SHA256 = (
+    "c171aaad32708342fa59274467013fd1"
+    "d0145c4974cd4225358aaf35d9e03614")
+EXPECTED_SIZE = 11272192
+
+
+class ImageMismatch(Exception):
+    pass
+
+
+def _verify(data, path):
+    got = hashlib.sha256(data).hexdigest()
+    if got == EXPECTED_SHA256 and len(data) == EXPECTED_SIZE:
+        return
+    msg = ("%s is not the image this project was built against.\n"
+           "  expected  %d bytes, sha256 %s\n"
+           "  got       %d bytes, sha256 %s\n"
+           "Every address, match and count here is a claim about the expected\n"
+           "image. Rebuild it with tools/xex.py from the retail DEFAULT.XEX,\n"
+           "or set TOS_ALLOW_IMAGE_MISMATCH=1 if a different build is\n"
+           "genuinely intended."
+           % (path, EXPECTED_SIZE, EXPECTED_SHA256, len(data), got))
+    if os.environ.get("TOS_ALLOW_IMAGE_MISMATCH"):
+        print("WARNING: " + msg, file=sys.stderr)
+        return
+    raise ImageMismatch(msg)
+
 
 class Image:
-    def __init__(self, path=IMAGE):
+    def __init__(self, path=IMAGE, verify=True):
         self.data = Path(path).read_bytes()
+        if verify and Path(path) == IMAGE:
+            _verify(self.data, path)
         d = self.data
         o = struct.unpack_from("<I", d, 0x3C)[0]
         if d[o : o + 4] != b"PE\0\0":
