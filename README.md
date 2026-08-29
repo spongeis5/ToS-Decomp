@@ -28,10 +28,10 @@ bytes identical to the retail image. Not a port, not a re-implementation.
 ## Where the project is
 
 ```
-functions known                25,737     (.pdata 21,238 + Ghidra 4,499)
-.text disassembled             97.3%      (2,060,734 of 2,116,991 words)
+functions known                30,984     (.pdata 21,238 + discovery 9,746)
+.text covered by the inventory  99.8%     (8,451,454 of 8,467,964 bytes)
 attributed as NOT the game's    7,611     (39.4% of .text)
-remaining to decompile         18,126     (60.6%)
+call-graph edges               85,315
 FUNCTIONS MATCHED                  15
 ```
 
@@ -94,13 +94,19 @@ Ocarina of Time, and the GC/Wii projects built on dtk/splat), this one is
 strong on evidence discipline and **weak on structure**. Stated plainly so it
 is not discovered later:
 
-**1. There is no reproducing build.** This is the big one. A matching decomp's
-definition of done is that the build emits an image whose hash equals the
-original's; every other number is a proxy. Here, functions are compiled in
-isolation and diffed against bytes read out of the image. Nothing yet proves
-the pieces link together — data, relocations, section layout, COMDAT ordering
-and padding are all unverified. A project can accumulate hundreds of
-"matching" functions this way and still not link.
+**1. There is a verifying build, but it is a SPLICE, not a LINK.**
+`python tools/build.py` compiles every source in `src/manifest.txt`, resolves
+each relocation against the retail bytes, splices the result into `.text` and
+hashes the section — exit 0 only when it reproduces. That closed the worst of
+this gap: relocations are now *resolved* rather than masked, so a wrong
+register inside a relocated word is caught, and every resolved address is
+checked to land on a real function start or in a data section.
+
+What remains: the undecompiled code is **copied** from the original rather
+than assembled from objects, so section layout, symbol ordering and
+inter-object padding are still unverified. Only 436 of 8,467,964 `.text` bytes
+(0.0051%) are actually built. The real link — every function as an object,
+ordered by a linker script — is still ahead.
 
 **2. There is no shared type system.** Each source file invents its own
 `struct` with `char pad00[132]` filler. `src/clear_and_call.cpp` and
@@ -120,9 +126,10 @@ this early, but they should be treated as provisional. Real names exist for
 part of the image (RTTI, profiler scopes, assert strings) and are not yet
 applied to matched code.
 
-**5. Progress is counted in functions, not bytes.** 15 of 25,737 says little;
+**5. Progress is counted in functions, not bytes.** 15 of 30,984 says little;
 byte coverage against the 60.6% that is actually the game's is the number that
-matters, and there is no dashboard computing it.
+matters. `tools/build.py` now reports byte coverage of `.text`, but there is
+still no dashboard tracking it over time.
 
 **6. There is no permuter.** `permute.py` scores a hand-written list of
 shapes. `decomp-permuter` mutates source automatically to search register
@@ -139,7 +146,54 @@ denominators; library code is attributed and excluded from scope on byte
 evidence; and every tool is validated against known-good answers before its
 output is believed.
 
-**In priority order the gaps are: (1), then (2) and (3) together, then (6).**
+**In priority order the gaps are: (2) and (3) together, then (6), then
+finishing (1) into a real link.**
+
+---
+
+## Ghidra, measured and replaced
+
+Ghidra supplied exactly two things: the function starts `.pdata` lacks, and the
+call graph. Neither needs a decompiler — a `bl` names its target in the
+instruction word, so a linear sweep finds every called function and the same
+sweep yields the edges. `tools/discover.py` does that, plus a data-pointer scan
+for functions reachable only through a vtable.
+
+Head to head on this image:
+
+| | Ghidra | `discover.py` |
+|---|---|---|
+| functions beyond `.pdata` | 4,499 | **9,746** |
+| of Ghidra's, rediscovered | — | **99.7%** (13 missed) |
+| call-graph edges | 73,686 | **85,315** |
+| correct sizes, on the 15 whose true size the build establishes | 13/15 | **15/15** |
+| wall clock | a 12 GB headless run | **1.1 s** |
+| VMX128 | cannot decode it | decodes it |
+
+The two sizes Ghidra gets wrong are both tail-call functions. It computes a
+body from *reachable* code, so the unreachable `blr` MSVC appends after a tail
+call is not counted and the size comes out 4 bytes short — 171 functions in
+this image have that shape.
+
+**How the extra 5,260 were checked**, because "found more" is not the same as
+"found real":
+
+* 102 of 6,126 branch-sweep starts (1.7%) fall inside a known function, and
+  the biggest cluster is 15 entry points into one 84-byte host — the
+  `__restgprlr` register-restore helper, whose multiple entry points are
+  documented in §7e and are legitimate.
+* the data-pointer scan finds 47,493 aligned data words pointing into code,
+  and **83.9% land exactly on an already-known function start** — that hit
+  rate is the evidence the remaining ones are credible.
+* the data-pointer-only candidates disassemble as textbook accessors
+  (`lwz r11,off(r3) / rlwinm r3,r11,... / blr`) — small vtable-only methods
+  with no unwind row, which is exactly the population that should be missing.
+* sizes derived as extent-to-next-start with padding trimmed agree with
+  `.pdata` on **97.0%** of the 21,238 rows that can be compared.
+
+`ghidra_scripts/` and the import path are kept for cross-checking, and
+`python tools/inventory.py --ghidra` still builds the old union. Nothing in
+the pipeline requires it.
 
 ---
 
@@ -196,8 +250,10 @@ SDKFiles/xdk/XDK/bin/win32` reports the state of all 160 modules without
 running any of them — running a broken one pops a modal dialog that blocks
 until someone clicks OK.
 
-**3. Ghidra 12.x** with `analyzeHeadless`. Only needed to rebuild the call
-graph and the extra 4,499 functions.
+**3. Ghidra is NO LONGER REQUIRED.** It used to supply the function starts
+`.pdata` lacks, plus the call graph. `tools/discover.py` does both from the
+image alone, in about a second, and measurably better — see "Ghidra, measured
+and replaced" below. Keep it only if you want an independent cross-check.
 
 ---
 

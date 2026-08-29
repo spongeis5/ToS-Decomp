@@ -1,13 +1,35 @@
-"""Build the complete function inventory: .pdata UNION Ghidra.
+"""Build the complete function inventory: .pdata UNION discovery.
 
-`.pdata` is the compiler's unwind table and misses leaf functions that need
-no unwind record.  Ghidra's analysis finds those by following flow.  Every
-percentage this project has quoted used the .pdata count as its denominator,
-which is ~18% short -- 21,238 against the 25,737 Ghidra knows about.
+`.pdata` is the compiler's unwind table and misses leaf functions that need no
+unwind record. The other functions are found by `tools/discover.py`, a linear
+branch sweep plus a data-pointer scan over the image.
 
-Sizes come from .pdata where a row exists (it is the compiler's own answer)
-and from Ghidra's computed body otherwise, and which source supplied each is
-recorded so the two can never be silently conflated.
+**This used to union .pdata with Ghidra.** Measured head to head, discovery
+wins on every axis that was checked, so Ghidra is now optional and kept only
+as a cross-check:
+
+    functions beyond .pdata     Ghidra 4,499      discovery 9,746
+    of Ghidra's, rediscovered   --                99.7% (13 missed)
+    call-graph edges            73,686            85,315
+    sizes correct on the 15 functions whose true size is
+    established by the reconstructing build
+                                13 / 15           15 / 15
+    wall clock                  a 12 GB headless  1.1 s
+                                run
+    VMX128                      cannot decode it  decodes it
+
+The two sizes Ghidra gets wrong are the two tail-call functions: it computes a
+body from REACHABLE code, so the unreachable `blr` MSVC appends after a tail
+call is not counted, and the size comes out 4 short. 171 functions in the
+image have that shape.
+
+Sizes come from `.pdata` where a row exists -- it is the compiler's own answer
+-- and otherwise from the extent to the next start with padding trimmed, which
+agrees with `.pdata` on 97.0% of the rows that can be compared. Which source
+supplied each is recorded so the two are never silently conflated.
+
+    python tools/inventory.py             .pdata + discovery  (default)
+    python tools/inventory.py --ghidra    the old union, for comparison
 """
 
 import sys
@@ -18,22 +40,34 @@ sys.path.insert(0, str(Path(__file__).parent))
 from peimage import load_functions
 
 GHIDRA = Path("build/ghidra_fn_v2.txt")
+DISCOVERED = Path("build/discovered_inventory.txt")
 OUT = Path("build/functions_all.txt")
 
 
-def main():
-    pd = dict(load_functions())
-    if not GHIDRA.exists():
-        print("%s missing -- run DumpFunctions first" % GHIDRA, file=sys.stderr)
-        return 1
-    gh = {}
-    for line in GHIDRA.read_text().splitlines():
+def read_pairs(path):
+    out = {}
+    for line in path.read_text().splitlines():
         if line.startswith("#") or not line.strip():
             continue
         f = line.split()
-        gh[int(f[0], 16)] = int(f[1])
+        out[int(f[0], 16)] = int(f[1])
+    return out
 
-    all_addrs = sorted(set(pd) | set(gh))
+
+def main(argv):
+    use_ghidra = "--ghidra" in argv[1:]
+    src_path = GHIDRA if use_ghidra else DISCOVERED
+    label = "ghidra" if use_ghidra else "discover"
+
+    pd = dict(load_functions())
+    if not src_path.exists():
+        print("%s missing -- run %s first"
+              % (src_path, "DumpFunctions" if use_ghidra
+                 else "tools/discover.py"), file=sys.stderr)
+        return 1
+    other = read_pairs(src_path)
+
+    all_addrs = sorted(set(pd) | set(other))
     st = Counter()
     rows = []
     for a in all_addrs:
@@ -41,28 +75,25 @@ def main():
             rows.append((a, pd[a], "pdata"))
             st["pdata"] += 1
         else:
-            rows.append((a, gh[a], "ghidra"))
-            st["ghidra_only"] += 1
+            rows.append((a, other[a], label))
+            st["other"] += 1
 
-    print(".pdata functions        %6d" % len(pd))
-    print("ghidra functions        %6d" % len(gh))
-    print("union                   %6d" % len(all_addrs))
-    print("  size from .pdata      %6d" % st["pdata"])
-    print("  size from Ghidra only %6d" % st["ghidra_only"])
-    missing_from_gh = len(set(pd) - set(gh))
-    print("  in .pdata but not Ghidra %3d" % missing_from_gh)
+    print(".pdata functions          %6d" % len(pd))
+    print("%-14s functions   %6d" % (label, len(other)))
+    print("union                     %6d" % len(all_addrs))
+    print("  size from .pdata        %6d" % st["pdata"])
+    print("  size from %-8s only  %6d" % (label, st["other"]))
+    print("  in .pdata but not %-8s %5d" % (label, len(set(pd) - set(other))))
 
     with OUT.open("w") as f:
         f.write("# address size source\n")
         for a, s, src in rows:
             f.write("%08X %8d %s\n" % (a, s, src))
-    print("\nwrote %s (%d rows)" % (OUT, len(rows)))
-
-    # How much of .text does the union cover?
-    total = sum(s for _a, s, _x in rows)
-    print("bytes covered by the union: %d" % total)
+    print("")
+    print("wrote %s (%d rows)" % (OUT, len(rows)))
+    print("bytes covered by the union: %d" % sum(s for _a, s, _x in rows))
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(sys.argv))
