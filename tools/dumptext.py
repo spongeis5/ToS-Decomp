@@ -36,7 +36,7 @@ def main(argv):
     if not ppcdis.available():
         print("build/ppcdis.exe is missing, and the whole point of this file")
         print("is to count VMX128 forms that only it can decode. Build it")
-        print("first -- see 'Rebuilding from scratch' in README.md.")
+        print("first -- see 'Rebuilding from scratch' in HANDBOOK.md.")
         return 1
 
     img = Image()

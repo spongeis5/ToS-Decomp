@@ -6,7 +6,7 @@
 // IN SCOPE, and the project used to say otherwise. Havok is 341,792 bytes of
 // this image and there is no archive to link; identifying it by RTTI says
 // what it is, it does not make it go away. See the attribution table in
-// README.md -- 32.1% of .text can be linked from XDK libraries we hold, and
+// HANDBOOK.md -- 32.1% of .text can be linked from XDK libraries we hold, and
 // the other 67.9% has to be written, Havok included.
 //
 // IT IS ALSO EASIER THAN GAME CODE, not harder. The class name came free

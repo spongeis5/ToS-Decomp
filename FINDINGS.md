@@ -399,7 +399,7 @@ them to NAME anything:
 82677BC0  TtWatchDog:FreeMem                    352 B
 ```
 
-README.md gap 4 says "names are invented, not recovered". For this population
+HANDBOOK.md gap 4 says "names are invented, not recovered". For this population
 that is no longer true, and the name says what a function is for before a
 line of it is read -- `TtcheckSupport` is the character-grounding test,
 `TtSetSurfVel` is surface velocity for moving platforms, `TtCheckLineOfSight`
@@ -795,7 +795,7 @@ It is left opt-in for one reason: adopting it makes every derived file stale
 at once. `attribute.py` and `candidates.py` would both have to be re-run in
 that order -- running `candidates.py` against a stale attribution silently
 hides thousands of candidates, which has happened here before -- and every
-headline count in README.md would need re-measuring. That is a deliberate
+headline count in HANDBOOK.md would need re-measuring. That is a deliberate
 step, not a side effect of a session that was doing something else.
 `can_shrink` in match.py already removes the immediate harm, which is what
 made it safe to defer.

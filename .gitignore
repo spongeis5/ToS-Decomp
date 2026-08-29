@@ -4,10 +4,10 @@
 # Microsoft software. Required to build anything here; never committed.
 # Notably build/text_dis.txt is 80 MB and build/default*.exe are 11 MB each.
 # Scratch
-# See README.md for what is needed and how to verify a candidate copy.
+# See HANDBOOK.md for what is needed and how to verify a candidate copy.
 # The Xbox 360 XDK, extracted and as installers. ~2.4 GiB of proprietary
 # The ripped disc. 3.79 GiB, 150 files, and not ours to distribute.
-# analyzeHeadless invocation in README.md.
+# analyzeHeadless invocation in HANDBOOK.md.
 *.orig
 *.pyc
 *.tmp

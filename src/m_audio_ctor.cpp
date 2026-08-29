@@ -46,7 +46,7 @@
 //
 // WHAT WAS MISSING was three words: MSVC's dead-store elimination removed
 // the EARLY write of +0xDC/+0xE0/+0xE4, because the last three stores of the
-// function overwrite them. This file concluded from that -- and README.md
+// function overwrite them. This file concluded from that -- and HANDBOOK.md
 // repeated it -- that "the retail source has an INLINING BOUNDARY that a
 // single translation unit cannot express". THAT WAS WRONG. The measurement
 // was right and the conclusion was not, which is the same failure the

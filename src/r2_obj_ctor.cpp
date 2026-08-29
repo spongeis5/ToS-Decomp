@@ -72,7 +72,7 @@
 // 168 bytes -- up from 1 of 26 at 120.
 //
 // THE "INLINING BOUNDARY A SINGLE TRANSLATION UNIT CANNOT EXPRESS" WAS
-// WRONG. README.md listed this function, sub_82583290 and sub_82700B30
+// WRONG. HANDBOOK.md listed this function, sub_82583290 and sub_82700B30
 // together as needing one, on the grounds that MSVC's dead-store elimination
 // removes duplicated stores the retail build keeps. The observation is
 // right -- written flat, all three duplicated stores go and the body is 120

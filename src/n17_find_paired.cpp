@@ -16,7 +16,7 @@
 //
 // Regenerating the inventory would settle it (`python tools/inventory.py
 // --addrtaken` produces 31,882 rows against the 30,630 in use), but that
-// rewrites a file every other running agent reads, and README.md records that
+// rewrites a file every other running agent reads, and HANDBOOK.md records that
 // the two inventories differ in both directions. So the gap is reported
 // rather than papered over; the fix belongs to whoever owns the inventory.
 //

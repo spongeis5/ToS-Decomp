@@ -1,0 +1,69 @@
+# ToS-Decomp — orientation
+
+A byte-matching decompilation of *SpongeBob's Truth or Square* (Xbox 360).
+Source is written, compiled with the title's own 2008 XDK `cl.exe`
+15.00.8153, and must produce bytes **identical** to the retail image.
+
+This file is deliberately short. It loads automatically; the documents it
+points at do not, and they are where the knowledge is.
+
+## Read before working
+
+1. **`MATCHED.md`** — the idiom table and the ~20 measured **levers**. Nearly
+   every match is won by applying one of them. This is the highest-value
+   reading in the repository and skipping it means rediscovering things that
+   took days.
+2. **`SHELL-TRAPS.md`** — this environment silently corrupts files. A
+   backslash in a bash heredoc arrives mangled; a hook now refuses those, and
+   it has fired repeatedly. Write scripts with the Write tool and run them.
+3. **`HANDBOOK.md`** — full state, setup, the tool inventory, and where to
+   pick up. The long one.
+
+## The loop
+
+```bash
+python tools/verify.py                 26 checks; ~4 min. Run it first.
+python tools/batch.py 40 --no-vmx      candidates, ranked by CALLER COUNT
+python tools/match.py <src> <addr>     compile one and compare
+python tools/sweep.py                  recover work whose row was never written
+python tools/sweep.py --attempts       live near-miss scores, both flag levels
+```
+
+Parallel agents work well on batches. Give each a distinct filename prefix —
+they share `src/`. Re-run `match.py` on every claim yourself; `build.py` is
+stricter still, because it RESOLVES relocations rather than excusing them.
+
+## Rules that are not negotiable
+
+**Never weaken, bypass, or add a skip flag to a check.** Every one exists
+because the rule it enforces was broken while written down.
+
+**Any tool that decides "does this match?" must import `can_shrink` and
+`can_extend` from `match.py`.** Five have now disagreed with `verify.py` by
+reimplementing that comparison, always in the direction that gets believed.
+
+**State the denominator on every count.** Not "24 draws" but "24 draws of 59
+packets walked". A fact that could not be measured is not zero.
+
+**A tool that failed must not report a benign value.** Absence of evidence
+rendered as evidence of absence is the most expensive failure mode here.
+
+**Read output end to end.** `head`, `tail` and `sed -n` ranges are not
+reading a log; a filter returns only what was already suspected.
+
+**Nothing personal in tracked files or commits.** `tools/test_privacy.py`
+enforces it and `hooks/pre-commit` blocks a commit that would break it
+(`git config core.hooksPath hooks` after any fresh clone). Content can be
+edited away; an identity in git history cannot.
+
+## The principle this project keeps re-proving
+
+A measurement of what the compiler did is **evidence**. A conclusion that
+*nothing can be done about it* has so far **always** been wrong — both
+"provably impossible" claims fell, along with three stalls that had a
+recorded mechanism saying why they were unreachable. The measurements were
+right; the conclusions drawn from them were not.
+
+So a near-miss with a recorded reason is not finished. It is the more
+promising target, because the reason names the lever to reach for. Do not
+write "provably" here.

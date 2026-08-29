@@ -229,7 +229,7 @@ def find_address_tables(words, lo):
         bctr
 
     There is no `add`, so the strict tail never matched and every dispatch of
-    this shape was invisible. README.md and FINDINGS 7n both said "neither
+    this shape was invisible. HANDBOOK.md and FINDINGS 7n both said "neither
     form is a table of addresses", which was a statement about the decoder
     rather than about the image.
 
@@ -420,7 +420,7 @@ def main(argv):
           % sum(1 for _b, _t, n in addr_disp if n is not None))
     print("    case targets they name                         %6d"
           % len(atargets))
-    print("    README.md and FINDINGS 7n said neither form was a table of")
+    print("    HANDBOOK.md and FINDINGS 7n said neither form was a table of")
     print("    addresses. That was true of the DECODER, not of the image.")
     inv_on_table = sorted(a for a, _t, _n in
                           [(t, 0, 0) for _b, t, _n in addr_disp] if a in inv2)
