@@ -3,6 +3,7 @@
     python tools/dashdata.py        -> build/dash.json
     python tools/dashhistory.py     -> build/dash_history.json
     python tools/verify.py  > build/verify_log.txt
+    python tools/link.py    > build/link_log.txt
     python tools/sweep.py --attempts > build/attempts_scores.txt
     python tools/dashboard.py       -> build/dashboard.html
 
@@ -121,6 +122,46 @@ if ap.exists():
 vacuous = [r for r in near if r["of"] == 0]
 near = [r for r in near if r["of"] > 0]
 near.sort(key=lambda r: (r["of"] - r["got"], -r["got"]))
+
+# The real link, from tools/link.py's own output. Kept SEPARATE from the byte
+# map above, because it measures a different thing: the map is what build.py
+# splices, and a splice writes each function at the address it was told. What
+# is linked is a strict subset, and reporting one number for both would be the
+# same conflation the two-line progress chart exists to avoid.
+link = {"ok": 0, "differ": 0, "blocked": 0, "bytes": 0, "span": 0}
+linked_runs, link_why = [], []
+lp = BUILD / "link_log.txt"
+if lp.exists():
+    lt = lp.read_text(encoding="utf-8", errors="replace")
+    for line in lt.splitlines():
+        m = re.match(r"^\s+([0-9A-F]{8})\.\.([0-9A-F]{8})\s+(\d+) B\s+"
+                     r"LINKED AND IDENTICAL\s+(\d+) function\(s\), "
+                     r"(\d+) file\(s\)", line)
+        if m:
+            linked_runs.append({"from": m.group(1), "to": m.group(2),
+                                "bytes": int(m.group(3)),
+                                "fn": int(m.group(4)),
+                                "files": int(m.group(5))})
+            continue
+        m = re.match(r"^\s+(\d+) run\(s\),\s+(\d+) B\s+(.+)$", line)
+        if m:
+            link_why.append((int(m.group(1)), int(m.group(2)),
+                             m.group(3).strip()))
+    m = re.search(r"(\d+) run\(s\) linked and identical, (\d+) differ, "
+                  r"(\d+) not linked", lt)
+    if m:
+        link["ok"], link["differ"], link["blocked"] = (int(m.group(1)),
+                                                       int(m.group(2)),
+                                                       int(m.group(3)))
+    m = re.search(r"(\d+) byte\(s\) of \.text produced by link\.exe", lt)
+    if m:
+        link["bytes"] = int(m.group(1))
+    m = re.search(r"of the (\d+) byte\(s\) those runs span", lt)
+    if m:
+        link["span"] = int(m.group(1))
+linked_runs.sort(key=lambda r: -r["bytes"])
+link_why.sort(key=lambda r: -r[1])
+link["runs"] = link["ok"] + link["differ"] + link["blocked"]
 
 
 # ------------------------------------------------------------------ pieces
@@ -255,6 +296,18 @@ near_rows = "".join(
     for r in near[:12])
 near_left = max(0, len(near) - 12)
 
+link_rows = "".join(
+    '<tr><td class="n">%s&ndash;%s</td><td class="n">%s</td>'
+    '<td class="n">%d</td><td class="d">%d source file%s</td></tr>'
+    % (r["from"], r["to"], fmt(r["bytes"]), r["fn"], r["files"],
+       "" if r["files"] == 1 else "s")
+    for r in linked_runs[:8]) or (
+    '<tr><td class="d" colspan="4">no link log captured</td></tr>')
+link_left = max(0, len(linked_runs) - 8)
+why_rows = "".join(
+    '<tr><td class="n">%d</td><td class="n">%s</td><td class="d">%s</td></tr>'
+    % (n, fmt(b), w) for n, b, w in link_why)
+
 
 # ------------------------------------------------------------------ page
 
@@ -366,6 +419,7 @@ li.fail .dot{background:var(--fail)} li.fail{color:var(--fail)}
   letter-spacing:0.1em; text-transform:uppercase; color:var(--muted);
   margin-top:3px}
 .stat .note{font-size:12.5px; color:var(--muted); margin-top:8px}
+p.note{font-size:12.5px; color:var(--muted); margin:-4px 0 0}
 svg{width:100%; height:auto; display:block; overflow:visible}
 .gl{stroke:var(--line); stroke-width:1}
 .ax{font-family:"IBM Plex Mono",monospace; font-size:10px; fill:var(--muted)}
@@ -416,6 +470,50 @@ footer{border-top:1px solid var(--line); padding-top:20px; font-size:13px;
   <p>The build splices every compiled function into a copy of the section and
   hashes the whole thing. That hash passing proves the rebuilt bytes are right
   &mdash; it says nothing about the grey, which is copied verbatim.</p>
+</section>
+
+<section>
+  <div>
+    <p class="eyebrow">The real link &middot; <code>python tools/link.py</code></p>
+    <h2>What the retail linker will lay out</h2>
+  </div>
+  <div class="split">
+    <div class="stat"><div class="v">@linkok@</div><div class="k">runs linked
+      and identical</div><div class="note">of @linkruns@ runs of two or more
+      adjacent matched functions</div></div>
+    <div class="stat"><div class="v">@linkbytes@</div><div class="k">bytes
+      placed by link.exe</div><div class="note">of the @linkspan@ those runs
+      span &mdash; at their retail addresses, padding included</div></div>
+    <div class="stat"><div class="v">@linkblocked@</div><div class="k">runs
+      blocked</div><div class="note">counted, not omitted &mdash; the reasons
+      are below</div></div>
+  </div>
+  <p>A splice writes each function at the address it was told, so it can never
+  see whether two of them <strong>pack</strong>, what is in the
+  <strong>padding</strong> between them, or whether the <strong>order</strong>
+  is reachable at all &mdash; our objects do not even hold them in retail
+  order. This hands contiguous runs to <code>link.exe</code> 9.00.8153, the
+  linker the retail image was built with, and compares what it emits.</p>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>span</th><th>bytes</th><th>functions</th>
+        <th>from</th></tr></thead>
+      <tbody>@linkrows@</tbody>
+    </table>
+  </div>
+  <p class="note">@linkleft@</p>
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>runs</th><th>bytes</th><th>why it is not linked</th></tr>
+      </thead>
+      <tbody>@whyrows@</tbody>
+    </table>
+  </div>
+  <p>Most of the blocked bytes are runs that call a function nobody has
+  written yet. <code>link.exe</code> will not resolve a call to a symbol with
+  no section &mdash; measured, at twelve of twelve addresses tried, including
+  ones pointing at the linked code itself &mdash; so those callees have to be
+  <em>placed</em>, not stubbed. That is the next structural step.</p>
 </section>
 
 <section>
@@ -542,6 +640,17 @@ VALUES = {
     "nnear": len(near),
     "near": near_rows,
     "nearleft": near_left,
+    "linkok": link["ok"],
+    "linkruns": link["runs"],
+    "linkbytes": fmt(link["bytes"]),
+    "linkspan": fmt(link["span"]),
+    "linkblocked": link["blocked"] + link["differ"],
+    "linkrows": link_rows,
+    "whyrows": why_rows or
+    '<tr><td class="d" colspan="3">no link log captured</td></tr>',
+    "linkleft": ("and %d more linked run%s, all identical"
+                 % (link_left, "" if link_left == 1 else "s")
+                 if link_left else "Every linked run is listed."),
     "vacuous": len(vacuous),
     "hand": fmt(d["matched_hand"]),
     "handb": fmt(d["hand_bytes"]),

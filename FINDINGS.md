@@ -428,6 +428,77 @@ TLS slot 48, and an entry is `{ const char* name; u32 stamp; u32 unk; }`.
 
 ---
 
+## 7y. The first real LINK — and four facts about `link.exe` 9.00.8153
+
+*measured 2026-08-29*
+
+Everything before this was a **splice**: `build.py` compiles each function,
+resolves its relocations itself, and writes the bytes at the address the
+manifest names. A splice cannot see whether two functions PACK, what is in
+the PADDING between them, or whether the ORDER is reachable at all.
+
+`tools/link.py` now hands contiguous **runs** of matched functions to the
+retail linker, ordered by `/ORDER:@` and placed at their retail addresses.
+
+```
+runs of 2+ adjacent matched functions          152      13,116 bytes
+  linked, placed and byte-identical            124      10,472 bytes
+  blocked: relocate against unwritten code      26       2,584 bytes
+  blocked: one .cpp at two /O levels             2          60 bytes
+```
+
+Six negative controls, five of which must report a difference: order
+reversed, first two functions swapped, placed 8 bytes early, placed 8 bytes
+late, compared 4 bytes off.
+
+### The four measured facts
+
+**1. `link.exe` refuses a REL24 against an ABSOLUTE symbol.** The obvious way
+to satisfy a call to a function nobody has written is a COFF symbol with
+`SectionNumber = IMAGE_SYM_ABSOLUTE` at the address read out of the image.
+It does not work: `LNK2013: REL24 fixup overflow` at **12 of 12** values
+swept, from `00000000` to `FFFFFFFC`, *including* values pointing at the
+linked code itself. It is the symbol kind it objects to, not the distance. So
+an undecompiled callee has to be **placed** in a real section — there is no
+stub shortcut, and that is why 26 runs are blocked.
+
+**2. Every function COMDAT `cl.exe` emits is `IMAGE_SCN_ALIGN_8BYTES`**, and
+that predicts the gaps between matched functions. Of the 464 consecutive
+manifest pairs whose gap is 0..4, the gap is 4 **exactly** when the previous
+function ends at 4 mod 8 — 464 agreements, 0 disagreements — and all 298
+non-zero gaps are filled with zero. A 4-byte gap is not a hole in what is
+known; it is the linker's own arithmetic, and reproducing it is now checked.
+It also means a run starting at 4 mod 8 could not be placed at all. None
+does, and `link.py` checks rather than assuming.
+
+**3. `/ORDER` orders COMDATs and nothing else.** Placing a run at an address
+like `821C7C60` needs a padding block ahead of it, because `/BASE` must be
+64K-aligned and `.text` lands at a 64K-aligned RVA. Written first as an
+ordinary `.text` section and named first in the order file, the pad was
+placed **after** all 55 ordered functions — at exactly +0x36C, past the end
+of the run — and the run began at offset zero. As a COMDAT it lands first and
+the run hits `821C7C60` exactly. Two links are needed: one to measure where
+`.text` went, one to place.
+
+**4. 67 of 406 translation units reference `_fltused`, and 0 relocate against
+it.** `cl.exe` emits the reference from any unit touching floating point so
+the linker drags in CRT FP support. Defining it is safe *because* no
+relocation names it — a symbol no relocation names cannot put a byte
+anywhere. That justification is read off each object, not from a list of
+names, because a list would also excuse the next symbol that looked similar
+and did have a fixup.
+
+### What it does not establish
+
+The runs are fragments. Nothing here links two runs together, and the 26
+blocked runs are blocked on exactly the thing a whole-image link would have
+to solve. Only 34,096 of 8,467,964 `.text` bytes are built at all; a link
+spanning more would still be **copying** the filler, so what it adds is that
+the layout and the relocations become the linker's work rather than ours --
+not that more of the program has been recovered.
+
+---
+
 ## 7x. build.py can check that one retail function has ONE name
 
 *measured 2026-08-29*

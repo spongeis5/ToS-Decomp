@@ -36,15 +36,34 @@ result into `.text`, hashes the section, and runs the tool self-tests:
 python tools/verify.py
 ```
 
-Twenty-six checks. Six of them are **negative controls**: each corrupts one
-fact — a struct offset, a switch case mapping, a manifest address — and
-requires the build to *fail*. A control that stops failing is the serious
-result, because it means a check reports success without being able to see
-the failure it exists to catch.
+29 checks. Several are **negative controls**: they corrupt one fact
+— a struct offset, a switch case mapping, a manifest address, the order two
+functions are linked in — and require the result to *fail*. A control that
+stops failing is the serious result, because it means a check reports success
+without being able to see the failure it exists to catch.
 
-**It is a splice, not yet a link.** Matched functions are compiled and
-spliced into a copy of `.text`; everything else is copied from the original.
-The hash proves the rebuilt bytes are right and says nothing about the rest.
+**The build is a splice; the link is real but partial.** Matched functions are
+compiled and spliced into a copy of `.text`, and everything else is copied
+from the original — so the hash proves the rebuilt bytes are right and says
+nothing about the rest.
+
+Separately, `python tools/link.py` hands contiguous runs of matched functions
+to the retail linker itself, has it place them at their retail addresses, and
+compares what it emits against the image:
+
+```
+124 of 152 runs, 10,472 bytes — placed, ordered and padded by link.exe
+```
+
+That tests three things a splice cannot, because a splice writes each function
+at the address it was told: whether the functions **pack**, what is in the
+**padding** between them, and whether the **order** is reachable at all — our
+objects do not even hold them in retail order.
+
+The 28 runs it cannot link are counted, not omitted. 26 of them call a
+function nobody has written yet, and the linker will not resolve a call to a
+symbol that has no section — so the next structural step is a link that spans
+more than one run. `HANDBOOK.md` says what that needs.
 
 ## Browsing it
 

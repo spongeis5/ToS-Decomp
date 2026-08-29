@@ -154,7 +154,7 @@ Ocarina of Time, and the GC/Wii projects built on dtk/splat), this one is
 strong on evidence discipline and **weak on structure**. Stated plainly so it
 is not discovered later:
 
-**1. There is a verifying build, but it is a SPLICE, not a LINK.**
+**1. The build is a SPLICE. There is now also a real LINK, over part of it.**
 `python tools/build.py` compiles every source in `src/manifest.txt`, resolves
 each relocation against the retail bytes, splices the result into `.text` and
 hashes the section — exit 0 only when it reproduces. That closed the worst of
@@ -162,11 +162,61 @@ this gap: relocations are now *resolved* rather than masked, so a wrong
 register inside a relocated word is caught, and every resolved address is
 checked to land on a real function start or in a data section.
 
-What remains: the undecompiled code is **copied** from the original rather
-than assembled from objects, so section layout, symbol ordering and
-inter-object padding are still unverified. Only 34,096 of 8,467,964 `.text` bytes
-(0.4026%) are actually built. The real link — every function as an object,
-ordered by a linker script — is still ahead.
+But a splice writes each function at the address the manifest names, so three
+things it cannot see: whether our functions **pack** the way the retail ones
+do, what is in the **padding** between them, and whether the **order** is
+reachable at all. Our objects do not even hold the functions in retail order —
+`m_bin_free.cpp` compiles BinFree first and BinAlloc second, and the image has
+them the other way round.
+
+`python tools/link.py` runs the retail `link.exe` 9.00.8153 over each
+contiguous **run** of matched functions, hands it the retail order through
+`/ORDER:@`, places the run **at its retail address**, and compares the span it
+emits against the image byte for byte.
+
+```
+124 of 152 runs, 10,472 of the 13,116 bytes those runs span
+```
+
+laid out by the linker rather than by us, at the addresses the image gives
+them, padding included, nothing excused. Six negative controls
+(`--selftest`) require it to *see* a difference when the order is reversed,
+when two functions are swapped, when the run is placed 8 bytes early or late,
+and when the comparison is moved 4 bytes — because an ordering check that
+cannot detect a wrong order is the same shape of nothing as a hash over bytes
+already proven equal.
+
+**How a run is placed**, since neither knob reaches an address like
+`821C7C60` on its own: `/BASE` must be 64K-aligned and `.text` lands at a
+64K-aligned RVA. So the first link only *measures* where the linker put
+`.text`; the second prepends a **padding COMDAT** of the remainder, which is
+always under 64K. It has to be a COMDAT — `/ORDER` orders COMDATs and nothing
+else, and as an ordinary section the pad was placed *after* all 55 ordered
+functions, leaving the run at offset zero. `tools/coffwrite.py` writes it.
+
+**What it does not establish.** A run is still a fragment. 28 runs are
+blocked, 26 of them because something in them relocates against a function we
+have not written — and nothing places code that does not exist, which is the
+same wall as the whole-image link. Only 34,096 of 8,467,964 `.text` bytes
+(0.4026%) are built at all.
+
+**Two facts about `link.exe` 9.00.8153, measured here.** Neither is in any
+documentation:
+
+* It **refuses a REL24 against an ABSOLUTE symbol**, answering `LNK2013:
+  fixup overflow` at every value tried, 12 of 12, including values pointing
+  at the linked code itself. It is the symbol kind it objects to, not the
+  distance — so the obvious stub for an undecompiled callee (an absolute
+  symbol at the address read out of the image) does not work. A callee has to
+  be *placed*, in a real section, which is why the 26 blocked runs are
+  blocked.
+* Every function COMDAT `cl.exe` emits is marked `IMAGE_SCN_ALIGN_8BYTES`.
+  That **predicts the gaps**: of 464 consecutive matched pairs with a gap of
+  0..4, the gap is 4 exactly when the previous function ends at 4 mod 8, 464
+  times out of 464, and all 298 non-zero gaps are zero-filled. So a 4-byte
+  gap between two matched functions is not a hole in what is known, it is the
+  linker's own arithmetic. It also means a run starting at 4 mod 8 could not
+  be placed at all; `link.py` checks and none does.
 
 **2. The type system is started, not finished.** `include/types.h` now
 carries the primitives and, more usefully, **compile-time layout assertions**:
@@ -488,6 +538,8 @@ broken one pops a modal dialog that blocks until someone clicks OK.
 | `attribute.py` | merge every signal into one scope picture |
 | `candidates.py` | vetted match targets: leaf, unattributed, outside XDK, sound |
 | `build.py` | **the reconstructing build**: compile, resolve relocations, hash `.text` |
+| `link.py` | **the real link**: `link.exe` lays out a contiguous run, padding and all; `--selftest` is its four controls |
+| `coffwrite.py` | write the two COFF objects no compiler produces — absolutes, and sized padding |
 | `coffreloc.py` | COFF functions with their relocation records |
 | `discover.py` | function starts and the call graph, from the image alone |
 | `addrtaken.py` | a THIRD discovery source: function pointers formed in code by `lis`+`addi` |
@@ -599,6 +651,25 @@ reconciliation as the one that owns the question**, which is why both now
 import `can_shrink` and `can_extend` from `match.py` rather than
 reimplementing the comparison.
 
+**A restore must not be able to reinstate what it is removing.**
+`tools/test_privacy_guard.py` plants an identifying string in a tracked file,
+requires the privacy check to fail, and removes it in a `finally` — with
+`git checkout -- MATCHED.md` as a second line of defence. That form of
+`checkout` restores from the **index**, not from HEAD. A `git add -A` in
+another window while a plant was live staged the planted line, and the
+cleanup then wrote it faithfully back out. The account name sat in a tracked
+file through three green `verify.py` runs afterwards, because every later run
+read the polluted file as its own "original" and restored *that*. The
+fallback now comes from HEAD, which cannot hold a plant, the file is handled
+as BYTES so a CRLF round-trip cannot dirty the tree on its own, and the test
+finishes by requiring the file to be byte-identical to how it found it.
+
+Two smaller things came out of the same hour, both worth keeping: **do not
+`git add -A` while `verify.py` is running** — it stages whatever a negative
+control is in the middle of corrupting — and **the privacy check caught the
+comment written to explain the bug**, which spelled the account name out. It
+is meant to.
+
 **State the denominator.** Not "24 draws" but "24 draws of 59 walked". Every
 count here names its population, and a bounded search reports when its bound
 was reached rather than presenting the bound as an answer.
@@ -613,10 +684,12 @@ was reached rather than presenting the bound as an answer.
 python tools/verify.py
 ```
 
-12 checks: five tools, 64 of 64 matches, and five negative controls that each
-corrupt one fact and require the build to fail. A failing negative control is
-the serious kind -- it means a check reports success without being able to
-detect the failure it exists to detect.
+29 checks: the tool self-tests, the whole manifest rebuilt and hashed, the
+real link over every contiguous run, and the negative controls -- which each
+corrupt one fact and require the thing they guard to FAIL. A failing negative
+control is the serious kind: it means a check reports success without being
+able to detect the failure it exists to detect. `verify.py` checks that this
+number is still 29, so it cannot rot the way it did when it said 12.
 
 ### Three ways to choose what to match next
 
@@ -939,11 +1012,31 @@ in particular has not once survived contact with a new lever.
    match — and none has been confirmed by hand. They are deliberately not
    merged with the 6,453 `lib` matches.
 6. ~~**A build system and a progress dashboard.**~~ **PARTLY DONE.**
-   `tools/build.py` is the build and `tools/objdiff_export.py` gives the
-   dashboard. What is still missing is the LINK: undecompiled code is copied
-   from the original rather than assembled from objects, so section layout,
-   symbol ordering and inter-object padding remain unverified. Finishing that
-   is the largest remaining structural task.
+   `tools/build.py` is the build, `tools/objdiff_export.py` gives the
+   dashboard, and `tools/link.py` links 124 contiguous runs — 10,472 bytes —
+   with the retail linker, each at its retail address, ordering and padding
+   included. What is still missing is a link that spans **more than one run**:
+   26 runs cannot be linked because something in them relocates against a
+   function we have not written, and a REL24 needs a real symbol in a real
+   section, not a stub (gap 1). This is now the largest remaining structural
+   task.
+
+   **The route to it is measured, not speculative**, and every piece exists:
+
+   * a callee must be *placed*, so the retail bytes of everything not yet
+     decompiled go in as sized `.text` COMDATs with a symbol at each known
+     function start — `coffwrite.padding` already takes a `fill`, and
+     `coffwrite.absolutes` already writes symbol-only objects;
+   * `/ORDER:@` then lays the whole section out, which `link.py` does today
+     for a run and would do for the section unchanged;
+   * placement arithmetic is solved — base 64K down, pad the remainder.
+
+   The honesty caveat carries over exactly: those filler bytes would still be
+   **copied**, so what such a link adds is that the LAYOUT and every
+   RELOCATION become the linker's work rather than ours — not that any more of
+   the program has been recovered. The first thing it would catch is a call
+   whose REL24 the linker computes differently from `build.py`'s hand-solved
+   one, which nothing checks today.
 7. **A register-pressure mutation for `tools/permuter.py`.** Its seven
    mutations do not reach register allocation, which is what all six
    remaining stalls come down to.

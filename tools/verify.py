@@ -156,6 +156,45 @@ def load_matches():
 MATCHES = load_matches()
 
 
+# HOW MANY CHECKS THERE ARE is a figure three documents quote, and a quoted
+# figure nobody regenerates rots: HANDBOOK.md said "12 checks" for long enough
+# that the real number reached 28. Same drift as the README front page being
+# wrong by six times, and the same fix -- make it a failing check rather than
+# something a reader discovers.
+#
+# Every pattern CAPTURES the number. Written first against the README's
+# spelled-out "Twenty-eight checks" with no group, this agreed with itself
+# forever: the literal matched, there was no group to read, and the count was
+# never actually compared. A check with nothing to compare is the shape of
+# check this project keeps having to delete.
+#
+# A separate function so it can be called with a WRONG total and required to
+# complain -- a guard tested only by the run it guards is tested by nothing.
+COUNT_IN_DOCS = (
+    ("README.md", r"^(\d+) checks\. Several are"),
+    ("HANDBOOK.md", r"^(\d+) checks: the tool self-tests"),
+    ("CLAUDE.md", r"verify\.py\s+(\d+) checks"),
+)
+
+
+def documented_count_problems(total):
+    """-> [] when all three documents say `total`, else what each says."""
+    import re as _re
+    stale = []
+    for doc, pat in COUNT_IN_DOCS:
+        p = ROOT / doc
+        if not p.exists():
+            stale.append("%s is missing" % doc)
+            continue
+        m = _re.search(pat, p.read_text(encoding="utf-8"), _re.M)
+        if not m:
+            stale.append("%s no longer states a check count where expected"
+                         % doc)
+        elif int(m.group(1)) != total:
+            stale.append("%s says %s, there are %d" % (doc, m.group(1), total))
+    return stale
+
+
 def main():
     restore_if_interrupted()
     results = []
@@ -226,7 +265,7 @@ def main():
     # same reason a working one does.
     results.append(check("no identifying information in tree or history",
                          ["tools/test_privacy.py"]))
-    results.append(check("privacy guard fires, 6 cases (4 plants)",
+    results.append(check("privacy guard fires, 7 cases (4 plants)",
                          ["tools/test_privacy_guard.py"]))
     # The README's front page said 181 functions and 10,280 bytes when the
     # truth was 1,200 and 34,096 -- wrong by six times, in the first block a
@@ -241,6 +280,16 @@ def main():
                          [".claude/hooks/test_no_backslash_heredoc.py"]))
     results.append(check("reconstructing build (.text reproduces)",
                          ["tools/build.py"]))
+    # The link is a different question from the splice and has to be asked
+    # separately: build.py writes every function at the address the manifest
+    # names, so it can never notice that two of them do not PACK, or that the
+    # padding between them is wrong, or that the order is unreachable. Its
+    # controls run first -- an ordering check that cannot see a wrong order is
+    # the same shape of nothing as a hash over bytes already proven equal.
+    results.append(check("link.py controls, 6 cases (5 must differ)",
+                         ["tools/link.py", "--selftest"]))
+    results.append(check("real link: runs placed, ordered, padded",
+                         ["tools/link.py"]))
 
     # No inventory entry may be a switch case body. Case bodies are labels
     # inside a function, and one listed as a function is a real defect.
@@ -386,6 +435,24 @@ def main():
         "src/manifest.txt",
         "src/chain5.cpp                  821636A8",
         "src/chain5.cpp                  821636AC"))
+
+    # HOW MANY CHECKS THERE ARE is a figure three documents quote, and a
+    # quoted figure nobody regenerates rots: HANDBOOK.md said "12 checks" for
+    # long enough that the real number reached 28. Same drift as the README
+    # front page being wrong by six times, and the same fix -- make it a
+    # failing check rather than something a reader discovers.
+    #
+    # `+ 1` counts this check, which has not been appended yet. Comparing
+    # against the documents rather than against a constant in this file is
+    # what makes it a check at all; a constant here would agree with itself.
+    total = len(results) + 1
+    stale = documented_count_problems(total)
+    ok = not stale
+    print("  %-42s %s" % ("documented check count is %d" % total,
+                          "ok" if ok else "FAIL"))
+    for s in stale:
+        print("      %s" % s)
+    results.append(ok)
 
     # Released here AND in the `finally` below, because a killed run must not
     # leave every other process unable to compile. The sentinel that restores

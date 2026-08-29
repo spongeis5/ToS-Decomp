@@ -22,16 +22,25 @@ points at do not, and they are where the knowledge is.
 ## The loop
 
 ```bash
-python tools/verify.py                 26 checks; ~4 min. Run it first.
+python tools/verify.py                 29 checks; ~5 min. Run it first.
 python tools/batch.py 40 --no-vmx      candidates, ranked by CALLER COUNT
 python tools/match.py <src> <addr>     compile one and compare
 python tools/sweep.py                  recover work whose row was never written
 python tools/sweep.py --attempts       live near-miss scores, both flag levels
+python tools/link.py --list            which adjacent runs the real linker can take
 ```
 
 Parallel agents work well on batches. Give each a distinct filename prefix —
 they share `src/`. Re-run `match.py` on every claim yourself; `build.py` is
 stricter still, because it RESOLVES relocations rather than excusing them.
+
+**`build.py` is a splice; `link.py` is a link.** The splice writes each
+function at the address the manifest names, so it cannot see whether two
+functions PACK, what is in the PADDING between them, or whether the ORDER is
+reachable — our objects do not even hold them in retail order. `link.py` hands
+contiguous runs to the retail `link.exe`, placed at their retail addresses.
+Matching two ADJACENT functions is therefore worth more than matching two
+scattered ones: it is what creates a run.
 
 ## Rules that are not negotiable
 

@@ -41,20 +41,45 @@ def run_privacy():
 
 
 def plant(text):
-    orig = VICTIM.read_text(encoding="utf-8")
+    # BYTES, not text. Read-as-text-and-write-back translates line endings on
+    # Windows, so restoring a CRLF file rewrote every line of it: the content
+    # was right, `git status` said modified, and the noise sat on top of a
+    # real problem. A restore has to give back exactly what it took.
+    orig = VICTIM.read_bytes()
     try:
-        VICTIM.write_text(orig + "\n" + text + "\n", encoding="utf-8")
+        VICTIM.write_bytes(orig + ("\n" + text + "\n").encode("utf-8"))
         return run_privacy()
     finally:
-        VICTIM.write_text(orig, encoding="utf-8")
-        # Belt and braces: if the write above failed somehow, git has it.
-        subprocess.run(["git", "checkout", "--", str(VICTIM)],
-                       cwd=str(ROOT), capture_output=True)
+        VICTIM.write_bytes(orig)
+        # Belt and braces, FROM HEAD -- not from the index.
+        #
+        # This said `git checkout -- MATCHED.md`, which restores from the
+        # INDEX, and that turned the cleanup into the thing that made a plant
+        # survive. Anything running `git add` while this test is mid-plant --
+        # `git add -A` in another window, an editor, a hook -- stages the
+        # planted line, and the restore then faithfully wrote the plant back
+        # out. It happened: a planted account name sat in MATCHED.md through
+        # three green verify runs afterwards, because every later run read the
+        # polluted file as its own `orig` and restored that.
+        #
+        # A restore that can reinstate what it is restoring from is worse than
+        # no restore, because the tree then looks clean to the process that
+        # dirtied it. HEAD cannot hold a plant: it is never committed, and the
+        # pre-commit hook refuses if it ever were.
+        if VICTIM.read_bytes() != orig:
+            subprocess.run(["git", "checkout", "HEAD", "--", str(VICTIM)],
+                           cwd=str(ROOT), capture_output=True)
 
 
 def main():
     print("privacy guard -- 4 plants, every one must FAIL the check")
     print("")
+
+    # What the victim file looked like before any of this, to the byte.
+    # Checked again at the end, because a test that plants an identifying
+    # string into a tracked file has to prove it took it back out -- and once
+    # it did not.
+    start = VICTIM.read_bytes()
 
     check("clean tree passes", run_privacy() == 0)
 
@@ -84,12 +109,17 @@ def main():
     check("privacy addresses are accepted",
           all(m.match(a) for a in ok_addrs))
 
+    restored = VICTIM.read_bytes() == start
+    check("%s is byte-identical to how it was found" % VICTIM.name, restored,
+          "" if restored else "A PLANT MAY STILL BE IN IT -- see git diff")
+
     print("")
     bad = RESULTS.count(False)
     print("%d of %d check(s) passed" % (len(RESULTS) - bad, len(RESULTS)))
     if bad:
         print("")
-        print("The privacy check cannot see something it claims to catch.")
+        print("The privacy check cannot see something it claims to catch,")
+        print("or this test did not clean up after itself.")
         print("Do not rely on it before publishing.")
     return 1 if bad else 0
 
