@@ -155,3 +155,36 @@ src/e_can_use.cpp               821FF908
 src/e_mtx23_mul.cpp             82691C50  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
 src/e_mtx23_premul.cpp          82691CF0  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
 src/e_mtx23_xform.cpp           826919A8  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/m_handle_release.cpp        82662E08  ReleaseHandle          flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/m_bin_free.cpp              8262F658  BinFree
+src/m_handle_release.cpp        82662938  AcquireEntry           flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/m_track_or_add.cpp          82602EA0
+src/i_strcmp.cpp                82540878
+src/i_list_find_key.cpp         8214C578
+src/i_state_idle.cpp            8219FCD8  IsIdle
+src/i_sum_parts.cpp             821675B8
+src/i_release_ref4.cpp          826A9E88  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/i_charclass.cpp             82692590  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/i_lex_advance.cpp           827727D0  ScanNext               flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/i_canon_switch.cpp          821A99F8
+src/k_global_release_tls.cpp    8262FF90
+src/k_short_release.cpp         8262FE10
+src/k_bits_or_zero.cpp          82631D98
+src/k_sorted_insert.cpp         825FEF00
+src/k_chunk_at.cpp              822CEE08
+src/k_vcall148.cpp              827C5180  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/k_find_pair.cpp             827DAC60  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/m_node_destroy.cpp          82805D20
+src/h_chain_nth.cpp             826C0F50
+src/h_bump_groups.cpp           82164040  BumpAll
+src/h_gate_pos.cpp              8264B6F0
+src/h_kind_allows.cpp           82255408  KindAllows
+src/h_cursor_skip.cpp           827C6D08  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/h_blk_ctor.cpp              82703E28  BlkOwnerConstruct      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/m_bin_free.cpp              8262F5D0  BinAlloc
+src/m_line_of_sight.cpp         82216918  TtCheckLineOfSight
+src/j_inv_or_clamp.cpp          821AC2F0
+src/j_normalize_or_default.cpp  82161630  NormalizeOrDefault
+src/j_reset_state.cpp           8214CCB8
+src/j_scale_pair.cpp            82167FE0
+src/j_reset_range.cpp           82799B98  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast

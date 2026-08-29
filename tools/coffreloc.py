@@ -25,6 +25,12 @@ ZERO4 = bytes(4)
 
 Reloc = namedtuple("Reloc", "off type sym")
 
+# name -> (section index, offset in that section) for every symbol defined in
+# a CODE section of the object most recently passed to functions_with_relocs.
+# Module-level rather than returned, so the existing three-tuple contract of
+# functions_with_relocs does not change under its four callers.
+LABELS = {}
+
 # IMAGE_REL_PPC_*
 ABSOLUTE = 0x00
 ADDR64   = 0x01
@@ -157,6 +163,23 @@ def functions_with_relocs(blob):
         for _k in range(naux):
             syms.append(None)          # keep indices aligned with the table
         i += 1 + naux
+
+    # Every symbol defined in a code section, by name -> (section, offset).
+    # The jump table of a switch is a run of ADDR32 relocations against
+    # compiler-generated labels ($LN5, $LN10, ...) with a ZERO addend, so the
+    # object records the case mapping as symbol NAMES. Without their offsets
+    # there is nothing to check the retail table against, and build.py would
+    # copy all 25 entries in wholesale -- which is exactly the "wrong
+    # register hidden by a whole-word patch" mistake this file was written to
+    # stop, one level up: a wrong CASE MAPPING hidden by a whole-word patch.
+    label_off = {}
+    for y in syms:
+        if not y or y["sec"] <= 0:
+            continue
+        if any(s["idx"] == y["sec"] and s["is_code"] for s in secs):
+            label_off[y["name"]] = (y["sec"], y["value"])
+    LABELS.clear()
+    LABELS.update(label_off)
 
     out = []
     for s in secs:

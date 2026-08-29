@@ -31,7 +31,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from peimage import Image
 from libmatch import coff_functions, trim_padding
-from match import can_shrink
+from match import can_shrink, can_extend
 
 import xdkcc
 
@@ -80,7 +80,15 @@ def matches_at(img, src, addr, sym, flags, work):
     tbytes = img.read(addr, tsize)
     if tbytes is None:
         return None
-    if can_shrink(code, mask, tbytes, addr, tsize):
+    # BOTH reconciliations, exactly as match.py applies them. With only the
+    # shrink, every function whose recorded size is too SHORT -- a switch
+    # with its jump table inline, a row truncated by a false start -- reads
+    # as "matches at neither level", which is a tool disagreeing with
+    # verify.py rather than a fact about the function. Three did.
+    grown = can_extend(img, sizes, code, mask, addr, tsize)
+    if grown is not None:
+        tbytes, tsize = grown, len(code)
+    elif can_shrink(code, mask, tbytes, addr, tsize):
         tbytes, tsize = tbytes[:len(code)], len(code)
     if len(code) != tsize:
         return False

@@ -112,7 +112,7 @@ def read_manifest():
     return rows, None
 
 
-def relocate(code, relocs, target, tbytes, verbose):
+def relocate(code, relocs, target, tbytes, verbose, fn_name=None):
     """Patch our code with addresses solved from the retail bytes.
 
     -> (patched, notes, problems). `notes` records each resolved address so
@@ -134,6 +134,37 @@ def relocate(code, relocs, target, tbytes, verbose):
         ours = struct.unpack_from(">I", out, r.off)[0]
 
         if r.type in WHOLE_WORD:
+            # A jump table is a run of these, one per case, against
+            # compiler-generated labels in our own function. Copying the
+            # retail word in wholesale would excuse the entire CASE MAPPING:
+            # a source that sent case 30 to the wrong body would still
+            # verify, because every table entry is taken from the image.
+            #
+            # It does not have to be excused. The object records which label
+            # each entry means, and coffreloc.LABELS gives every label's
+            # offset in the section, so the entry the linker wrote is
+            # PREDICTABLE from our own source:
+            #
+            #     expected = target + (label_offset - function_offset)
+            #
+            # Check it rather than copy it. Only when the symbol is not a
+            # local label -- an external, whose address we genuinely cannot
+            # know -- does the value come from the image.
+            here = coffreloc.LABELS.get(fn_name)
+            there = coffreloc.LABELS.get(r.sym)
+            if here and there and here[0] == there[0]:
+                want = (target + there[1] - here[1]) & 0xFFFFFFFF
+                if want != theirs:
+                    problems.append(
+                        "%s at +%#x points at %s, which our code puts at "
+                        "%08X, but the image has %08X -- the case mapping "
+                        "disagrees" % (type_name(r.type), r.off, r.sym,
+                                       want, theirs))
+                    continue
+                struct.pack_into(">I", out, r.off, want)
+                notes.append((r.off, type_name(r.type), r.sym, want,
+                              "local label, PREDICTED not copied"))
+                continue
             struct.pack_into(">I", out, r.off, theirs)
             notes.append((r.off, type_name(r.type), r.sym, theirs, "data word"))
             continue
@@ -262,7 +293,7 @@ def main(argv):
             continue
 
         patched, notes, problems = relocate(code, relocs, target, tbytes,
-                                            verbose)
+                                            verbose, name)
         ok = (patched == tbytes)
         rec = inv.get(target)
         sizetag = ""
@@ -323,6 +354,41 @@ def main(argv):
             for addr, sites in sorted(addrs.items()):
                 print("      %08X  referenced from %s"
                       % (addr, ", ".join("%08X" % s for s in sites)))
+        print("")
+
+    # A call that resolves to an address WE HAVE A SOURCE FOR should be
+    # calling that source's function, under that name and that signature.
+    # `null_tailcall.cpp` declares `void Use(void*)` and it resolves to
+    # 82662E08, which is `u32 ReleaseHandle(u32)` in m_handle_release.cpp:
+    # one retail function, two invented names, two incompatible signatures.
+    #
+    # That is not cosmetic. Argument count and types change codegen, so if
+    # both files are believed then one of them is matching for the wrong
+    # reason. It only becomes visible once the callee is matched too, which
+    # is why it needs checking on every build rather than once.
+    ours = {}
+    for src, target, want_sym, _f in rows:
+        ours.setdefault(target, []).append((src.name, want_sym))
+    aliases = []
+    for site, tname, sym, addr, _why in resolved:
+        if tname != "REL24" or addr not in ours:
+            continue
+        for fname, real in ours[addr]:
+            if real and ("?" + real + "@@") in sym:
+                continue                      # already the right name
+            aliases.append((site, sym, addr, fname, real))
+    if aliases:
+        print("")
+        print("NAME DRIFT: %d call(s) resolve to a function this project has"
+              % len(aliases))
+        print("already decompiled, but under a different invented name. The")
+        print("bytes are right either way; the SOURCE MODEL says one retail")
+        print("function is two, and the two declarations may disagree about")
+        print("the signature, which does change codegen.")
+        print("")
+        for site, sym, addr, fname, real in aliases:
+            print("  %08X calls %-34s -> %08X" % (site, sym[:34], addr))
+            print("      which is %s in %s" % (real or "the only function", fname))
         print("")
 
     print("")

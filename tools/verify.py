@@ -147,7 +147,7 @@ def main():
                          ["tools/xdkcc.py"]))
     results.append(check("coffreloc relocation semantics, 9 cases",
                          ["tools/test_coffreloc.py"]))
-    results.append(check("match.py size shrink, 7 cases (5 must refuse)",
+    results.append(check("match.py size reconciliation, 12 cases (8 must refuse)",
                          ["tools/test_shrink.py"]))
     results.append(check("MATCHED.md table matches the manifest",
                          ["tools/matched_table.py", "--check"]))
@@ -228,6 +228,18 @@ def main():
     print("  %-42s %s" % ("corrupted image -> refused",
                           "ok" if caught else "FAIL -- NOT CAUGHT"))
     results.append(caught)
+
+    # The jump table of a switch is 25 whole-word relocations. If build.py
+    # copied them from the image, a wrong CASE MAPPING would verify clean --
+    # the bodies are identical and only the table says which case reaches
+    # which. It predicts them from our own labels instead, so moving one case
+    # to the wrong arm must fail.
+    results.append(negative(
+        "wrong switch case mapping -> caught",
+        "src/i_canon_switch.cpp",
+        "        return 27;",
+        "        return 29;",
+        "the case mapping"))
 
     results.append(negative(
         "wrong manifest address -> caught",

@@ -69,6 +69,112 @@ def _branch_target(w, a):
     return (d if (w & 2) else (a + d)) & 0xFFFFFFFF
 
 
+_SWITCH_TABLES = None
+
+
+def _switch_tables():
+    """Address ranges of MSVC jump tables, which are DATA inside .text.
+
+    A table follows its dispatch, so the word before it is that dispatch's
+    own `bctr` -- a terminator -- and the fall-through test below accepts it.
+    331 inventory rows are jump tables for exactly that reason, and each one
+    truncates the function it sits inside: sub_821A99F8 is 176 bytes and
+    reads as 36 because 821A9A1C, its table, is listed as a function.
+
+    Built by tools/switches.py. Missing file means no exclusion rather than a
+    crash, because this is a refinement and not a precondition -- but it is
+    reported once so a stale build/ does not silently lose the filter.
+    """
+    global _SWITCH_TABLES
+    if _SWITCH_TABLES is None:
+        _SWITCH_TABLES = []
+        p = Path("build/switch_tables.txt")
+        if not p.exists():
+            print("  (build/switch_tables.txt is missing -- run "
+                  "tools/switches.py; jump tables will not be excluded)")
+        else:
+            for line in p.read_text().splitlines():
+                if line.startswith("#") or not line.strip():
+                    continue
+                f = line.split()
+                start, n = int(f[0], 16), int(f[1])
+                if n:
+                    _SWITCH_TABLES.append((start, start + n))
+    return _SWITCH_TABLES
+
+
+def _is_real_start(img, va):
+    """Can control FALL INTO this address? Then it is a label, not a start.
+
+    Calibrated, not asserted: run over the whole inventory, .pdata rows --
+    the compiler's own function starts -- fail this test 0.4% of the time,
+    and addresses found by tools/addrtaken.py fail it 0.0% of the time.
+    Discovery's branch-sweep rows fail it 14.1% of the time, which is 35x the
+    control, because an intra-function `b` is indistinguishable from a tail
+    call when you have no function extents yet.
+
+    Padding counts as a terminator: the linker pads between COMDATs, so a
+    zero or a nop before an address is a boundary, not fall-through.
+    """
+    for lo, hi in _switch_tables():
+        if lo <= va < hi:
+            return False                  # a jump table is data
+    raw = img.read(va - 4, 4)
+    if raw is None:
+        return True                       # nothing before it: no evidence
+    w = struct.unpack(">I", raw)[0]
+    if w in (0, 0x60000000):              # alignment padding
+        return True
+    if _is_uncond(w):
+        return True
+    if (w >> 26) == 19 and ((w >> 1) & 0x3FF) == 16 and not (w & 1):
+        return True                       # beqlr / bnelr / bclr forms
+    return False
+
+
+def can_extend(img, sizes, code, mask, target, tsize):
+    """May the comparison window be GROWN to len(code)? -> the bytes, or None.
+
+    The recorded size can be too SHORT, for two different reasons:
+
+      * MSVC appends an unreachable `blr` after a tail call, and a body
+        computed from reachable code does not count it. That is 4 bytes, and
+        it is why sub_82807B38 reads as 16 when its code is 20.
+      * A FALSE function start truncates the row before it. Discovery's
+        branch sweep takes the target of any unconditional `b` as a start,
+        and an intra-function jump is indistinguishable from a tail call
+        when you have no extents yet, so 14.1% of its starts are labels --
+        against 0.4% for .pdata, which is the compiler's own answer and so
+        the control for this test (FINDINGS 7u). sub_8262F658 has 420
+        callers, runs 164 bytes to 8262F6F8, and is recorded as 68 because
+        8262F69C is listed as a function despite control FALLING INTO it.
+
+    So the bound is the next start that is not fall-through reachable, and
+    the extra words must agree UNDER THE RELOCATION MASK. Comparing raw
+    bytes means this can never fire for a function whose tail holds a
+    relocation -- and a tail call is exactly that; sub_8262F658 matched 17 of
+    17 and still reported SIZE DIFFERS. That is the same mistake can_shrink
+    documents, made twice.
+    """
+    if len(code) <= tsize:
+        return None
+    later = sorted(a for a in sizes
+                   if a > target and _is_real_start(img, a))
+    limit = (later[0] - target) if later else len(code)
+    if len(code) > limit:
+        return None
+    grown = img.read(target, len(code))
+    if grown is None or len(grown) != len(code):
+        return None
+    for i in range(tsize // 4, len(code) // 4):
+        if not all(mask[i * 4:i * 4 + 4]):
+            continue                                      # relocated
+        if (struct.unpack_from(">I", grown, i * 4)[0]
+                != struct.unpack_from(">I", code, i * 4)[0]):
+            return None
+    return grown
+
+
 def can_shrink(code, mask, tbytes, target, tsize):
     """May the comparison window be cut down to len(code)?
 
@@ -206,19 +312,10 @@ def main(argv):
     # Bounded by the next known function start, and only reported as a
     # reconciliation once the extra words actually agree -- never silently.
     extended = None
-    if len(code) > tsize:
-        later = sorted(a for a in sizes if a > target)
-        limit = (later[0] - target) if later else len(code)
-        if len(code) <= limit:
-            grown = img.read(target, len(code))
-            if grown is not None and len(grown) == len(code):
-                tail_ok = all(
-                    struct.unpack_from(">I", grown, i * 4)[0]
-                    == struct.unpack_from(">I", code, i * 4)[0]
-                    for i in range(tsize // 4, len(code) // 4))
-                if tail_ok:
-                    extended = len(code)
-                    tbytes, tsize = grown, len(code)
+    grown = can_extend(img, sizes, code, mask, target, tsize)
+    if grown is not None:
+        extended = len(code)
+        tbytes, tsize = grown, len(code)
 
     shrunk = None
     if can_shrink(code, mask, tbytes, target, tsize):
@@ -234,13 +331,19 @@ def main(argv):
         print()
         print("SIZE RECONCILED: the inventory records %d byte(s); our code is %d."
               % (recorded, extended))
-        print("  The image's own bytes through %08X agree, so the recorded size"
+        print("  The image's own bytes through %08X agree, so the recorded"
               % (target + extended - 4))
-        print("  is short by %d. A function ending in a tail call has an"
-              % (extended - recorded))
-        print("  unreachable trailing instruction that a reachability-based")
-        print("  body computation does not count. Comparing %d bytes."
-              % extended)
+        print("  size is short by %d." % (extended - recorded))
+        if extended - recorded <= 4:
+            print("  A function ending in a tail call has an unreachable")
+            print("  trailing instruction that a reachability-based body")
+            print("  computation does not count.")
+        else:
+            print("  That is more than a trailing instruction, so a FALSE")
+            print("  FUNCTION START truncated this row -- an address control")
+            print("  can fall into, which discovery's branch sweep took for a")
+            print("  tail-call target. See FINDINGS 7u.")
+        print("  Comparing %d bytes." % extended)
     if shrunk:
         was, now = shrunk
         print()

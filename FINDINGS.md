@@ -304,6 +304,202 @@ the arms sum to 21,238 exactly.
 
 ---
 
+## 7w. Names are RECOVERABLE for about a hundred functions
+
+*measured 2026-08-29*
+
+`sub_82216918` is in `src/manifest.txt` as **`TtCheckLineOfSight`**, and that
+is the game's own name, not an invented one. The function pushes the string
+at 8200BA04 into the profiler, and that string is its name.
+
+`tools/profnames.py` has recovered 100+ of these all along; nothing had used
+them to NAME anything:
+
+```
+821D3D48  TtzCam2Player_update                 3716 B
+82241BF0  TtzNPCSteering_ApplySteering_hover   2228 B
+822CA548  TtzSceneUpdate_CheckingTransparent   2376 B
+8263EE68  TtcheckSupportWithCollector          3016 B
+82216918  TtCheckLineOfSight                    304 B   <- matched
+82667170  TtSetSurfVel                          384 B
+826731D8  TtrcSphere                            144 B
+82677BC0  TtWatchDog:FreeMem                    352 B
+```
+
+README.md gap 4 says "names are invented, not recovered". For this population
+that is no longer true, and the name says what a function is for before a
+line of it is read -- `TtcheckSupport` is the character-grounding test,
+`TtSetSurfVel` is surface velocity for moving platforms, `TtCheckLineOfSight`
+is the AI visibility test.
+
+**The profiler scope is an inlined six-instruction macro**, and recognising
+it is most of the work on any `Tt*` function. Push at entry with the name,
+push again before returning with `"Et"` at 820074E4 -- end of timer:
+
+```
+lwz   r31,0(r13)         the thread block
+li    r30,48
+lwzx  r10,r30,r31        t_profiler -- the __declspec(thread) READ form
+lwz   r3,12(r10)         end
+lwz   r9,4(r10)          cursor
+cmplw cr6,r9,r3 ; bge-   skip when the buffer is full
+stw   r6,0(r9)           the NAME
+mftb  r5                 the time base
+stw   r5,4(r9)
+addi  r7,r9,12           entries are 12 bytes
+stw   r7,4(r10)
+```
+
+So the buffer is `{ char unk[4]; Entry* cursor; char unk[4]; Entry* end; }` in
+TLS slot 48, and an entry is `{ const char* name; u32 stamp; u32 unk; }`.
+
+---
+
+## 7x. build.py can check that one retail function has ONE name
+
+*measured 2026-08-29*
+
+Adding `sub_82662E08` to the manifest surfaced this: `src/null_tailcall.cpp`
+declared `void Use(void*)` and tail-called it, and that call resolves to
+82662E08 -- which is now matched as `u32 ReleaseHandle(u32)`. One retail
+function, two invented names, and two declarations that disagree about the
+ARGUMENT TYPE.
+
+That is not cosmetic. Argument count and type change codegen, so if both
+files are believed then one of them is matching for the wrong reason. It only
+becomes visible once the callee is matched too, which is why it has to be
+checked on every build rather than once.
+
+`build.py` already resolves every REL24 to a retail address, so the check is
+free: a call landing on an address the manifest covers should be calling that
+manifest row's symbol. Seven such calls exist today; the `Use`/`ReleaseHandle`
+one was a genuine type error and is fixed -- the field is a HANDLE, not a
+pointer -- and `null_tailcall.cpp` still matches with the corrected type. The
+rest are aliases for functions matched later in the session and are harmless,
+but they are on the record rather than invisible.
+
+This is the same class as the "one symbol resolves to two addresses" check
+already here, from the other direction: that one catches one name with two
+addresses, this one catches one address with two names.
+
+---
+
+## 7u. A "function start" control can FALL INTO is not a function start
+
+*measured 2026-08-29*
+
+`sub_8262F658` has **420 callers**, runs 164 bytes to 8262F6F8, and the
+inventory records it as **68**. The reason is that 8262F69C is listed as a
+function start. It is not one: the word before it is `lwzx r11,r9,r3`, so
+control falls into it. It is the label where a switch's two index
+computations join.
+
+Discovery's branch sweep takes the target of any unconditional `b` as a
+function start, and from the sweep's point of view an intra-function jump is
+indistinguishable from a tail call -- it has no function extents yet.
+
+**The test, and its control.** "Is the word before this address an
+unconditional terminator, or padding?" Run over the whole inventory, split by
+which source supplied each row:
+
+```
+source        rows    reachable by FALL-THROUGH
+pdata        21238        86   ( 0.4%)   <- the CONTROL: the compiler's own
+addrtaken     1252         0   ( 0.0%)      function starts
+discover      9392      1328   (14.1%)   <- 35x the control
+```
+
+The `.pdata` figure is what "wrong" looks like on this instrument, because
+those are the compiler's own answers. 0.4% is the noise floor; 14.1% is a
+defect. And the address-taken source scoring 0.0% is a third, independent
+confirmation that it is clean (7r).
+
+1,414 rows are truncated by a suspect start, holding 125,508 bytes that
+belong to the row before them.
+
+**Only 2 of 5,020 match candidates are affected**, because `candidates.py`
+requires a terminator at the end and a truncated row rarely has one. The
+damage lands almost entirely on NON-leaf functions -- which is exactly the
+population that ranking by caller count surfaces, and where the most-called
+functions in the image live.
+
+**What was done.** `match.py` now bounds its size reconciliation by the next
+start that is not fall-through reachable, and `can_extend` has been split out
+with five tests of its own. The inventory itself is NOT changed: that would
+move 1,414 sizes at once and make every derived file stale, and the
+reconciliation removes the harm where it is felt.
+
+**A second bug in the same place.** The reconciliation compared the extra
+words as RAW BYTES, so it could never fire for a function whose tail holds a
+relocation -- and a tail call is exactly that. `sub_8262F658` matched 17 of 17
+words and still reported SIZE DIFFERS. That is the same mistake `can_shrink`
+already documents, made twice in the same file.
+
+---
+
+## 7v. A THIRD switch form: tables of absolute addresses
+
+*measured 2026-08-29*
+
+7n says of the two decoded forms: "Neither of THESE TWO forms is a table of addresses (a third form is, and it is the most common -- see 7v),
+which is exactly why Ghidra mishandles them." **That was a statement about
+the decoder, not about the image.** There is a third form, and it is the most
+common of the three:
+
+```
+addi   r11,r3,-27          bias the switch value to zero
+cmplwi cr6,r11,24          the bound
+bgtlr  cr6                 default
+lis    r12,hi
+rlwinm r0,r11,2,0,29       value * 4
+addi   r12,r12,lo          = the table
+lwzx   r0,r12,r0           the ADDRESS itself, not an offset
+mtctr  r0
+bctr
+```
+
+`find_dispatches` requires the exact tail `add rX,rBase,rOff ; mtctr ; bctr`,
+because both forms it knew load an OFFSET and add it to a base. This one has
+no `add`, so every dispatch of this shape was invisible.
+
+```
+form                       dispatches   case targets
+lbzx, byte offsets                 51          (2,571 between them)
+lhzx, halfword offsets             53
+lwzx, ABSOLUTE ADDRESSES          333            2,084
+```
+
+**331 inventory rows are jump TABLES listed as functions.** A table follows
+its dispatch, so the word before it is that dispatch's own `bctr` -- a
+terminator -- and so it passes every "is this a real start?" test in the
+project, including the one 7u introduces. Each one truncates the function it
+sits inside: `sub_821A99F8` is 176 bytes with its table inline and the
+inventory records 36.
+
+`tools/switches.py` now writes `build/switch_tables.txt`, and `match.py`
+excludes those ranges when bounding its reconciliation. That was worth two
+matches immediately and it is general: any function containing a switch was
+unmeasurable before it.
+
+**And the tables are now VERIFIED rather than copied.** A jump table is a run
+of `IMAGE_REL_PPC_ADDR32` relocations against compiler-generated labels
+(`$LN5`, `$LN10`) with a zero addend, so the object records the case mapping
+as symbol NAMES. `build.py` used to patch whole-word relocations straight
+from the image, which would excuse the entire mapping: a source sending case
+30 to the wrong arm verifies clean, because the bodies are identical and only
+the table says which case reaches which. `coffreloc.LABELS` now exposes every
+label's offset, so the entry the linker wrote is PREDICTABLE:
+
+```
+expected = target + (label_offset - function_offset)
+```
+
+All 25 entries of `sub_821A99F8` are predicted and agree. `verify.py` has a
+negative control that moves one case to the wrong arm and requires the build
+to fail; it reports the disagreement per entry, naming the label.
+
+---
+
 ## 7t. The per-unit flag claim, measured over every match
 
 *measured 2026-08-28*

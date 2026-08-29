@@ -34,3 +34,7 @@ src/m_pick_slot.cpp             82202D08
 src/e_normalize4.cpp            82155080  QuatNormalize
 src/e_axis_project.cpp          8214F7E8  ProjectOntoAxes
 src/m_copy_adjust.cpp           821A5270
+src/k_kind_weight.cpp           827261D8
+src/h_arena_twin.cpp            82606FD8
+src/j_quat_to_mtx.cpp           82154ED8
+src/j_init_defaults.cpp         82202B50

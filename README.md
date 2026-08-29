@@ -28,21 +28,22 @@ bytes identical to the retail image. Not a port, not a re-implementation.
 ## Where the project is
 
 ```
-functions known                30,630     (.pdata 21,238 + discovery 9,392)
-.text covered by the inventory  99.6%     (8,432,420 of 8,467,964 bytes)
-attributed as NOT the game's    8,238     (39.4% of .text BYTES)
-remaining to decompile         22,392     (60.6%)
+functions known                31,882     (.pdata 21,238 + discovery 9,392
+                                            + addresses-taken-in-code 1,252)
+.text covered by the inventory  99.85%    (8,454,996 of 8,467,964 bytes)
+attributed as NOT the game's    8,308     (38.5% of .text BYTES)
+remaining to decompile         23,574     (61.5%)
 call-graph edges               85,314
-vetted match candidates         4,231
-FUNCTIONS MATCHED                 145     (6,248 bytes of .text built)
+vetted match candidates         5,020
+FUNCTIONS MATCHED                 178     (9,640 bytes of .text built)
 ```
 
 Matches are listed in `MATCHED.md`, whose table is generated from
 `src/manifest.txt` rather than maintained by hand. **The retail build did not
-use one optimisation level everywhere** — of the 145, 64 are `/O2` only, 22
-are `/O2 /Os` only and 59 compile identically either way. The level is a
+use one optimisation level everywhere** — of the 178, 83 are `/O2` only, 32
+are `/O2 /Os` only and 63 compile identically either way. The level is a
 property of the translation unit: `python tools/flagpairs.py` compiles every
-match at both levels and finds **25 informative adjacent pairs and 25
+match at both levels and finds **34 informative adjacent pairs and 34
 agreements, no disagreement** — the insensitive half is excluded, because
 counting it would report near-total agreement whatever the truth was.
 `src/manifest.txt` records the level per unit.
@@ -120,8 +121,8 @@ checked to land on a real function start or in a data section.
 
 What remains: the undecompiled code is **copied** from the original rather
 than assembled from objects, so section layout, symbol ordering and
-inter-object padding are still unverified. Only 6,248 of 8,467,964 `.text` bytes
-(0.074%) are actually built. The real link — every function as an object,
+inter-object padding are still unverified. Only 9,640 of 8,467,964 `.text` bytes
+(0.114%) are actually built. The real link — every function as an object,
 ordered by a linker script — is still ahead.
 
 **2. The type system is started, not finished.** `include/types.h` now
@@ -175,11 +176,16 @@ guess. The two older ones:
 `ClearAndHandle`/`ClearAndHandleOther` sit 4 bytes apart, read the same field
 of the same argument, and write neighbouring fields.
 
-**4. Names are invented, not recovered.** `ProcessIfReady`, `ArrayAdd`,
-`GetThroughChain` are descriptions, not the title's symbols. That is normal
-this early, but they should be treated as provisional. Real names exist for
-part of the image (RTTI, profiler scopes, assert strings) and are not yet
-applied to matched code.
+**4. Names are mostly invented — but they do not have to be for about a
+hundred of them.** `ProcessIfReady`, `ArrayAdd`, `GetThroughChain` are
+descriptions. But `sub_82216918` is in the manifest as **`TtCheckLineOfSight`**
+and that name is the game's own: the function pushes its own name into the
+profiler as a string, and `tools/profnames.py` recovers 100+ of them —
+`TtzCam2Player_update`, `TtcheckSupport`, `TtSetSurfVel`,
+`TtzNPCSteering_ApplySteering_hover`. Every one of those can be named
+truthfully, and the name says what the function is for before a line of it is
+read. See "Names are RECOVERABLE for about a hundred functions" in
+`MATCHED.md` for the inlined profiler-scope idiom that identifies them.
 
 **5. Progress is counted in functions, not bytes.** 64 of 30,630 says little;
 byte coverage against the 60.6% that is actually the game's is the number that
@@ -353,14 +359,17 @@ see "Ghidra, measured and replaced" for why.
 
 ```bash
 python tools/discover.py        # branch sweep + data pointers + decodability
-python tools/inventory.py       # .pdata UNION discovery -> functions_all.txt
+python tools/switches.py        # switch dispatch, all three forms + tables
+python tools/addrtaken.py       # THIRD source: pointers formed in code
+python tools/inventory.py --addrtaken     # the union -> functions_all.txt
 ```
 
-`tools/addrtaken.py` is a third source — function pointers formed in code —
-and finds 1,252 starts the other two cannot see. It needs
-`build/switch_targets.txt` first (see step 5) and is **not merged into the
-inventory**; see §7r for why, and for the calibration that says its output is
-real.
+**The order matters and so does the flag.** `addrtaken.py` needs
+`build/switch_targets.txt`, because a switch builds its case base with the
+same `lis`/`addi` pair it looks for — without that exclusion the first "new
+function" it reports is a switch case body. And `inventory.py` WITHOUT
+`--addrtaken` produces a different, smaller inventory: 30,630 rows instead of
+31,882, with 341 rows running too long. See §7r for the calibration.
 
 **4. The analysis passes.** `libmatch` is the slow one, a few minutes.
 
@@ -442,12 +451,13 @@ broken one pops a modal dialog that blocks until someone clicks OK.
 | `batch.py` | dump the next N candidates with disassembly, ranked by CALLER COUNT |
 | `matched_table.py` | regenerate MATCHED.md's table from the manifest; `--check` catches drift |
 | `flagpairs.py` | compile every match at BOTH levels and score the adjacency claim |
+| `climb.py` | which CALLER to match next — ranked by how much of it is already known |
 | `test_shrink.py` | six cases on `match.can_shrink`, five of which must refuse |
 | `segment.py` | probable translation units — scores itself, and mostly fails |
 | `permuter.py` | automatic source mutation; `--selftest` rediscovers a known match |
 | `objdiff_export.py` | synthesize ELF pairs + `objdiff.json` for visual diffing |
 | `dumptext.py` | full `.text` disassembly to a file (VMX128-aware) |
-| `switches.py` | decode MSVC switch dispatch; check nothing listed as a function is a case body |
+| `switches.py` | decode MSVC switch dispatch, all THREE forms; write the jump tables |
 | `verify.py` | **run everything**, including five negative controls |
 | `flagsweep.py` | sweep compiler flags for one source against one target |
 | `permute.py` | sweep source shapes for one target at fixed flags |
@@ -525,13 +535,24 @@ disk BEFORE the corruption and is restored at the next startup if it is still
 there.
 
 **Two tools that measure the same thing must be made to agree, or the
-disagreement must be explained.** `tools/objdiff_export.py` reported 138
-units complete while `tools/verify.py` reported 145 matches, and the gap was
-exactly the seven functions whose `.pdata` row covers more than one body:
-the exporter read the target at the recorded size and had none of the
-reconciliation `match.py` and `build.py` had grown. Seven verified matches
-were being shown as failures in the visual diff, which is the direction that
-gets ignored rather than investigated. Both now agree at 145.
+disagreement must be explained.** This happened twice in one session, both
+times because `match.py` grew a size reconciliation that its imitators did
+not:
+
+* `tools/objdiff_export.py` reported 138 units complete against
+  `verify.py`'s 145 — exactly the seven functions whose `.pdata` row covers
+  more than one body.
+* `tools/flagpairs.py` reported three functions matching at NEITHER
+  optimisation level, and said so in a section headed "these should not be
+  in the manifest at all". All three were functions whose recorded size is
+  too SHORT, which it had no `can_extend` for.
+
+Both failures point the same way — a verified match reported as a failure —
+and that is the direction that gets ignored rather than investigated. **Any
+tool that decides "does this source match?" has to use the same
+reconciliation as the one that owns the question**, which is why both now
+import `can_shrink` and `can_extend` from `match.py` rather than
+reimplementing the comparison.
 
 **State the denominator.** Not "24 draws" but "24 draws of 59 walked". Every
 count here names its population, and a bounded search reports when its bound
@@ -678,10 +699,19 @@ register PRESSURE**, not statement order.
    halfword form (53) to `caseBase + halfTable[value]`. `caseBase` is the
    word immediately after the `bctr`.
 
-   The useful result is a negative: of 2,571 recovered case targets, **none
-   is listed as a function**, `.pdata` or discovery. `verify.py` now checks
-   that on every run. It does not explain the 13 functions Ghidra lists and
-   discovery does not — none of those is a case target either.
+   **CORRECTED 2026-08-29: there is a THIRD form and it is the most common.**
+   333 dispatches load an ABSOLUTE ADDRESS from the table (`lwzx / mtctr /
+   bctr`, no `add`), naming 2,084 case targets. The decoder could not see
+   them because it required the `add`. The claim above was about the decoder,
+   not the image — see FINDINGS 7v.
+
+   **331 inventory rows are jump TABLES listed as functions**, because a
+   table follows its dispatch and the word before it is that dispatch's own
+   `bctr`. Each truncates the function it sits in. `switches.py` now writes
+   `build/switch_tables.txt` and `match.py` excludes those ranges.
+
+   Of 2,571 case targets from the two offset forms, none is listed as a
+   function; `verify.py` checks that on every run.
 5. **Spot-check the weak attributions.** 604 functions are attributed by
    `srcpath`/`havok` alone — a reference the function *makes*, not a byte
    match — and none has been confirmed by hand. They are deliberately not
@@ -734,15 +764,18 @@ The numbers, so nobody has to guess:
 ```
 functions that are probably the game's own    22,392
 their total size                           5,096,224 bytes
-matched                                          145 functions, 6,248 bytes
-                                                0.65% by count
-                                                0.12% by BYTES
+matched                                          178 functions, 9,640 bytes
+                                                0.76% by count
+                                                0.19% by BYTES
 ```
 
-That is up from 64 functions and 1,508 bytes in one session — the count more
-than doubled and the byte figure more than quadrupled, because ranking
-candidates by CALLER COUNT rather than by size puts 40- to 170-byte shared
-routines in front of 16-byte accessors.
+That is up from 64 functions and 1,508 bytes in one session — nearly triple
+the count and six times the bytes, because ranking candidates by CALLER COUNT
+rather than by size puts 40- to 170-byte shared routines in front of 16-byte
+accessors. Ranking the WHOLE inventory that way, rather than only the leaf
+candidates `candidates.py` offers, reaches further still: the four
+most-called functions in the image — 730, 420, 367 and 276 callers — are all
+non-leaf and were all matched this way.
 
 It still gets harder from here, because the easy work is taken first:
 

@@ -11,7 +11,7 @@ the inventory is wrong in both directions, short where a tail call's dead
 `blr` was not counted and long where one `.pdata` row covers several
 frameless bodies.
 
-**145 functions, 6248 bytes.** Verify all of them, plus the reconstructing
+**178 functions, 9640 bytes.** Verify all of them, plus the reconstructing
 build and five negative controls, with one command:
 
 ```bash
@@ -22,15 +22,21 @@ Every match is also a row in `src/manifest.txt`, so `tools/build.py` compiles
 it, resolves its relocations against the retail bytes and splices it into
 `.text`. Nothing here is a match on `match.py`'s word-comparison alone.
 
-**The retail build did NOT use one optimisation level everywhere.** 22 of
+**The retail build did NOT use one optimisation level everywhere.** 32 of
 these need `/O2 /Os`; the rest need plain `/O2`. See "Flags are a property of
 the translation unit" below -- this was claimed the other way round for a
 while and the claim was wrong.
 
 | address | bytes | callers | source | symbol | flags |
 |---|---|---|---|---|---|
+| `82662E08` | 152 | 730 | `m_handle_release.cpp` | ReleaseHandle | `/O2 /Os` |
+| `8262F658` | 164 | 420 | `m_bin_free.cpp` | BinFree | `/O2` |
+| `82662938` | 96 | 367 | `m_handle_release.cpp` | AcquireEntry | `/O2 /Os` |
 | `82807B38` | 20 | 314 | `guard_tailcall.cpp` | - | `/O2` |
+| `82805D20` | 108 | 276 | `m_node_destroy.cpp` | - | `/O2` |
+| `82602EA0` | 104 | 240 | `m_track_or_add.cpp` | - | `/O2` |
 | `82603108` | 64 | 237 | `c_release_guarded.cpp` | - | `/O2` |
+| `8262F5D0` | 136 | 206 | `m_bin_free.cpp` | BinAlloc | `/O2` |
 | `8215A420` | 64 | 147 | `c_hash_upper.cpp` | - | `/O2` |
 | `82600BD8` | 16 | 135 | `global_field.cpp` | - | `/O2` |
 | `82806D08` | 20 | 132 | `a_report_badthis.cpp` | - | `/O2` |
@@ -85,6 +91,8 @@ while and the claim was wrong.
 | `826731B0` | 40 | 20 | `d_init_obj_1.cpp` | - | `/O2` |
 | `827156B8` | 88 | 20 | `f_state_advance.cpp` | - | `/O2 /Os` |
 | `8277E170` | 52 | 20 | `e_ones_zeros8.cpp` | - | `/O2` |
+| `82164040` | 120 | 19 | `h_bump_groups.cpp` | BumpAll | `/O2` |
+| `82255408` | 144 | 19 | `h_kind_allows.cpp` | KindAllows | `/O2` |
 | `82600BB0` | 20 | 19 | `vcall_arg2.cpp` | - | `/O2` |
 | `826A3350` | 20 | 19 | `null_tailcall.cpp` | - | `/O2` |
 | `826C5E00` | 28 | 19 | `vcall_global_arg.cpp` | - | `/O2` |
@@ -101,6 +109,7 @@ while and the claim was wrong.
 | `827841D8` | 84 | 16 | `m_release.cpp` | Release | `/O2 /Os` |
 | `828864E0` | 20 | 16 | `vcall_arg_adj.cpp` | - | `/O2 /Os` |
 | `822E2048` | 28 | 15 | `g_fwd_6args.cpp` | - | `/O2` |
+| `82703E28` | 124 | 15 | `h_blk_ctor.cpp` | BlkOwnerConstruct | `/O2 /Os` |
 | `821FF908` | 168 | 14 | `e_can_use.cpp` | - | `/O2` |
 | `822021F8` | 16 | 14 | `stride116.cpp` | - | `/O2` |
 | `8220F810` | 72 | 14 | `g_vec3_pick.cpp` | - | `/O2` |
@@ -109,22 +118,45 @@ while and the claim was wrong.
 | `826919A8` | 76 | 14 | `e_mtx23_xform.cpp` | - | `/O2 /Os` |
 | `82691CF0` | 164 | 14 | `e_mtx23_premul.cpp` | - | `/O2 /Os` |
 | `826A4528` | 56 | 14 | `g_share_tagged.cpp` | - | `/O2 /Os` |
+| `826C0F50` | 100 | 14 | `h_chain_nth.cpp` | - | `/O2` |
+| `827C6D08` | 112 | 14 | `h_cursor_skip.cpp` | - | `/O2 /Os` |
+| `82161630` | 112 | 13 | `j_normalize_or_default.cpp` | NormalizeOrDefault | `/O2` |
+| `821675B8` | 56 | 13 | `i_sum_parts.cpp` | - | `/O2` |
+| `8219FCD8` | 108 | 13 | `i_state_idle.cpp` | IsIdle | `/O2` |
 | `82218F90` | 28 | 13 | `g_fwd_shift4.cpp` | - | `/O2` |
 | `8252D950` | 36 | 13 | `g_fwd_global_a.cpp` | - | `/O2` |
 | `8252D978` | 36 | 13 | `g_fwd_global_b.cpp` | - | `/O2` |
+| `82540878` | 52 | 13 | `i_strcmp.cpp` | - | `/O2` |
 | `82600A88` | 56 | 13 | `m_unlink_free.cpp` | - | `/O2` |
+| `8264B6F0` | 40 | 13 | `h_gate_pos.cpp` | - | `/O2` |
+| `82692590` | 88 | 13 | `i_charclass.cpp` | - | `/O2 /Os` |
+| `82799B98` | 76 | 13 | `j_reset_range.cpp` | - | `/O2 /Os` |
+| `821A99F8` | 176 | 12 | `i_canon_switch.cpp` | - | `/O2` |
 | `8228AF08` | 24 | 12 | `m_enqueue4.cpp` | Enqueue | `/O2` |
+| `825FEF00` | 124 | 12 | `k_sorted_insert.cpp` | - | `/O2` |
 | `82639C68` | 8 | 12 | `m_get_48.cpp` | - | `/O2` |
+| `826A9E88` | 84 | 12 | `i_release_ref4.cpp` | - | `/O2 /Os` |
+| `827727D0` | 84 | 12 | `i_lex_advance.cpp` | ScanNext | `/O2 /Os` |
 | `82799878` | 28 | 12 | `m_scale_sq.cpp` | - | `/O2 /Os` |
 | `827FE8A0` | 36 | 12 | `m_cached_or_make.cpp` | - | `/O2` |
+| `8214C578` | 52 | 11 | `i_list_find_key.cpp` | - | `/O2` |
+| `821AC2F0` | 72 | 11 | `j_inv_or_clamp.cpp` | - | `/O2` |
 | `826C0FC8` | 24 | 11 | `stride24.cpp` | - | `/O2` |
+| `827DAC60` | 76 | 11 | `k_find_pair.cpp` | - | `/O2 /Os` |
 | `82166FD0` | 16 | 10 | `fwd_vec3.cpp` | - | `/O2` |
+| `82167FE0` | 212 | 10 | `j_scale_pair.cpp` | - | `/O2` |
 | `822020B0` | 16 | 10 | `chain2_156.cpp` | - | `/O2` |
+| `8262FE10` | 60 | 10 | `k_short_release.cpp` | - | `/O2` |
+| `8262FF90` | 52 | 10 | `k_global_release_tls.cpp` | - | `/O2` |
+| `82631D98` | 36 | 10 | `k_bits_or_zero.cpp` | - | `/O2` |
 | `821A4FB0` | 20 | 9 | `fwd_global_n.cpp` | - | `/O2` |
+| `822CEE08` | 64 | 9 | `k_chunk_at.cpp` | - | `/O2` |
 | `8253FE28` | 28 | 9 | `zero48.cpp` | - | `/O2` |
 | `82603948` | 20 | 9 | `null_call0.cpp` | - | `/O2` |
 | `82704688` | 40 | 9 | `m_select2.cpp` | - | `/O2 /Os` |
 | `827245E0` | 32 | 9 | `ring_index2.cpp` | - | `/O2` |
+| `827C5180` | 20 | 9 | `k_vcall148.cpp` | - | `/O2 /Os` |
+| `8214CCB8` | 84 | 8 | `j_reset_state.cpp` | - | `/O2` |
 | `821EE668` | 24 | 8 | `m_fwd_ctx.cpp` | - | `/O2` |
 | `8225B450` | 44 | 8 | `m_state_2to4.cpp` | - | `/O2` |
 | `82265D88` | 40 | 8 | `m_ready_not255.cpp` | - | `/O2` |
@@ -171,6 +203,7 @@ while and the claim was wrong.
 | `827FE808` | 16 | 5 | `and_byte.cpp` | - | `/O2 /Os` |
 | `822D2528` | 24 | 4 | `table624.cpp` | - | `/O2` |
 | `827A7C98` | 20 | 4 | `store_two.cpp` | - | `/O2` |
+| `82216918` | 304 | 2 | `m_line_of_sight.cpp` | TtCheckLineOfSight | `/O2` |
 | `822607F0` | 120 | 2 | `grid_indices.cpp` | - | `/O2` |
 | `826FE5B8` | 16 | 2 | `set_vtable.cpp` | SetVTableD170 | `/O2` |
 | `826FE5C8` | 16 | 2 | `set_vtable.cpp` | SetVTableD180 | `/O2` |
@@ -377,6 +410,128 @@ unordered check after `fcmpu` on any float comparison. On `sub_821FF908` it
 produced the right SIZE for entirely the wrong reason, and a flag sweep
 ranked it first. Size agreement is not evidence.
 
+**The `/Os` signature also appears as a TRANSPOSITION, not only as
+fresh-versus-reused.** `sub_827DAC60` at `/O2` has identical instructions in
+identical order and seven words wrong, every one of them a register NAME: a
+loop carrying both an index and an induction pointer gets the two swapped
+between r10 and r11. So when a loop carrying both comes out transposed,
+change the flag before rewriting the loop.
+
+**Branch polarity scales with the number of guards that SHARE an exit.**
+`sub_821675B8` scored **2 of 14** written as three flat
+`if (x == 0) return 0;` guards -- not the one word the polarity note above
+would suggest. MSVC plants the shared `li r3,0 ; blr` immediately after the
+FIRST test, inverts that test to `bne-` to jump over it, and makes the other
+two guards branch BACKWARD into it: same instructions, same 56 bytes, twelve
+words displaced. Nesting the positive path and putting the single
+`return 0` last is 14 of 14. **The tell is which DIRECTION the guards
+branch** -- all forward to a common tail means the failure path is written
+last.
+
+The same thing one level up: `sub_822CEE08` written `if (n == 0) return 0;`
+first lays a SECOND copy of the zero return after the loop's break test (72
+bytes, five wrong words); writing the interesting path first turns that test
+into a backward `beq+` into the single zero return already there (64 bytes,
+16 of 16).
+
+**`||` versus a sequence of `if`s, seen from the OUTER side.** On
+`sub_8219FCD8`, `if (a) return 0; if (b) return 0; return 1;` does two things
+at once: it plants a private `li r3,0 ; blr` after the first test instead of
+sharing the one at the end, AND it turns the final `return 1` into a
+branchless `cntlzw`/`rlwinm`. 12 of 27. `if (a || b) return 0; return 1;`
+gives both guards the same forward exit and keeps the tail branchy: 27 of 27.
+The `sub_8287E440` note above wants `||` for the INNER predicate; this is the
+same operator deciding the outer shape.
+
+**A materialised-then-masked bool is an inlined helper.** A `li` pair that
+already produces 0 or 1, followed by a redundant `clrlwi ...,24` before the
+test, is what a `bool`-returning inlined function leaves behind. A bare
+`if (a && b)` branches out of each term and never builds a value at all.
+
+**`mullw` operand order is NOT readable**, unlike `add` and `subf`: `a * b`
+and `b * a` are byte-identical. Verified on three multiplies together and on
+one alone. Together with the commutative-float result above, that is two of
+the three commutative cases settled as unreadable -- only integer `add`
+carries information.
+
+**A signed `cmpwi rX,0` on a value that is then DEREFERENCED means the field
+is an `int` holding a pointer, not a pointer.** Every pointer null test in
+this image is `cmplwi`; no spelling of a pointer comparison produces `cmpwi`.
+That one word was the whole of `sub_82631D98`.
+
+**MSVC lays switch case bodies out in SOURCE ORDER, and does not invent
+groups.** Measured both ways on `sub_827261D8`: moving one case group costs
+12 words, and splitting a two-value group into two identical bodies costs the
+same 12. So block order in the image IS source order, and two non-adjacent
+case values sharing a block were written as one group.
+
+**The TLS forms, complete.** `lwz rX,0(r13)` plus a bare `li <slot>` is
+`__declspec(thread)` in all three shapes: `+ lwzx` READS the variable,
+`+ stwx` WRITES it, and `+ add` takes its ADDRESS. The slot is an
+IMAGE_REL_PPC_TOCREL14 relocation and never folds with anything.
+
+**A reload inside a LOOP CONDITION is the normal shape, not the CSE-defeat
+lever.** `sub_825FEF00` reloads its count for the loop-bottom test while
+keeping the entry load live elsewhere, and a plain `while (i < m_count)`
+produces exactly that. The lever above is for a reload with NO loop around
+it.
+
+**`add` operand order moves with local DECLARATION order, not read order.**
+This is the control for the rule above, and it was found by changing nothing
+else: in `sub_826C0F50` a character-for-character identical
+`return q->items + r;` emits `add r3,r10,r11` with `s32 r` declared before
+`NthNode* q`, and `add r3,r11,r10` with the two declarations swapped. It also
+explains why the arena stall is out of reach -- both its operands are global
+fields, and there are no locals to reorder.
+
+**Two nesting levels of inlining keep a base pointer alive; one does not.**
+`sub_82164040` loads from a materialised group base (`addi r11,r3,12`, then
+`8(r11)`) and RELOADS a word it tested one instruction earlier from
+`20(r3)` -- nothing stores in between, so it is not aliasing, it is two CSE
+trees. A flat body folds every base into r3; a single helper taking the group
+pointer folds too; only `Pair(&s->g[i], d)` calling `Ptr(&g->tail, d)` keeps
+`r3+12` as a value. The same nesting leaves the DEAD `addi r10,r3,32` in
+`sub_82703E28`. **When a target computes an address whose result is never
+read, look for an inlined helper, and give it two levels.**
+
+**A store with no dependency on the surrounding computation is HOISTED, so
+its emitted position does not say where it was written.** On `sub_82154ED8`
+the lone integer store is emitted first, before any float work, and must be
+written LAST: first gives 2 of 44 with even the component loads misallocated;
+last gives the target's exact register assignment. This is a real exception
+to "store order is source order", and it costs the whole function.
+
+**Integer and float stores are TWO streams, interleaved one-for-one by
+dual-issue scheduling; each stream's internal order is source order.**
+`sub_8214CCB8` matched first try by writing all seven integer stores in their
+emitted relative order and then all five float stores in theirs. Reading the
+merged order back as source order is actively worse -- 1 of 29 against 5 of
+29 on `sub_82202B50`.
+
+**A second `cmplwi` on a register just compared is a SIGNEDNESS SPLIT.** MSVC
+reuses cr6 from a signed `cmpwi` for a following `!= 0`, because equality
+ignores signedness. So a redundant-looking second compare means the source
+changed signedness between the two tests. One word, and a reliable
+diagnostic: `sub_8264B6F0`, and again in `sub_827C6D08` where compare 1 is
+`cmpw` and compares 2 and 3 are `cmplw` on the same pair.
+
+**A named local for a NARROW field read twice changes scheduling.**
+`u16 off = d->off1;` used at a compare and an addition is 41 of 53; spelling
+`d->off1` at both is 49 of 49 -- it moves the `cmplwi` past three stores,
+swaps two load issue orders and changes a register. Companion to the
+CSE-defeat lever, reached from a load rather than from a comparison.
+
+**Naming a struct's array member in a local reorders the PROLOGUE.**
+`sub_82703E28` spelled `b->data` at its three uses aligns in place and sinks
+the vtable store to eleventh; `char* d = o->blk.data;` aligns through a
+second register and issues it seventh. Nine spellings of the arithmetic were
+identical -- the base pointer was the variable that mattered.
+
+**MSVC bitfields on this target allocate MSB-FIRST.** `struct { u8 a:4;
+u8 b:4; }` with `a = 11` emits `rlwimi rD,rS,4,0,27`: the FIRST-declared
+member is the high nibble. Measured in both directions with a two-function
+probe.
+
 **`add` operand order is readable, the same way `subf` order is.** For
 `a + b`, MSVC puts in **rA the operand whose SOURCE READ comes later**, using
 the CSE representative's position rather than the emitted schedule. Measured
@@ -418,6 +573,55 @@ orderings give identical bytes: MSVC schedules a cheap `stfs`/`sth` into the
 gap while a `lis`/`addi` is in flight. `sub_825FE880` is the same and is
 still unmatched because of it -- its vtable store will not move to the front
 in any source order tried, including a real C++ constructor.
+
+### Names are RECOVERABLE for about a hundred functions
+
+`sub_82216918` is in the manifest as **`TtCheckLineOfSight`**, and that name
+is not invented. The function pushes the string at 8200BA04 into the
+profiler, and that string is its own name.
+
+`tools/profnames.py` recovers 100+ of these -- `TtzCam2Player_update`,
+`TtcheckSupport`, `TtSetSurfVel`, `TtzNPCSteering_ApplySteering_hover`,
+`TtWatchDog:FreeMem`. Every one of them can be named truthfully instead of
+described, and the name says what the function is for before a line of it is
+read. README.md gap 4 says "names are invented, not recovered"; for this
+population that is no longer true.
+
+**The profiler scope is an inlined six-instruction macro** and recognising it
+is most of the work on any `Tt*` function:
+
+```
+lwz   r31,0(r13)         the thread block
+li    r30,48
+lwzx  r10,r30,r31        t_profiler -- the __declspec(thread) READ form
+lwz   r3,12(r10)         end
+lwz   r9,4(r10)          cursor
+cmplw cr6,r9,r3 ; bge-   skip when full
+stw   r6,0(r9)           the NAME
+mftb  r5                 the time base
+stw   r5,4(r9)
+addi  r7,r9,12           entries are 12 bytes
+stw   r7,4(r10)
+```
+
+The same six instructions appear again at the end with `"Et"` at 820074E4 --
+end of timer. So a `Tt*` function is: push name, body, push "Et", return.
+
+### Vector copies: three separate wrong answers
+
+`TtCheckLineOfSight` builds two points as 16-byte vectors, and each of the
+three obvious ways to write that is wrong in its own way:
+
+* **A struct of four floats aligned to 16 is not enough.** It copies with
+  `ld`/`std` -- two 64-bit integer moves -- and no vector register appears.
+  Only a genuine `__vector4` emits `lvx128`/`stvx128`. 24 of 76 against 60.
+* **Two separate destinations written directly** give twelve `stfs` and no
+  copy at all. The target rebuilds ONE scratch slot for both points.
+* **A helper RETURNING the vector by value** is what fixes the store order.
+  With the scratch and both copies written inline, the two `stvx128` stores
+  come out transposed and nothing moves them -- not declaring the results up
+  front in either order, and not `/Os`, which is 19 of 76.
+  `Vec4 to = MakePoint(a); Vec4 from = MakePoint(b);` is 62 of 62.
 
 ### Branch polarity is source order, not a flag
 
@@ -463,12 +667,12 @@ test is now automated -- `python tools/flagpairs.py` compiles every matched
 function at BOTH levels, classifies it, and reports every adjacent pair:
 
 ```
-145 matched function(s) classified
-  /O2 only     64
-  /Os only     22
-  insensitive  59   <- carries NO evidence, excluded from the pairs
+178 matched function(s) classified
+  /O2 only     83
+  /Os only     32
+  insensitive  63   <- carries NO evidence, excluded from the pairs
 
-25 informative adjacent pair(s), 25 agreements, 0 disagreements
+34 informative adjacent pair(s), 34 agreements, 0 disagreements
 ```
 
 **Excluding the insensitive half is the whole discipline here.** Most small

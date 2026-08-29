@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from match import can_shrink
+from match import can_shrink, can_extend, _is_real_start
 
 BASE = 0x82000000
 BLR = 0x4E800020
@@ -105,6 +105,68 @@ def main():
     theirs_1 = words(0x4BFFFE78, LIS, BLR)
     r.append(case("only word is relocated, nothing verified (must refuse)",
                   False, ours_1, masked(4, 0), theirs_1, 12))
+
+    # ---- can_extend, the mirror relaxation -------------------------------
+    # It grows the window when the recorded size is too short. Same danger in
+    # the other direction: without the bound and the tail check it would let
+    # a source that produces a function AND ITS NEIGHBOUR pass.
+    print("")
+    print("match.can_extend -- two accepted, three refused")
+    print("")
+    print("  %-4s %-56s %s" % ("", "case", "verdict"))
+
+    class FakeImg(object):
+        def __init__(self, base, data):
+            self.base, self.data = base, data
+
+        def read(self, va, n):
+            o = va - self.base
+            if o < 0 or o + n > len(self.data):
+                return None
+            return self.data[o:o + n]
+
+    BASE2 = 0x82000000
+    # image: [LWZ BLR] then padding then [LIS BLR]
+    image = words(LWZ, BLR, 0, LIS, BLR)
+    img = FakeImg(BASE2 - 4, words(BLR) + image)   # a terminator before BASE2
+
+    def ecase(label, expect, code, mask, tsize, sizes):
+        got = can_extend(img, sizes, code, mask, BASE2, tsize) is not None
+        ok = (got == expect)
+        print("  %-4s %-56s %s"
+              % ("PASS" if ok else "FAIL", label,
+                 "extends" if got else "refuses"))
+        return ok
+
+    ours2 = words(LWZ, BLR)
+    # the next start is fall-through reachable (preceded by LWZ), so it must
+    # NOT bound us -- this is the sub_8262F658 case
+    r.append(ecase("false start does not bound the extension (must extend)",
+                   True, ours2, clean(8), 4, {BASE2: 4, BASE2 + 4: 4}))
+    # A REAL next start CLOSER than our code length must bound it. It has to
+    # be closer: a start at exactly len(code) is where our function ends, and
+    # bounding there is correct rather than a refusal. The first version of
+    # this case put it at +8 with 8 bytes of code and "failed" for that
+    # reason -- the test was wrong, not the code.
+    img2 = FakeImg(BASE2 - 4, words(BLR, BLR, LWZ, BLR))
+    got = can_extend(img2, {BASE2: 4, BASE2 + 4: 4}, ours2, clean(8),
+                     BASE2, 4) is not None
+    ok = (got is False)
+    print("  %-4s %-56s %s"
+          % ("PASS" if ok else "FAIL",
+             "a real next start INSIDE our code bounds it (must refuse)",
+             "extends" if got else "refuses"))
+    r.append(ok)
+    # the extra word disagrees
+    bad2 = words(LWZ, LIS)
+    r.append(ecase("the extra word disagrees (must refuse)",
+                   False, bad2, clean(8), 4, {BASE2: 4}))
+    # the extra word disagrees but is RELOCATED, so it is excused
+    r.append(ecase("the extra word is relocated, so excused (must extend)",
+                   True, bad2, masked(8, 1), 4, {BASE2: 4}))
+    # nothing to extend
+    r.append(ecase("our code is not longer (must refuse)",
+                   False, ours2, clean(8), 8, {BASE2: 8}))
 
     print("")
     print("%d of %d case(s) behaved as required." % (sum(r), len(r)))

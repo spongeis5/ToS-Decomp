@@ -11,15 +11,20 @@
 
 #include "types.h"
 
-struct Holder { /* 0x00 */ void* obj; };
+// The callee resolves to 82662E08, which src/m_handle_release.cpp matches as
+// `u32 ReleaseHandle(u32)`. So the field is a HANDLE, not a pointer, and the
+// name here was invented for a function whose real one is now known.
+// build.py's name-drift check is what surfaced that -- until the callee was
+// matched too, nothing could have.
+struct Holder { /* 0x00 */ u32 handle; };
 
-ASSERT_OFFSET(Holder, obj, 0x00);
+ASSERT_OFFSET(Holder, handle, 0x00);
 
-void Use(void*);
+void ReleaseHandle(u32 h);
 
-void UseIfPresent(Holder* h)
+void ReleaseIfPresent(Holder* h)
 {
-    void* p = h->obj;
-    if (p)
-        Use(p);
+    u32 v = h->handle;
+    if (v)
+        ReleaseHandle(v);
 }

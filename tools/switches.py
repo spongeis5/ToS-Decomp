@@ -211,6 +211,88 @@ def find_dispatches(words, lo, ranges):
     return out
 
 
+def find_address_tables(words, lo):
+    """The THIRD dispatch form: a table of absolute addresses.
+
+    `find_dispatches` above requires `add rX,rBase,rOff ; mtctr ; bctr`,
+    because both forms it knows load an OFFSET and add it to a base. This one
+    loads the target outright:
+
+        addi   r11,r3,-27          bias the value to zero
+        cmplwi cr6,r11,24          the bound
+        bgtlr  cr6                 default
+        lis    r12,hi
+        rlwinm r0,r11,2,0,29       value * 4
+        addi   r12,r12,lo          = the table
+        lwzx   r0,r12,r0           the ADDRESS itself
+        mtctr  r0
+        bctr
+
+    There is no `add`, so the strict tail never matched and every dispatch of
+    this shape was invisible. README.md and FINDINGS 7n both said "neither
+    form is a table of addresses", which was a statement about the decoder
+    rather than about the image.
+
+    It matters beyond bookkeeping: the table sits in `.text` immediately
+    after its dispatch, so the word before it is that dispatch's own `bctr`
+    -- a terminator -- and every "is this a real function start?" test in the
+    project accepts it. sub_821A99F8 is 176 bytes with its table inline and
+    the inventory records 36, because 821A9A1C is listed as a function.
+    """
+    out = []
+    for i, w in enumerate(words):
+        if w not in (BCTR, BCTRL) or i < 3:
+            continue
+        mt = words[i - 1]
+        if op(mt) != 31 or xo(mt) != 467:
+            continue
+        ctr_src = rt(mt)
+        ld = words[i - 2]
+        if op(ld) != 31 or xo(ld) != 23:               # lwzx
+            continue
+        if rt(ld) != ctr_src:
+            continue
+        treg, idx_reg = ra(ld), rb(ld)
+
+        table_va = None
+        for k in range(i - 3, max(-1, i - 12), -1):
+            a = words[k]
+            if op(a) == 14 and rt(a) == treg:          # addi treg,X,lo
+                src = ra(a)
+                for m in range(k - 1, max(-1, k - 8), -1):
+                    b = words[m]
+                    if op(b) == 15 and rt(b) == src and ra(b) == 0:
+                        table_va = (((simm(b) & 0xFFFF) << 16)
+                                    + simm(a)) & 0xFFFFFFFF
+                        break
+                break
+        if table_va is None:
+            continue
+
+        # The index reaching the lwzx is scaled by 4; follow the rlwinm back
+        # to the value the bound is compared against. rlwinm is M-form, so
+        # the destination is rA and the source is rS -- the mistake that made
+        # all 53 halfword dispatches read as unbounded.
+        value_reg = idx_reg
+        for k in range(i - 3, max(-1, i - 12), -1):
+            b2 = words[k]
+            if op(b2) == 21 and ra(b2) == value_reg:
+                value_reg = rt(b2)
+                break
+
+        bound = None
+        for k in range(i - 3, max(-1, i - 24), -1):
+            a = words[k]
+            if op(a) == 10 and ra(a) == value_reg:
+                bound = a & 0xFFFF
+                break
+            if op(a) == 11 and ra(a) == value_reg:
+                bound = simm(a)
+                break
+        out.append((lo + i * 4, table_va, bound))
+    return out
+
+
 def main(argv):
     img = Image()
     ranges = exec_ranges(img)
@@ -297,8 +379,70 @@ def main(argv):
     out = Path("build/switch_targets.txt")
     out.write_text("# address  (MSVC switch case bodies, not functions)\n"
                    + "".join("%08X\n" % a for a in sorted(targets)))
+    # The TABLES themselves, which are data sitting in .text and which
+    # nothing else here records. They matter because a table follows its
+    # dispatch, so the word before a table is that dispatch's own `bctr` --
+    # a terminator. Any test of the form "is the word before it a
+    # terminator?" therefore accepts a jump table as a function start, and
+    # match.py's size reconciliation then caps its window at the dispatch.
+    # sub_821A99F8 is 176 bytes with its table inline and reads as 36.
+    tbl = Path("build/switch_tables.txt")
+    rows = []
+    for bctr_va, base, table_va, kind, bound, scale in disp:
+        if table_va is None:
+            continue
+        width = 1 if kind == "lbzx" else (2 if kind == "lhzx" else 4)
+        n = ((bound + 1) * width) if bound is not None else 0
+        rows.append((table_va, n, bctr_va))
+
+    # ---- the third form: a table of absolute addresses -------------------
+    addr_disp = find_address_tables(words, lo)
+    inv2 = dict(load_inventory())
+    atargets = set()
+    for bctr_va, table_va, bound in addr_disp:
+        n = ((bound + 1) * 4) if bound is not None else 0
+        rows.append((table_va, n, bctr_va))
+        if not n:
+            continue
+        raw = img.read(table_va, n)
+        if raw is None or len(raw) != n:
+            continue
+        for e in struct.unpack(">%dI" % (n // 4), raw):
+            if any(a <= e < b for a, b in ranges):
+                atargets.add(e)
+    rows.sort()
+
+    print("")
+    print("  A THIRD FORM: tables of ABSOLUTE ADDRESSES")
+    print("    dispatches of the form lwzx / mtctr / bctr     %6d"
+          % len(addr_disp))
+    print("    of those with a recovered case count           %6d"
+          % sum(1 for _b, _t, n in addr_disp if n is not None))
+    print("    case targets they name                         %6d"
+          % len(atargets))
+    print("    README.md and FINDINGS 7n said neither form was a table of")
+    print("    addresses. That was true of the DECODER, not of the image.")
+    inv_on_table = sorted(a for a, _t, _n in
+                          [(t, 0, 0) for _b, t, _n in addr_disp] if a in inv2)
+    inv_on_case = sorted(set(inv2) & atargets)
+    print("    inventory entries sitting ON one of these tables  %4d"
+          % len(inv_on_table))
+    print("    inventory entries sitting on one of their cases   %4d"
+          % len(inv_on_case))
+    if inv_on_table:
+        for a in inv_on_table[:8]:
+            print("        %08X  is a jump TABLE listed as a function"
+                  % a)
+    header = ("# table_address  bytes  dispatch"
+              "  (jump tables: DATA inside .text)" + chr(10)
+              + "# bytes is 0 where the case count could not be recovered."
+              + chr(10))
+    tbl.write_text(header + "".join("%08X %6d %08X" % r + chr(10)
+                                    for r in rows))
     print("")
     print("  -> %s" % out)
+    print("  -> %s (%d table(s), %d with a known extent)"
+          % (tbl, len(rows), sum(1 for r in rows if r[1])))
     return 0
 
 
