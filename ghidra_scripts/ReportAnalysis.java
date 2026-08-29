@@ -24,7 +24,7 @@ public class ReportAnalysis extends GhidraScript {
 
     @Override
     public void run() throws Exception {
-        String out = "C:/Users/redacted/Downloads/ToS-Decomp/build/callgraph.txt";
+        String out = "build/callgraph.txt";
         String[] args = getScriptArgs();
         if (args.length > 0) {
             out = args[0];

@@ -5,7 +5,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path("C:/Users/redacted/Downloads/ToS-Decomp")
+# Derived from this file's own location, like every other tool here. It was
+# an absolute path to one machine, which both broke for anyone who cloned
+# the repository and published the author's local account name.
+ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
 from peimage import Image, load_inventory
 
@@ -87,10 +90,13 @@ out = {
     "attribution": dict(attr),
     "libs": dict(libs.most_common(10)),
 }
-p = Path("C:/Users/redacted/AppData/Local/Temp/claude/"
-         "C--Users-redacted-Downloads-ToS-Decomp/"
-         "c63367b7-31a8-4f3c-b0d0-491a74a6d3e7/scratchpad/dash.json")
+# build/, where every other generated artifact lives and which is
+# gitignored. This wrote to a session scratchpad under the author's home
+# directory: not reproducible anywhere else, and it published an account
+# name and a session id.
+p = ROOT / "build/dash.json"
 p.write_text(json.dumps(out), encoding="utf-8")
+print("wrote %s" % p)
 for k, v in out.items():
     if k != "cells":
         print("%-16s %s" % (k, v))

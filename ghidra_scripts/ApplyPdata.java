@@ -26,7 +26,7 @@ public class ApplyPdata extends GhidraScript {
     public void run() throws Exception {
         String[] args = getScriptArgs();
         String path = args.length > 0 ? args[0]
-                : "C:/Users/redacted/Downloads/ToS-Decomp/build/functions.txt";
+                : "build/functions.txt";
 
         int rows = 0, created = 0, existed = 0, notInMemory = 0;
         int disasmFailed = 0, createFailed = 0;

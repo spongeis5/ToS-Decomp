@@ -24,7 +24,7 @@ CASES = [
     ("clean heredoc, no backslash",
      "python <<'PY'\nprint(chr(92))\nPY\n", False),
     ("backslash OUTSIDE any heredoc",
-     'ls "C:' + BS + 'Users' + BS + 'redacted"', False),
+     'ls "C:' + BS + 'Users' + BS + 'someone"', False),
     ("no heredoc at all",
      "python tools/pdata.py", False),
     ("heredoc, backslash only after the terminator",

@@ -27,7 +27,7 @@ import java.io.FileReader;
 
 public class ApplyKnowledge extends GhidraScript {
 
-    private static final String ROOT = "C:/Users/redacted/Downloads/ToS-Decomp/";
+    private static final String ROOT = "";
 
     @Override
     public void run() throws Exception {

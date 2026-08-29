@@ -18,7 +18,7 @@ public class DumpFunctions extends GhidraScript {
     public void run() throws Exception {
         String[] args = getScriptArgs();
         String path = args.length > 0 ? args[0]
-                : "C:/Users/redacted/Downloads/ToS-Decomp/build/ghidra_functions.txt";
+                : "build/ghidra_functions.txt";
 
         PrintWriter w = new PrintWriter(path);
         w.println("# address size name thunk external");

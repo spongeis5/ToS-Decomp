@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python \"C:/Users/redacted/Downloads/ToS-Decomp/.claude/hooks/no_backslash_heredoc.py\""
+            "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/no_backslash_heredoc.py\""
           }
         ]
       }

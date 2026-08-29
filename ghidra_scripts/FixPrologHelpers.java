@@ -87,7 +87,7 @@ public class FixPrologHelpers extends GhidraScript {
         println(String.format("function-body bytes before: %d", before));
 
         // --- re-disassemble every .pdata body ---
-        String path = "C:/Users/redacted/Downloads/ToS-Decomp/build/functions.txt";
+        String path = "build/functions.txt";
         BufferedReader r = new BufferedReader(new FileReader(path));
         String line;
         int rows = 0, redone = 0;
