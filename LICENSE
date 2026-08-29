@@ -1,0 +1,49 @@
+MIT License
+
+Copyright (c) 2026 the ToS-Decomp contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+================================================================================
+WHAT THIS LICENSE COVERS, AND WHAT IT CANNOT
+================================================================================
+
+It covers the tools, the build system, the documentation and the C++ sources
+written in this repository.
+
+IT DOES NOT COVER, AND CANNOT GRANT ANY RIGHT TO:
+
+  * SpongeBob's Truth or Square, its code, its data or its assets. That game
+    is copyright its rightsholders. No part of it is distributed here: the
+    retail image, the ripped disc and the Xbox 360 XDK are all gitignored and
+    absent, and the build refuses to run without them. You must supply your
+    own legally obtained copy.
+
+  * The middleware the title links against -- Havok, FMOD, Ogg Vorbis and
+    Bink -- each of which carries its own license from its own vendor.
+
+  * `thirdparty/disasm/`, a copy of the GNU binutils PowerPC disassembler,
+    which is GPL-licensed and carries its own terms. It is vendored for
+    disassembly only and is not part of the MIT-licensed work above.
+
+Disassembly listings appear in comments throughout `src/` because a matching
+decompilation is unreadable without them. They are excerpts of the original
+program, quoted to document what each function must reproduce, and they are
+not licensed by the notice above.
