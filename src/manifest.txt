@@ -1093,3 +1093,33 @@ src/h8_rotate_triples.cpp        82836078
 src/f4_skip_free_slots.cpp       8280D210  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
 src/h7_read_varint.cpp           82790710  ?ReadVarint@@YAIPAUVarintCtx@@IPAI@Z  flags=/O2,/Os,/Gy,/GS-,/fp:fast
 src/g6_cursor_step.cpp           82772FC0  CursorStep             flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/m20_clear_and_zero64.cpp    82251AC8
+src/m21_table_byte.cpp          822D2550
+src/m22_relative_point_call.cpp 827865F0
+src/m23_elem12_addr.cpp         82726170
+src/m24_init_and_notify.cpp     822AE7C0
+src/m25_out_or_err37.cpp        825492B8
+src/m26_current_entry_byte.cpp  8264B718
+src/m27_relative_rect_call.cpp  82786608
+src/l1_clear_triple_b.cpp        825B9970
+src/l2_low3_clear.cpp            825B9E20
+src/l3_bits300_set.cpp           825DB730  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/l4_lock_if_present.cpp       826770C8
+src/l5_unlock_if_present.cpp     826770F8
+src/l6_vcall0_second_arg.cpp     82790F80  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/l7_sub_kind2.cpp             821A93E0
+src/l8_store_then_vcall0.cpp     821FE858
+src/n1_submit12.cpp              82218FB0
+src/n2_flag_dispatch2.cpp        82252EF8
+src/n3_arg_kind_1or2.cpp         822D3E60
+src/n4_zero5_ret0.cpp            825BE3D8
+src/n5_set_bit_pair.cpp          825FF468
+src/n6_copy4_bytes.cpp           8272CB78
+src/n7_state2_or_flag.cpp        821A5390
+src/n8_reset_two_floats.cpp      821F7B18
+src/k1_round_pct.cpp             825CB000  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/k2_field_scaled.cpp          826B26A8  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/k3_delta_copy.cpp            8282E258  -
+src/k4_slot_remove.cpp           826DD4A0  ?SlotRemove@@YAXPAUSlotOwner@@PAUSlotItem@@@Z
+src/k6_swap_forward.cpp          822E0D80  -
+src/k7_state_enter.cpp           822B7F60  -

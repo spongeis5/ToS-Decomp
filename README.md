@@ -712,6 +712,70 @@ Verified against objdiff-cli 3.8.0. It will not decode VMX128, so the
 engine's vector maths will not render; `tools/disasm.py` is the reader that
 knows it.
 
+### The planned src/ layout, and the evidence for it
+
+`src/` is flat and will not stay that way. The structure to move to is not a
+matter of taste, because **the image carries the original one**.
+
+Eleven of the title's own translation units register their `__FILE__` at
+static-init time, and `tools/srcfiles.py` resolves the `lis`/`addi` pair that
+forms each address. What comes back is a full build path:
+
+```
+c:\branches\SB09\main\NG\Source\Engine\Graphics\BuildMemory.cpp
+c:\branches\SB09\main\NG\Source\Engine\Graphics\Builder.cpp
+c:\branches\SB09\main\NG\Source\Engine\Graphics\Display.cpp
+c:\branches\SB09\main\NG\Source\Engine\Graphics\Effect.cpp
+c:\branches\SB09\main\NG\Source\Engine\Graphics\Sampler.cpp
+c:\branches\SB09\main\NG\Source\Engine\Graphics\Scene.cpp
+c:\branches\SB09\main\NG\Source\Engine\System\CoreTasking.cpp
+c:\branches\SB09\main\NG\Source\Engine\System\Tasking.cpp
+c:\branches\SB09\main\NG\Source\Engine\System\Time.cpp
+c:\branches\SB09\main\NG\Source\Engine\UI\Font.cpp
+```
+
+So the project is `SB09`, the engine tree is `NG/Source/Engine`, and three of
+its subsystem directories are named outright: **Graphics, System, UI**. A
+fourth name comes from the PDB path at 820BECF0, which is under `main\GM\`
+rather than `main\NG\` -- `GM` and `NG` are sibling projects, the game and
+the engine.
+
+The other 177 recovered paths are all middleware and name their own trees:
+`..\src\fmod_*.cpp` (85), Havok (24), `..\lib\ogg_vorbis\...`, and one
+`mod_dspi.cpp` sitting at 8205E630 immediately before the two vtables of the
+constructor at `sub_8253F5D8`.
+
+**The target layout**, mirroring what the paths say rather than inventing
+categories:
+
+```
+src/
+  Engine/Graphics/      Engine/System/      Engine/UI/
+  middleware/fmod/  middleware/havok/  middleware/ogg_vorbis/  middleware/bink/
+  generated/            vt_typeid_*, vt_const_*, vt_acc_*
+  unsorted/             everything not yet attributed to a subsystem
+```
+
+**Why it has not happened yet, stated plainly.** Eleven paths is enough to
+name the directories and not enough to fill them: nothing yet maps most of
+the 265 hand-written sources to a subsystem, so a move done today would put
+almost all of them in `unsorted/` and the tree would be no more readable than
+it is now. The two things that would change that, in order of promise:
+
+1. **The profiler names.** `tools/profnames.py` recovers 100+ real function
+   names -- `TtzCam2Player_update`, `TtSetSurfVel`, `TtWatchDog:FreeMem` --
+   and those prefixes cluster by subsystem far better than addresses do.
+2. **The vtables.** `tools/vtables.py` groups functions into classes, and a
+   class is a file more often than not. 173 of the game's own classes are
+   already identified by type ID.
+
+The one split that IS fully backed today is `generated/` against everything
+else: 818 files against 265, and the distinction is exact rather than a
+judgement call. That one can be done whenever it is wanted, and it is the
+one that buys the most readability per unit of risk -- every path change has
+to be reflected in `src/manifest.txt`, and `tools/build.py` re-verifies the
+whole splice afterwards, so a mistake is loud.
+
 ### What still resists
 
 Thirty-one near-misses, all in `src/attempts.txt`, each with its measurement

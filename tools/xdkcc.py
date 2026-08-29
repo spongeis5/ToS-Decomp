@@ -27,6 +27,7 @@ Notes that are load-bearing:
 """
 
 import hashlib
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -85,12 +86,53 @@ def cache_stats():
     return tuple(_MEMO_STATS)
 
 
+LOCK = ROOT / "build/.negative_controls.lock"
+
+
+def _blocked_by_negative_controls():
+    """Is verify.py currently holding a source file corrupted on purpose?
+
+    verify.py's negative controls edit a REAL file in src/ -- a struct offset,
+    an ASSERT_SIZE, a manifest address -- run the build, require it to fail,
+    and restore. That window is short but it is not atomic, and while it is
+    open any other process compiling from src/ reads text that is wrong by
+    design and gets an answer that looks like a mismatch.
+
+    That is not hypothetical: five agents were compiling through this
+    function while a verify ran, and the build came back with an unlink race
+    and a stale-table failure that had nothing to do with either.
+
+    So verify.py writes its PID here for the duration and every compile in
+    every other process refuses while it exists. The refusal is loud and
+    names the cause, which is the whole point -- a wrong answer here would
+    be recorded in a manifest and believed later.
+    """
+    if not LOCK.exists():
+        return None
+    try:
+        holder = int(LOCK.read_text().strip() or "0")
+    except (OSError, ValueError):
+        return None
+    if holder == os.getpid():
+        return None                     # verify.py itself, doing the test
+    return holder
+
+
 def compile_obj(src, obj, flags=None, workdir=None):
     """Compile `src` to `obj`. -> (object bytes, None) or (None, diagnostics).
 
     `obj` is removed first, so a stale object from a previous run can never be
     mistaken for a successful compile.
     """
+    holder = _blocked_by_negative_controls()
+    if holder is not None:
+        return None, (
+            "REFUSING TO COMPILE: tools/verify.py (pid %d) is running its\n"
+            "negative controls, which deliberately corrupt a source file in\n"
+            "src/ and restore it a moment later. Anything compiled now may\n"
+            "read that corrupted text, and the result would look like an\n"
+            "ordinary mismatch rather than a race.\n"
+            "Wait for verify.py to finish and try again." % holder)
     src = Path(src)
     obj = Path(obj)
     workdir = Path(workdir) if workdir else obj.parent

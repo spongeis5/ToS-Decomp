@@ -21,6 +21,7 @@ CONTROL available, it runs that too, and a check whose control does not fail
 is reported as broken even if the check itself passes.
 """
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -170,6 +171,21 @@ def main():
     # is real evidence and disagreement is a boundary rule that has drifted.
     results.append(check("vtables rediscover rtti.py's 311 (>=90%)",
                          ["tools/vtables.py", "--check"]))
+    # build/candidates.txt is a generated artifact and had gone STALE against
+    # a corrected inventory: 100 of its 5,020 rows carried a shorter size,
+    # 36 of them because a switch's jump table sits past the `bctr` where
+    # discovery stopped. batch.py prints that size, so an agent was handed a
+    # 352-byte switch as 64 bytes of disassembly, wrote a function for what
+    # it saw, and was told SIZE DIFFERS by match.py reading the real extent.
+    # Two entries in src/attempts.txt arrived that way.
+    results.append(check("candidates.txt agrees with the inventory on size",
+                         ["tools/truncated.py", "--check"]))
+    # The negative controls below corrupt real files in src/. Parallel agents
+    # compile through xdkcc constantly, and anything compiled inside that
+    # window reads text that is wrong on purpose -- a result that looks like
+    # an ordinary mismatch and gets written into a manifest.
+    results.append(check("negative-control lock, 4 cases (2 must refuse)",
+                         ["tools/test_lock.py"]))
     results.append(check("MATCHED.md table matches the manifest",
                          ["tools/matched_table.py", "--check"]))
     results.append(check("backslash-heredoc hook, 7 cases",
@@ -214,6 +230,17 @@ def main():
 
     print("")
     print("NEGATIVE CONTROLS -- each corrupts one fact; the build MUST fail\n")
+    # Everything below edits a real file in src/, builds, and restores. While
+    # that is open, any OTHER process compiling from src/ reads text that is
+    # wrong on purpose and gets a result indistinguishable from a genuine
+    # mismatch. Parallel agents compile constantly, so this is not a corner
+    # case; it happened. xdkcc.compile_obj refuses for anyone but this pid
+    # while the lock exists, and says why.
+    import xdkcc
+    xdkcc.LOCK.parent.mkdir(parents=True, exist_ok=True)
+    xdkcc.LOCK.write_text(str(os.getpid()), encoding="utf-8")
+    print("  (holding build/.negative_controls.lock -- other processes")
+    print("   compiling from src/ will be refused until this section ends)\n")
     results.append(negative("wrong struct offset -> compile error",
                             "src/chain5.cpp",
                             "char unk0000[0x38]; B*    b;",
@@ -267,6 +294,14 @@ def main():
         "src/manifest.txt",
         "src/chain5.cpp                  821636A8",
         "src/chain5.cpp                  821636AC"))
+
+    # Released here AND in the `finally` below, because a killed run must not
+    # leave every other process unable to compile. The sentinel that restores
+    # corrupted sources already handles the same class of failure.
+    try:
+        xdkcc.LOCK.unlink()
+    except OSError:
+        pass
 
     print("")
     n_ok = sum(1 for r in results if r)

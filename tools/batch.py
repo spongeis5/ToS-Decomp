@@ -164,10 +164,41 @@ def main(argv):
     img = Image()
     inv = load_inventory()
     fstarts = {x for x, _ in inv}
+    inv_sizes = dict(inv)
     calls = caller_counts()
     done = done_addresses()
 
     rows = [r for r in candidates() if r["va"] not in done]
+
+    # THE SIZE COMES FROM THE INVENTORY, not from candidates.txt.
+    #
+    # candidates.py walks to the first terminator and records what it found.
+    # For a switch that is the `bctr`, and the jump table plus every case
+    # body after it is left out: 822B7F60 is listed there as 64 bytes and is
+    # really 352. 100 of the 5,020 candidate rows disagree with the
+    # inventory this way, 36 of them with a jump table in the gap.
+    #
+    # It matters because this file's whole job is to hand an agent the
+    # disassembly of a function, and match.py then compares the result
+    # against the INVENTORY's extent. Printing the shorter one means the
+    # agent writes a function for the bytes it was shown and is told SIZE
+    # DIFFERS by a tool reading different bytes -- which is how two of the
+    # near-misses in src/attempts.txt got there.
+    #
+    # tools/truncated.py is the census, and `--check` fails while any
+    # candidate still disagrees.
+    fixed = 0
+    for r in rows:
+        real = inv_sizes.get(r["va"])
+        if real is not None and real != r["size"]:
+            r["size"] = real
+            r["resized"] = True
+            fixed += 1
+    if fixed:
+        print("; %d candidate size(s) corrected from the inventory; "
+              "candidates.txt" % fixed)
+        print("; stops at the first terminator and a switch's jump table is "
+              "past it.")
     if max_bytes is not None:
         rows = [r for r in rows if r["size"] <= max_bytes]
     if no_vmx:

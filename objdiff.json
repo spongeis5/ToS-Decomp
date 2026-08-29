@@ -1173,27 +1173,11 @@
       }
     },
     {
-      "name": "sub_82662E08 (m_handle_release)",
-      "target_path": "build/objdiff/target/m_handle_release_82662E08.o",
-      "base_path": "build/objdiff/base/m_handle_release_82662E08.o",
-      "metadata": {
-        "complete": true
-      }
-    },
-    {
       "name": "sub_8262F658 (m_bin_free)",
       "target_path": "build/objdiff/target/m_bin_free_8262F658.o",
       "base_path": "build/objdiff/base/m_bin_free_8262F658.o",
       "metadata": {
         "complete": false
-      }
-    },
-    {
-      "name": "sub_82662938 (m_handle_release)",
-      "target_path": "build/objdiff/target/m_handle_release_82662938.o",
-      "base_path": "build/objdiff/base/m_handle_release_82662938.o",
-      "metadata": {
-        "complete": true
       }
     },
     {
@@ -1248,14 +1232,6 @@
       "name": "sub_82692590 (i_charclass)",
       "target_path": "build/objdiff/target/i_charclass_82692590.o",
       "base_path": "build/objdiff/base/i_charclass_82692590.o",
-      "metadata": {
-        "complete": true
-      }
-    },
-    {
-      "name": "sub_827727D0 (i_lex_advance)",
-      "target_path": "build/objdiff/target/i_lex_advance_827727D0.o",
-      "base_path": "build/objdiff/base/i_lex_advance_827727D0.o",
       "metadata": {
         "complete": true
       }
@@ -4293,11 +4269,4451 @@
       }
     },
     {
+      "name": "sub_825FAB98 (p1_find_name)",
+      "target_path": "build/objdiff/target/p1_find_name_825FAB98.o",
+      "base_path": "build/objdiff/base/p1_find_name_825FAB98.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_822165C0 (p2_kind_pos)",
+      "target_path": "build/objdiff/target/p2_kind_pos_822165C0.o",
+      "base_path": "build/objdiff/base/p2_kind_pos_822165C0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82287E80 (p3_slot_search)",
+      "target_path": "build/objdiff/target/p3_slot_search_82287E80.o",
+      "base_path": "build/objdiff/base/p3_slot_search_82287E80.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8253FD90 (q2_masked_sum)",
+      "target_path": "build/objdiff/target/q2_masked_sum_8253FD90.o",
+      "base_path": "build/objdiff/base/q2_masked_sum_8253FD90.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82724588 (q4_count_leading)",
+      "target_path": "build/objdiff/target/q4_count_leading_82724588.o",
+      "base_path": "build/objdiff/base/q4_count_leading_82724588.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8215C9C0 (q6_slot_update)",
+      "target_path": "build/objdiff/target/q6_slot_update_8215C9C0.o",
+      "base_path": "build/objdiff/base/q6_slot_update_8215C9C0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8287E3D0 (q7_iter_advance)",
+      "target_path": "build/objdiff/target/q7_iter_advance_8287E3D0.o",
+      "base_path": "build/objdiff/base/q7_iter_advance_8287E3D0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8219EBB8 (s5_bucket_free_slot)",
+      "target_path": "build/objdiff/target/s5_bucket_free_slot_8219EBB8.o",
+      "base_path": "build/objdiff/base/s5_bucket_free_slot_8219EBB8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8215E6D0 (s5_find_pair64)",
+      "target_path": "build/objdiff/target/s5_find_pair64_8215E6D0.o",
+      "base_path": "build/objdiff/base/s5_find_pair64_8215E6D0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8215A460 (s5_hash_upper_n)",
+      "target_path": "build/objdiff/target/s5_hash_upper_n_8215A460.o",
+      "base_path": "build/objdiff/base/s5_hash_upper_n_8215A460.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82167A18 (s5_linked_leaf)",
+      "target_path": "build/objdiff/target/s5_linked_leaf_82167A18.o",
+      "base_path": "build/objdiff/base/s5_linked_leaf_82167A18.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82152358 (s5_mtx_row_lengths)",
+      "target_path": "build/objdiff/target/s5_mtx_row_lengths_82152358.o",
+      "base_path": "build/objdiff/base/s5_mtx_row_lengths_82152358.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821AAFA8 (s5_registry_find)",
+      "target_path": "build/objdiff/target/s5_registry_find_821AAFA8.o",
+      "base_path": "build/objdiff/base/s5_registry_find_821AAFA8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825492F8 (t1_slot_attach)",
+      "target_path": "build/objdiff/target/t1_slot_attach_825492F8.o",
+      "base_path": "build/objdiff/base/t1_slot_attach_825492F8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8215BC20 (t2_scan_slots)",
+      "target_path": "build/objdiff/target/t2_scan_slots_8215BC20.o",
+      "base_path": "build/objdiff/base/t2_scan_slots_8215BC20.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8225D500 (t5_magic_check)",
+      "target_path": "build/objdiff/target/t5_magic_check_8225D500.o",
+      "base_path": "build/objdiff/base/t5_magic_check_8225D500.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C1260 (t6_last_flag)",
+      "target_path": "build/objdiff/target/t6_last_flag_826C1260.o",
+      "base_path": "build/objdiff/base/t6_last_flag_826C1260.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_822038C0 (t7_ctor_args5)",
+      "target_path": "build/objdiff/target/t7_ctor_args5_822038C0.o",
+      "base_path": "build/objdiff/base/t7_ctor_args5_822038C0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826043B0 (t8_current_notify)",
+      "target_path": "build/objdiff/target/t8_current_notify_826043B0.o",
+      "base_path": "build/objdiff/base/t8_current_notify_826043B0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826A46C0 (u1_share_tagged2)",
+      "target_path": "build/objdiff/target/u1_share_tagged2_826A46C0.o",
+      "base_path": "build/objdiff/base/u1_share_tagged2_826A46C0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_822CEE48 (u2_chunk_at32)",
+      "target_path": "build/objdiff/target/u2_chunk_at32_822CEE48.o",
+      "base_path": "build/objdiff/base/u2_chunk_at32_822CEE48.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825BE440 (u3_init_zero)",
+      "target_path": "build/objdiff/target/u3_init_zero_825BE440.o",
+      "base_path": "build/objdiff/base/u3_init_zero_825BE440.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821A7E58 (u4_slot_register)",
+      "target_path": "build/objdiff/target/u4_slot_register_821A7E58.o",
+      "base_path": "build/objdiff/base/u4_slot_register_821A7E58.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8276DDC0 (u8_cursor_skip12)",
+      "target_path": "build/objdiff/target/u8_cursor_skip12_8276DDC0.o",
+      "base_path": "build/objdiff/base/u8_cursor_skip12_8276DDC0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8214C778 (b5_set_field36)",
+      "target_path": "build/objdiff/target/b5_set_field36_8214C778.o",
+      "base_path": "build/objdiff/base/b5_set_field36_8214C778.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8214C788 (b8_set_pair_2c28)",
+      "target_path": "build/objdiff/target/b8_set_pair_2c28_8214C788.o",
+      "base_path": "build/objdiff/base/b8_set_pair_2c28_8214C788.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821A6B38 (b6_slot_at83)",
+      "target_path": "build/objdiff/target/b6_slot_at83_821A6B38.o",
+      "base_path": "build/objdiff/base/b6_slot_at83_821A6B38.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C1470 (b7_inner_at40)",
+      "target_path": "build/objdiff/target/b7_inner_at40_826C1470.o",
+      "base_path": "build/objdiff/base/b7_inner_at40_826C1470.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826009D8 (d3_pool_pop_free)",
+      "target_path": "build/objdiff/target/d3_pool_pop_free_826009D8.o",
+      "base_path": "build/objdiff/base/d3_pool_pop_free_826009D8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8225F168 (d5_kind_notify)",
+      "target_path": "build/objdiff/target/d5_kind_notify_8225F168.o",
+      "base_path": "build/objdiff/base/d5_kind_notify_8225F168.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8225FAC0 (d6_job_ready)",
+      "target_path": "build/objdiff/target/d6_job_ready_8225FAC0.o",
+      "base_path": "build/objdiff/base/d6_job_ready_8225FAC0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8252F5D8 (d7_block_info)",
+      "target_path": "build/objdiff/target/d7_block_info_8252F5D8.o",
+      "base_path": "build/objdiff/base/d7_block_info_8252F5D8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82784DE0 (d8_record_clear)",
+      "target_path": "build/objdiff/target/d8_record_clear_82784DE0.o",
+      "base_path": "build/objdiff/base/d8_record_clear_82784DE0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825FA780 (c1_socket_wrap)",
+      "target_path": "build/objdiff/target/c1_socket_wrap_825FA780.o",
+      "base_path": "build/objdiff/base/c1_socket_wrap_825FA780.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8215F268 (c2_fwd_callback)",
+      "target_path": "build/objdiff/target/c2_fwd_callback_8215F268.o",
+      "base_path": "build/objdiff/base/c2_fwd_callback_8215F268.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8215D038 (c3_path_join)",
+      "target_path": "build/objdiff/target/c3_path_join_8215D038.o",
+      "base_path": "build/objdiff/base/c3_path_join_8215D038.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8252D9A0 (c4_fwd_global6)",
+      "target_path": "build/objdiff/target/c4_fwd_global6_8252D9A0.o",
+      "base_path": "build/objdiff/base/c4_fwd_global6_8252D9A0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82761AD0 (c5_flag_pair)",
+      "target_path": "build/objdiff/target/c5_flag_pair_82761AD0.o",
+      "base_path": "build/objdiff/base/c5_flag_pair_82761AD0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82761AF8 (c5_flag_pair)",
+      "target_path": "build/objdiff/target/c5_flag_pair_82761AF8.o",
+      "base_path": "build/objdiff/base/c5_flag_pair_82761AF8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821A5328 (c7_ready_flag)",
+      "target_path": "build/objdiff/target/c7_ready_flag_821A5328.o",
+      "base_path": "build/objdiff/base/c7_ready_flag_821A5328.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8224DBB0 (c8_bits_16_19)",
+      "target_path": "build/objdiff/target/c8_bits_16_19_8224DBB0.o",
+      "base_path": "build/objdiff/base/c8_bits_16_19_8224DBB0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82831A48 (b1_extent_bits)",
+      "target_path": "build/objdiff/target/b1_extent_bits_82831A48.o",
+      "base_path": "build/objdiff/base/b1_extent_bits_82831A48.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827103D8 (d4_handler_or_default)",
+      "target_path": "build/objdiff/target/d4_handler_or_default_827103D8.o",
+      "base_path": "build/objdiff/base/d4_handler_or_default_827103D8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825E35E0 (d1_vcall_global_6)",
+      "target_path": "build/objdiff/target/d1_vcall_global_6_825E35E0.o",
+      "base_path": "build/objdiff/base/d1_vcall_global_6_825E35E0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827FEE48 (d2_link_front_flag)",
+      "target_path": "build/objdiff/target/d2_link_front_flag_827FEE48.o",
+      "base_path": "build/objdiff/base/d2_link_front_flag_827FEE48.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821581C0 (a1_grid_range16)",
+      "target_path": "build/objdiff/target/a1_grid_range16_821581C0.o",
+      "base_path": "build/objdiff/base/a1_grid_range16_821581C0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825FB3E0 (a2_grid_range15)",
+      "target_path": "build/objdiff/target/a2_grid_range15_825FB3E0.o",
+      "base_path": "build/objdiff/base/a2_grid_range15_825FB3E0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82155580 (a5_quat_mul_norm)",
+      "target_path": "build/objdiff/target/a5_quat_mul_norm_82155580.o",
+      "base_path": "build/objdiff/base/a5_quat_mul_norm_82155580.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82858720 (b4_warp_point)",
+      "target_path": "build/objdiff/target/b4_warp_point_82858720.o",
+      "base_path": "build/objdiff/base/b4_warp_point_82858720.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8259C6F0 (a4_bitread24)",
+      "target_path": "build/objdiff/target/a4_bitread24_8259C6F0.o",
+      "base_path": "build/objdiff/base/a4_bitread24_8259C6F0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825BFFF0 (a3_bitread32)",
+      "target_path": "build/objdiff/target/a3_bitread32_825BFFF0.o",
+      "base_path": "build/objdiff/base/a3_bitread32_825BFFF0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82102D60 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82102D60.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82102D60.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82102E08 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82102E08.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82102E08.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82103000 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82103000.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82103000.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82103020 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82103020.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82103020.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82103040 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82103040.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82103040.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82103060 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82103060.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82103060.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82103080 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82103080.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82103080.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821030A0 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_821030A0.o",
+      "base_path": "build/objdiff/base/vt_acc_01_821030A0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82103110 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82103110.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82103110.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821032D0 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_821032D0.o",
+      "base_path": "build/objdiff/base/vt_acc_01_821032D0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82103310 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82103310.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82103310.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82103350 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82103350.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82103350.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82103390 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82103390.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82103390.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821033D0 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_821033D0.o",
+      "base_path": "build/objdiff/base/vt_acc_01_821033D0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821033D8 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_821033D8.o",
+      "base_path": "build/objdiff/base/vt_acc_01_821033D8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821033E0 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_821033E0.o",
+      "base_path": "build/objdiff/base/vt_acc_01_821033E0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82103938 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82103938.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82103938.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821039D0 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_821039D0.o",
+      "base_path": "build/objdiff/base/vt_acc_01_821039D0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82103A68 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82103A68.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82103A68.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82103B00 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82103B00.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82103B00.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82103C38 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82103C38.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82103C38.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82103C90 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82103C90.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82103C90.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82103CC0 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82103CC0.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82103CC0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82103CF0 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82103CF0.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82103CF0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82103D18 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82103D18.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82103D18.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82103D48 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82103D48.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82103D48.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82103E90 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82103E90.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82103E90.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82103E98 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82103E98.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82103E98.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82103EA0 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82103EA0.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82103EA0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82109530 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82109530.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82109530.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821346A0 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_821346A0.o",
+      "base_path": "build/objdiff/base/vt_acc_01_821346A0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8214C890 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_8214C890.o",
+      "base_path": "build/objdiff/base/vt_acc_01_8214C890.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8214CF30 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_8214CF30.o",
+      "base_path": "build/objdiff/base/vt_acc_01_8214CF30.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8214D228 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_8214D228.o",
+      "base_path": "build/objdiff/base/vt_acc_01_8214D228.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8214FD98 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_8214FD98.o",
+      "base_path": "build/objdiff/base/vt_acc_01_8214FD98.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8214FDA0 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_8214FDA0.o",
+      "base_path": "build/objdiff/base/vt_acc_01_8214FDA0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821501C0 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_821501C0.o",
+      "base_path": "build/objdiff/base/vt_acc_01_821501C0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821501F0 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_821501F0.o",
+      "base_path": "build/objdiff/base/vt_acc_01_821501F0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821501F8 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_821501F8.o",
+      "base_path": "build/objdiff/base/vt_acc_01_821501F8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82150200 (vt_acc_01)",
+      "target_path": "build/objdiff/target/vt_acc_01_82150200.o",
+      "base_path": "build/objdiff/base/vt_acc_01_82150200.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82151400 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_82151400.o",
+      "base_path": "build/objdiff/base/vt_acc_02_82151400.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821516C0 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821516C0.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821516C0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82157C00 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_82157C00.o",
+      "base_path": "build/objdiff/base/vt_acc_02_82157C00.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82160D40 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_82160D40.o",
+      "base_path": "build/objdiff/base/vt_acc_02_82160D40.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82160D58 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_82160D58.o",
+      "base_path": "build/objdiff/base/vt_acc_02_82160D58.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8219E878 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_8219E878.o",
+      "base_path": "build/objdiff/base/vt_acc_02_8219E878.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8219F288 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_8219F288.o",
+      "base_path": "build/objdiff/base/vt_acc_02_8219F288.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8219F298 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_8219F298.o",
+      "base_path": "build/objdiff/base/vt_acc_02_8219F298.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821A0B30 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821A0B30.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821A0B30.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821A24A8 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821A24A8.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821A24A8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821A3E90 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821A3E90.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821A3E90.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821A4618 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821A4618.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821A4618.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821A4620 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821A4620.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821A4620.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821A4648 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821A4648.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821A4648.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821A4658 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821A4658.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821A4658.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821A47D8 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821A47D8.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821A47D8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821A4978 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821A4978.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821A4978.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821A5158 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821A5158.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821A5158.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821A5180 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821A5180.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821A5180.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821A5918 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821A5918.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821A5918.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821AA898 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821AA898.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821AA898.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821AAA98 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821AAA98.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821AAA98.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821AEBB8 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821AEBB8.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821AEBB8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821AEBC0 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821AEBC0.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821AEBC0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821AEBC8 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821AEBC8.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821AEBC8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821C2AF8 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821C2AF8.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821C2AF8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821C2B00 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821C2B00.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821C2B00.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821C6A18 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821C6A18.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821C6A18.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821C7920 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821C7920.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821C7920.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821C8990 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821C8990.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821C8990.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821C89D8 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821C89D8.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821C89D8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821C89E0 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821C89E0.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821C89E0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821C89E8 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821C89E8.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821C89E8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821C89F0 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821C89F0.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821C89F0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821D9A08 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821D9A08.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821D9A08.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821D9A30 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821D9A30.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821D9A30.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821F6168 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821F6168.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821F6168.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821F6B68 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821F6B68.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821F6B68.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821F6DE0 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821F6DE0.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821F6DE0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821F94E8 (vt_acc_02)",
+      "target_path": "build/objdiff/target/vt_acc_02_821F94E8.o",
+      "base_path": "build/objdiff/base/vt_acc_02_821F94E8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821F97C0 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_821F97C0.o",
+      "base_path": "build/objdiff/base/vt_acc_03_821F97C0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821F9910 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_821F9910.o",
+      "base_path": "build/objdiff/base/vt_acc_03_821F9910.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821FD130 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_821FD130.o",
+      "base_path": "build/objdiff/base/vt_acc_03_821FD130.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821FD140 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_821FD140.o",
+      "base_path": "build/objdiff/base/vt_acc_03_821FD140.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_822015E0 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_822015E0.o",
+      "base_path": "build/objdiff/base/vt_acc_03_822015E0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82202208 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_82202208.o",
+      "base_path": "build/objdiff/base/vt_acc_03_82202208.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82202658 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_82202658.o",
+      "base_path": "build/objdiff/base/vt_acc_03_82202658.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_822158C0 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_822158C0.o",
+      "base_path": "build/objdiff/base/vt_acc_03_822158C0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82216DA0 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_82216DA0.o",
+      "base_path": "build/objdiff/base/vt_acc_03_82216DA0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82216DA8 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_82216DA8.o",
+      "base_path": "build/objdiff/base/vt_acc_03_82216DA8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82216DC0 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_82216DC0.o",
+      "base_path": "build/objdiff/base/vt_acc_03_82216DC0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82216DD8 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_82216DD8.o",
+      "base_path": "build/objdiff/base/vt_acc_03_82216DD8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82216DE0 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_82216DE0.o",
+      "base_path": "build/objdiff/base/vt_acc_03_82216DE0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82219748 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_82219748.o",
+      "base_path": "build/objdiff/base/vt_acc_03_82219748.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82219758 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_82219758.o",
+      "base_path": "build/objdiff/base/vt_acc_03_82219758.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82219768 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_82219768.o",
+      "base_path": "build/objdiff/base/vt_acc_03_82219768.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82219778 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_82219778.o",
+      "base_path": "build/objdiff/base/vt_acc_03_82219778.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8221E048 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_8221E048.o",
+      "base_path": "build/objdiff/base/vt_acc_03_8221E048.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8221E050 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_8221E050.o",
+      "base_path": "build/objdiff/base/vt_acc_03_8221E050.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8221E058 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_8221E058.o",
+      "base_path": "build/objdiff/base/vt_acc_03_8221E058.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8221E060 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_8221E060.o",
+      "base_path": "build/objdiff/base/vt_acc_03_8221E060.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8221E068 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_8221E068.o",
+      "base_path": "build/objdiff/base/vt_acc_03_8221E068.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8221E0A0 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_8221E0A0.o",
+      "base_path": "build/objdiff/base/vt_acc_03_8221E0A0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8221E0A8 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_8221E0A8.o",
+      "base_path": "build/objdiff/base/vt_acc_03_8221E0A8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8221E0B0 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_8221E0B0.o",
+      "base_path": "build/objdiff/base/vt_acc_03_8221E0B0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82227698 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_82227698.o",
+      "base_path": "build/objdiff/base/vt_acc_03_82227698.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82228488 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_82228488.o",
+      "base_path": "build/objdiff/base/vt_acc_03_82228488.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82228490 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_82228490.o",
+      "base_path": "build/objdiff/base/vt_acc_03_82228490.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8224BD10 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_8224BD10.o",
+      "base_path": "build/objdiff/base/vt_acc_03_8224BD10.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8224BF80 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_8224BF80.o",
+      "base_path": "build/objdiff/base/vt_acc_03_8224BF80.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8224BF88 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_8224BF88.o",
+      "base_path": "build/objdiff/base/vt_acc_03_8224BF88.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8224C110 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_8224C110.o",
+      "base_path": "build/objdiff/base/vt_acc_03_8224C110.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8224C328 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_8224C328.o",
+      "base_path": "build/objdiff/base/vt_acc_03_8224C328.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8224C950 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_8224C950.o",
+      "base_path": "build/objdiff/base/vt_acc_03_8224C950.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8224D1E0 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_8224D1E0.o",
+      "base_path": "build/objdiff/base/vt_acc_03_8224D1E0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8224D5A0 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_8224D5A0.o",
+      "base_path": "build/objdiff/base/vt_acc_03_8224D5A0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8224DDA0 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_8224DDA0.o",
+      "base_path": "build/objdiff/base/vt_acc_03_8224DDA0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8224DDA8 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_8224DDA8.o",
+      "base_path": "build/objdiff/base/vt_acc_03_8224DDA8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8224DE30 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_8224DE30.o",
+      "base_path": "build/objdiff/base/vt_acc_03_8224DE30.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8224E050 (vt_acc_03)",
+      "target_path": "build/objdiff/target/vt_acc_03_8224E050.o",
+      "base_path": "build/objdiff/base/vt_acc_03_8224E050.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8224E068 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_8224E068.o",
+      "base_path": "build/objdiff/base/vt_acc_04_8224E068.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8224E098 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_8224E098.o",
+      "base_path": "build/objdiff/base/vt_acc_04_8224E098.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8224E0B0 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_8224E0B0.o",
+      "base_path": "build/objdiff/base/vt_acc_04_8224E0B0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8224E5B8 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_8224E5B8.o",
+      "base_path": "build/objdiff/base/vt_acc_04_8224E5B8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8224E5D0 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_8224E5D0.o",
+      "base_path": "build/objdiff/base/vt_acc_04_8224E5D0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8224E5E8 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_8224E5E8.o",
+      "base_path": "build/objdiff/base/vt_acc_04_8224E5E8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8224E600 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_8224E600.o",
+      "base_path": "build/objdiff/base/vt_acc_04_8224E600.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8224FF08 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_8224FF08.o",
+      "base_path": "build/objdiff/base/vt_acc_04_8224FF08.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_822520E0 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_822520E0.o",
+      "base_path": "build/objdiff/base/vt_acc_04_822520E0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82252328 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_82252328.o",
+      "base_path": "build/objdiff/base/vt_acc_04_82252328.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82252F48 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_82252F48.o",
+      "base_path": "build/objdiff/base/vt_acc_04_82252F48.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82256B78 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_82256B78.o",
+      "base_path": "build/objdiff/base/vt_acc_04_82256B78.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8225B9D0 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_8225B9D0.o",
+      "base_path": "build/objdiff/base/vt_acc_04_8225B9D0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8225B9F0 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_8225B9F0.o",
+      "base_path": "build/objdiff/base/vt_acc_04_8225B9F0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8225ECF8 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_8225ECF8.o",
+      "base_path": "build/objdiff/base/vt_acc_04_8225ECF8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82261490 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_82261490.o",
+      "base_path": "build/objdiff/base/vt_acc_04_82261490.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82261870 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_82261870.o",
+      "base_path": "build/objdiff/base/vt_acc_04_82261870.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82261E98 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_82261E98.o",
+      "base_path": "build/objdiff/base/vt_acc_04_82261E98.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82266330 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_82266330.o",
+      "base_path": "build/objdiff/base/vt_acc_04_82266330.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82270198 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_82270198.o",
+      "base_path": "build/objdiff/base/vt_acc_04_82270198.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_822701A0 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_822701A0.o",
+      "base_path": "build/objdiff/base/vt_acc_04_822701A0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82270210 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_82270210.o",
+      "base_path": "build/objdiff/base/vt_acc_04_82270210.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8228BE90 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_8228BE90.o",
+      "base_path": "build/objdiff/base/vt_acc_04_8228BE90.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8228CF28 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_8228CF28.o",
+      "base_path": "build/objdiff/base/vt_acc_04_8228CF28.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_822D8898 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_822D8898.o",
+      "base_path": "build/objdiff/base/vt_acc_04_822D8898.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_822D88A0 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_822D88A0.o",
+      "base_path": "build/objdiff/base/vt_acc_04_822D88A0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82315CDC (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_82315CDC.o",
+      "base_path": "build/objdiff/base/vt_acc_04_82315CDC.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_823269A0 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_823269A0.o",
+      "base_path": "build/objdiff/base/vt_acc_04_823269A0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82326D58 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_82326D58.o",
+      "base_path": "build/objdiff/base/vt_acc_04_82326D58.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82349B50 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_82349B50.o",
+      "base_path": "build/objdiff/base/vt_acc_04_82349B50.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8234FE9C (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_8234FE9C.o",
+      "base_path": "build/objdiff/base/vt_acc_04_8234FE9C.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82363540 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_82363540.o",
+      "base_path": "build/objdiff/base/vt_acc_04_82363540.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82363550 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_82363550.o",
+      "base_path": "build/objdiff/base/vt_acc_04_82363550.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_823F1D60 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_823F1D60.o",
+      "base_path": "build/objdiff/base/vt_acc_04_823F1D60.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_823F1D90 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_823F1D90.o",
+      "base_path": "build/objdiff/base/vt_acc_04_823F1D90.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_823F1DA0 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_823F1DA0.o",
+      "base_path": "build/objdiff/base/vt_acc_04_823F1DA0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8240B718 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_8240B718.o",
+      "base_path": "build/objdiff/base/vt_acc_04_8240B718.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8240B720 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_8240B720.o",
+      "base_path": "build/objdiff/base/vt_acc_04_8240B720.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8240B728 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_8240B728.o",
+      "base_path": "build/objdiff/base/vt_acc_04_8240B728.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8240B730 (vt_acc_04)",
+      "target_path": "build/objdiff/target/vt_acc_04_8240B730.o",
+      "base_path": "build/objdiff/base/vt_acc_04_8240B730.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8240B738 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_8240B738.o",
+      "base_path": "build/objdiff/base/vt_acc_05_8240B738.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8240B740 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_8240B740.o",
+      "base_path": "build/objdiff/base/vt_acc_05_8240B740.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8240B748 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_8240B748.o",
+      "base_path": "build/objdiff/base/vt_acc_05_8240B748.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8240B750 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_8240B750.o",
+      "base_path": "build/objdiff/base/vt_acc_05_8240B750.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8240B758 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_8240B758.o",
+      "base_path": "build/objdiff/base/vt_acc_05_8240B758.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8240C138 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_8240C138.o",
+      "base_path": "build/objdiff/base/vt_acc_05_8240C138.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_824BBA08 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_824BBA08.o",
+      "base_path": "build/objdiff/base/vt_acc_05_824BBA08.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_824CB658 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_824CB658.o",
+      "base_path": "build/objdiff/base/vt_acc_05_824CB658.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_824EFD20 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_824EFD20.o",
+      "base_path": "build/objdiff/base/vt_acc_05_824EFD20.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_824EFE08 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_824EFE08.o",
+      "base_path": "build/objdiff/base/vt_acc_05_824EFE08.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_824EFE10 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_824EFE10.o",
+      "base_path": "build/objdiff/base/vt_acc_05_824EFE10.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_824EFE18 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_824EFE18.o",
+      "base_path": "build/objdiff/base/vt_acc_05_824EFE18.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82506750 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_82506750.o",
+      "base_path": "build/objdiff/base/vt_acc_05_82506750.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82510CE8 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_82510CE8.o",
+      "base_path": "build/objdiff/base/vt_acc_05_82510CE8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82588FF8 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_82588FF8.o",
+      "base_path": "build/objdiff/base/vt_acc_05_82588FF8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82589010 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_82589010.o",
+      "base_path": "build/objdiff/base/vt_acc_05_82589010.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82589028 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_82589028.o",
+      "base_path": "build/objdiff/base/vt_acc_05_82589028.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8259C2D8 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_8259C2D8.o",
+      "base_path": "build/objdiff/base/vt_acc_05_8259C2D8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825A98D8 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_825A98D8.o",
+      "base_path": "build/objdiff/base/vt_acc_05_825A98D8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825ACB10 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_825ACB10.o",
+      "base_path": "build/objdiff/base/vt_acc_05_825ACB10.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825E40F8 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_825E40F8.o",
+      "base_path": "build/objdiff/base/vt_acc_05_825E40F8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825E44C8 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_825E44C8.o",
+      "base_path": "build/objdiff/base/vt_acc_05_825E44C8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825E44D0 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_825E44D0.o",
+      "base_path": "build/objdiff/base/vt_acc_05_825E44D0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825E4540 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_825E4540.o",
+      "base_path": "build/objdiff/base/vt_acc_05_825E4540.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825E45D0 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_825E45D0.o",
+      "base_path": "build/objdiff/base/vt_acc_05_825E45D0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825E45D8 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_825E45D8.o",
+      "base_path": "build/objdiff/base/vt_acc_05_825E45D8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825E45E0 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_825E45E0.o",
+      "base_path": "build/objdiff/base/vt_acc_05_825E45E0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825E5158 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_825E5158.o",
+      "base_path": "build/objdiff/base/vt_acc_05_825E5158.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825E5160 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_825E5160.o",
+      "base_path": "build/objdiff/base/vt_acc_05_825E5160.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825E5168 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_825E5168.o",
+      "base_path": "build/objdiff/base/vt_acc_05_825E5168.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825F8DA8 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_825F8DA8.o",
+      "base_path": "build/objdiff/base/vt_acc_05_825F8DA8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825F8DB8 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_825F8DB8.o",
+      "base_path": "build/objdiff/base/vt_acc_05_825F8DB8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825F8DC0 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_825F8DC0.o",
+      "base_path": "build/objdiff/base/vt_acc_05_825F8DC0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825F8DC8 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_825F8DC8.o",
+      "base_path": "build/objdiff/base/vt_acc_05_825F8DC8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825FBFA0 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_825FBFA0.o",
+      "base_path": "build/objdiff/base/vt_acc_05_825FBFA0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825FE3D0 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_825FE3D0.o",
+      "base_path": "build/objdiff/base/vt_acc_05_825FE3D0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825FED80 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_825FED80.o",
+      "base_path": "build/objdiff/base/vt_acc_05_825FED80.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825FEE28 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_825FEE28.o",
+      "base_path": "build/objdiff/base/vt_acc_05_825FEE28.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825FF4A8 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_825FF4A8.o",
+      "base_path": "build/objdiff/base/vt_acc_05_825FF4A8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8260C7C0 (vt_acc_05)",
+      "target_path": "build/objdiff/target/vt_acc_05_8260C7C0.o",
+      "base_path": "build/objdiff/base/vt_acc_05_8260C7C0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8261AC10 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_8261AC10.o",
+      "base_path": "build/objdiff/base/vt_acc_06_8261AC10.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8261AC60 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_8261AC60.o",
+      "base_path": "build/objdiff/base/vt_acc_06_8261AC60.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8261AD98 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_8261AD98.o",
+      "base_path": "build/objdiff/base/vt_acc_06_8261AD98.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8261ADA0 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_8261ADA0.o",
+      "base_path": "build/objdiff/base/vt_acc_06_8261ADA0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8261B8E0 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_8261B8E0.o",
+      "base_path": "build/objdiff/base/vt_acc_06_8261B8E0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8261B8E8 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_8261B8E8.o",
+      "base_path": "build/objdiff/base/vt_acc_06_8261B8E8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8262FD68 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_8262FD68.o",
+      "base_path": "build/objdiff/base/vt_acc_06_8262FD68.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82631964 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_82631964.o",
+      "base_path": "build/objdiff/base/vt_acc_06_82631964.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826319D0 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_826319D0.o",
+      "base_path": "build/objdiff/base/vt_acc_06_826319D0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826337A8 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_826337A8.o",
+      "base_path": "build/objdiff/base/vt_acc_06_826337A8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82636108 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_82636108.o",
+      "base_path": "build/objdiff/base/vt_acc_06_82636108.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82636930 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_82636930.o",
+      "base_path": "build/objdiff/base/vt_acc_06_82636930.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826369A0 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_826369A0.o",
+      "base_path": "build/objdiff/base/vt_acc_06_826369A0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82636A50 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_82636A50.o",
+      "base_path": "build/objdiff/base/vt_acc_06_82636A50.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82636AB0 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_82636AB0.o",
+      "base_path": "build/objdiff/base/vt_acc_06_82636AB0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82639C20 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_82639C20.o",
+      "base_path": "build/objdiff/base/vt_acc_06_82639C20.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82639C50 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_82639C50.o",
+      "base_path": "build/objdiff/base/vt_acc_06_82639C50.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82641A40 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_82641A40.o",
+      "base_path": "build/objdiff/base/vt_acc_06_82641A40.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826429E8 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_826429E8.o",
+      "base_path": "build/objdiff/base/vt_acc_06_826429E8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82642F28 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_82642F28.o",
+      "base_path": "build/objdiff/base/vt_acc_06_82642F28.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82648B98 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_82648B98.o",
+      "base_path": "build/objdiff/base/vt_acc_06_82648B98.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82662720 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_82662720.o",
+      "base_path": "build/objdiff/base/vt_acc_06_82662720.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82662738 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_82662738.o",
+      "base_path": "build/objdiff/base/vt_acc_06_82662738.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82662750 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_82662750.o",
+      "base_path": "build/objdiff/base/vt_acc_06_82662750.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82662768 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_82662768.o",
+      "base_path": "build/objdiff/base/vt_acc_06_82662768.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82662780 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_82662780.o",
+      "base_path": "build/objdiff/base/vt_acc_06_82662780.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82662798 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_82662798.o",
+      "base_path": "build/objdiff/base/vt_acc_06_82662798.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826627B0 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_826627B0.o",
+      "base_path": "build/objdiff/base/vt_acc_06_826627B0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826627C8 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_826627C8.o",
+      "base_path": "build/objdiff/base/vt_acc_06_826627C8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82662930 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_82662930.o",
+      "base_path": "build/objdiff/base/vt_acc_06_82662930.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82663880 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_82663880.o",
+      "base_path": "build/objdiff/base/vt_acc_06_82663880.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82667708 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_82667708.o",
+      "base_path": "build/objdiff/base/vt_acc_06_82667708.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82667710 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_82667710.o",
+      "base_path": "build/objdiff/base/vt_acc_06_82667710.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8267F0E0 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_8267F0E0.o",
+      "base_path": "build/objdiff/base/vt_acc_06_8267F0E0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826813E0 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_826813E0.o",
+      "base_path": "build/objdiff/base/vt_acc_06_826813E0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82681760 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_82681760.o",
+      "base_path": "build/objdiff/base/vt_acc_06_82681760.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8268EC38 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_8268EC38.o",
+      "base_path": "build/objdiff/base/vt_acc_06_8268EC38.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8268FDE8 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_8268FDE8.o",
+      "base_path": "build/objdiff/base/vt_acc_06_8268FDE8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8268FFC0 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_8268FFC0.o",
+      "base_path": "build/objdiff/base/vt_acc_06_8268FFC0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826903D8 (vt_acc_06)",
+      "target_path": "build/objdiff/target/vt_acc_06_826903D8.o",
+      "base_path": "build/objdiff/base/vt_acc_06_826903D8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826904A8 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826904A8.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826904A8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82690698 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_82690698.o",
+      "base_path": "build/objdiff/base/vt_acc_07_82690698.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82690748 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_82690748.o",
+      "base_path": "build/objdiff/base/vt_acc_07_82690748.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826908D8 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826908D8.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826908D8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826909B0 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826909B0.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826909B0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82690BC0 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_82690BC0.o",
+      "base_path": "build/objdiff/base/vt_acc_07_82690BC0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826911B8 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826911B8.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826911B8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826911C0 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826911C0.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826911C0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826911C8 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826911C8.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826911C8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82691B68 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_82691B68.o",
+      "base_path": "build/objdiff/base/vt_acc_07_82691B68.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826969B0 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826969B0.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826969B0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82696A48 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_82696A48.o",
+      "base_path": "build/objdiff/base/vt_acc_07_82696A48.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82696AD0 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_82696AD0.o",
+      "base_path": "build/objdiff/base/vt_acc_07_82696AD0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8269E830 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_8269E830.o",
+      "base_path": "build/objdiff/base/vt_acc_07_8269E830.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8269F328 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_8269F328.o",
+      "base_path": "build/objdiff/base/vt_acc_07_8269F328.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826A04A0 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826A04A0.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826A04A0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826A1030 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826A1030.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826A1030.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826A1060 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826A1060.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826A1060.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826A4F20 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826A4F20.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826A4F20.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826A4F38 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826A4F38.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826A4F38.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826A4F50 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826A4F50.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826A4F50.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826A4F68 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826A4F68.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826A4F68.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826A4F80 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826A4F80.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826A4F80.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826A4F98 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826A4F98.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826A4F98.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826A4FB0 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826A4FB0.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826A4FB0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826A5EC8 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826A5EC8.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826A5EC8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826A5ED0 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826A5ED0.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826A5ED0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826AA260 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826AA260.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826AA260.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826AA288 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826AA288.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826AA288.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826AFFE0 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826AFFE0.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826AFFE0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826B0328 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826B0328.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826B0328.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826BA290 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826BA290.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826BA290.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826BB590 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826BB590.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826BB590.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826BB818 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826BB818.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826BB818.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C0CC8 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826C0CC8.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826C0CC8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C0CD0 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826C0CD0.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826C0CD0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C0DA8 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826C0DA8.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826C0DA8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C0F20 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826C0F20.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826C0F20.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C0FC0 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826C0FC0.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826C0FC0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C1250 (vt_acc_07)",
+      "target_path": "build/objdiff/target/vt_acc_07_826C1250.o",
+      "base_path": "build/objdiff/base/vt_acc_07_826C1250.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C1258 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826C1258.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826C1258.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C3D80 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826C3D80.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826C3D80.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C3D88 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826C3D88.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826C3D88.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C3D90 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826C3D90.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826C3D90.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C3D98 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826C3D98.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826C3D98.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C3DA0 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826C3DA0.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826C3DA0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C3DA8 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826C3DA8.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826C3DA8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C3DB0 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826C3DB0.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826C3DB0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C3DB8 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826C3DB8.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826C3DB8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C3DC0 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826C3DC0.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826C3DC0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C3DC8 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826C3DC8.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826C3DC8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C3DD0 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826C3DD0.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826C3DD0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C58C8 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826C58C8.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826C58C8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C58D0 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826C58D0.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826C58D0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C58D8 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826C58D8.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826C58D8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C8718 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826C8718.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826C8718.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C8720 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826C8720.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826C8720.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826D4440 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826D4440.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826D4440.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826D4448 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826D4448.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826D4448.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826D46B8 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826D46B8.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826D46B8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826D4F58 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826D4F58.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826D4F58.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826D8E30 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826D8E30.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826D8E30.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826DD3F0 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826DD3F0.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826DD3F0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826DD430 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826DD430.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826DD430.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826E38F8 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826E38F8.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826E38F8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826E4008 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826E4008.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826E4008.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826E4118 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826E4118.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826E4118.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826E4130 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826E4130.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826E4130.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826E4148 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826E4148.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826E4148.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826E4160 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826E4160.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826E4160.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826E4178 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826E4178.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826E4178.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826E4190 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826E4190.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826E4190.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826E41A8 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826E41A8.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826E41A8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826E41C0 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826E41C0.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826E41C0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826E41D8 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826E41D8.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826E41D8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826E41F0 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826E41F0.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826E41F0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826E4208 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826E4208.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826E4208.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826E4220 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826E4220.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826E4220.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826E4238 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826E4238.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826E4238.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826E4250 (vt_acc_08)",
+      "target_path": "build/objdiff/target/vt_acc_08_826E4250.o",
+      "base_path": "build/objdiff/base/vt_acc_08_826E4250.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826E6E28 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826E6E28.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826E6E28.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826EA370 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826EA370.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826EA370.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826EC0D0 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826EC0D0.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826EC0D0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826ED6A8 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826ED6A8.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826ED6A8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FAA38 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FAA38.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FAA38.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FAEB0 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FAEB0.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FAEB0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FAEB8 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FAEB8.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FAEB8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FAFB0 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FAFB0.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FAFB0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FB468 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FB468.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FB468.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FC918 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FC918.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FC918.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FC960 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FC960.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FC960.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FC968 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FC968.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FC968.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FC970 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FC970.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FC970.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FC978 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FC978.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FC978.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FC980 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FC980.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FC980.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FC988 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FC988.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FC988.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FC990 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FC990.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FC990.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FC998 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FC998.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FC998.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FC9A0 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FC9A0.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FC9A0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FC9A8 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FC9A8.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FC9A8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FC9B0 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FC9B0.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FC9B0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FC9B8 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FC9B8.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FC9B8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FC9C0 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FC9C0.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FC9C0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FC9C8 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FC9C8.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FC9C8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FC9D0 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FC9D0.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FC9D0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FC9D8 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FC9D8.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FC9D8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FC9E0 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FC9E0.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FC9E0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FC9E8 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FC9E8.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FC9E8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FC9F0 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FC9F0.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FC9F0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FC9F8 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FC9F8.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FC9F8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FCA00 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FCA00.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FCA00.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FCA08 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FCA08.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FCA08.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FCA10 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FCA10.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FCA10.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FCA18 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FCA18.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FCA18.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FCA20 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FCA20.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FCA20.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FCA28 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FCA28.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FCA28.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FCA30 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FCA30.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FCA30.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826FCB38 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_826FCB38.o",
+      "base_path": "build/objdiff/base/vt_acc_09_826FCB38.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82700058 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_82700058.o",
+      "base_path": "build/objdiff/base/vt_acc_09_82700058.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82707510 (vt_acc_09)",
+      "target_path": "build/objdiff/target/vt_acc_09_82707510.o",
+      "base_path": "build/objdiff/base/vt_acc_09_82707510.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82712DC8 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_82712DC8.o",
+      "base_path": "build/objdiff/base/vt_acc_10_82712DC8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82712DE0 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_82712DE0.o",
+      "base_path": "build/objdiff/base/vt_acc_10_82712DE0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82712DF8 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_82712DF8.o",
+      "base_path": "build/objdiff/base/vt_acc_10_82712DF8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82712E10 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_82712E10.o",
+      "base_path": "build/objdiff/base/vt_acc_10_82712E10.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82712E80 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_82712E80.o",
+      "base_path": "build/objdiff/base/vt_acc_10_82712E80.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82712E90 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_82712E90.o",
+      "base_path": "build/objdiff/base/vt_acc_10_82712E90.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82712EB8 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_82712EB8.o",
+      "base_path": "build/objdiff/base/vt_acc_10_82712EB8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82713338 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_82713338.o",
+      "base_path": "build/objdiff/base/vt_acc_10_82713338.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82726190 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_82726190.o",
+      "base_path": "build/objdiff/base/vt_acc_10_82726190.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82726198 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_82726198.o",
+      "base_path": "build/objdiff/base/vt_acc_10_82726198.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827261A0 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_827261A0.o",
+      "base_path": "build/objdiff/base/vt_acc_10_827261A0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82726448 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_82726448.o",
+      "base_path": "build/objdiff/base/vt_acc_10_82726448.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82727128 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_82727128.o",
+      "base_path": "build/objdiff/base/vt_acc_10_82727128.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82727130 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_82727130.o",
+      "base_path": "build/objdiff/base/vt_acc_10_82727130.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82727290 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_82727290.o",
+      "base_path": "build/objdiff/base/vt_acc_10_82727290.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827311C0 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_827311C0.o",
+      "base_path": "build/objdiff/base/vt_acc_10_827311C0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827311D8 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_827311D8.o",
+      "base_path": "build/objdiff/base/vt_acc_10_827311D8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827351F8 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_827351F8.o",
+      "base_path": "build/objdiff/base/vt_acc_10_827351F8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82735AE8 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_82735AE8.o",
+      "base_path": "build/objdiff/base/vt_acc_10_82735AE8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82735B90 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_82735B90.o",
+      "base_path": "build/objdiff/base/vt_acc_10_82735B90.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82736020 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_82736020.o",
+      "base_path": "build/objdiff/base/vt_acc_10_82736020.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8273F438 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_8273F438.o",
+      "base_path": "build/objdiff/base/vt_acc_10_8273F438.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8273F440 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_8273F440.o",
+      "base_path": "build/objdiff/base/vt_acc_10_8273F440.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8273FC60 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_8273FC60.o",
+      "base_path": "build/objdiff/base/vt_acc_10_8273FC60.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8273FC78 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_8273FC78.o",
+      "base_path": "build/objdiff/base/vt_acc_10_8273FC78.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8273FC90 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_8273FC90.o",
+      "base_path": "build/objdiff/base/vt_acc_10_8273FC90.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8273FCA8 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_8273FCA8.o",
+      "base_path": "build/objdiff/base/vt_acc_10_8273FCA8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8273FCC0 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_8273FCC0.o",
+      "base_path": "build/objdiff/base/vt_acc_10_8273FCC0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8274E570 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_8274E570.o",
+      "base_path": "build/objdiff/base/vt_acc_10_8274E570.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8274E980 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_8274E980.o",
+      "base_path": "build/objdiff/base/vt_acc_10_8274E980.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8274E998 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_8274E998.o",
+      "base_path": "build/objdiff/base/vt_acc_10_8274E998.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8274E9B0 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_8274E9B0.o",
+      "base_path": "build/objdiff/base/vt_acc_10_8274E9B0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8274E9C8 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_8274E9C8.o",
+      "base_path": "build/objdiff/base/vt_acc_10_8274E9C8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8274E9E0 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_8274E9E0.o",
+      "base_path": "build/objdiff/base/vt_acc_10_8274E9E0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827559D8 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_827559D8.o",
+      "base_path": "build/objdiff/base/vt_acc_10_827559D8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827619F0 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_827619F0.o",
+      "base_path": "build/objdiff/base/vt_acc_10_827619F0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8277A8C8 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_8277A8C8.o",
+      "base_path": "build/objdiff/base/vt_acc_10_8277A8C8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8277E708 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_8277E708.o",
+      "base_path": "build/objdiff/base/vt_acc_10_8277E708.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827820A8 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_827820A8.o",
+      "base_path": "build/objdiff/base/vt_acc_10_827820A8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827830B0 (vt_acc_10)",
+      "target_path": "build/objdiff/target/vt_acc_10_827830B0.o",
+      "base_path": "build/objdiff/base/vt_acc_10_827830B0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82785020 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_82785020.o",
+      "base_path": "build/objdiff/base/vt_acc_11_82785020.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82787448 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_82787448.o",
+      "base_path": "build/objdiff/base/vt_acc_11_82787448.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82790628 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_82790628.o",
+      "base_path": "build/objdiff/base/vt_acc_11_82790628.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82790DA0 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_82790DA0.o",
+      "base_path": "build/objdiff/base/vt_acc_11_82790DA0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82792C78 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_82792C78.o",
+      "base_path": "build/objdiff/base/vt_acc_11_82792C78.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82792E40 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_82792E40.o",
+      "base_path": "build/objdiff/base/vt_acc_11_82792E40.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82798220 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_82798220.o",
+      "base_path": "build/objdiff/base/vt_acc_11_82798220.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8279A340 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_8279A340.o",
+      "base_path": "build/objdiff/base/vt_acc_11_8279A340.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8279D9C8 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_8279D9C8.o",
+      "base_path": "build/objdiff/base/vt_acc_11_8279D9C8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8279F678 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_8279F678.o",
+      "base_path": "build/objdiff/base/vt_acc_11_8279F678.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827A7CB0 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827A7CB0.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827A7CB0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827B30E8 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827B30E8.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827B30E8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827B3680 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827B3680.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827B3680.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827B3688 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827B3688.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827B3688.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827C26B0 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827C26B0.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827C26B0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827C26B8 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827C26B8.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827C26B8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827C26C0 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827C26C0.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827C26C0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827C26C8 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827C26C8.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827C26C8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827C26D0 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827C26D0.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827C26D0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827C3190 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827C3190.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827C3190.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827C3250 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827C3250.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827C3250.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827C7848 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827C7848.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827C7848.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827DB490 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827DB490.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827DB490.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827E9DE8 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827E9DE8.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827E9DE8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827E9DF0 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827E9DF0.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827E9DF0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827E9DF8 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827E9DF8.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827E9DF8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827E9E38 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827E9E38.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827E9E38.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827E9E40 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827E9E40.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827E9E40.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827E9E48 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827E9E48.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827E9E48.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827ED498 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827ED498.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827ED498.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827EE528 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827EE528.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827EE528.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827F8688 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827F8688.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827F8688.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827F86A0 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827F86A0.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827F86A0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827F8EF8 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827F8EF8.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827F8EF8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827F8F00 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827F8F00.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827F8F00.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827F8F08 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827F8F08.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827F8F08.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827F8F38 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827F8F38.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827F8F38.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827F8F40 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827F8F40.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827F8F40.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827FE6E8 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827FE6E8.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827FE6E8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827FEC50 (vt_acc_11)",
+      "target_path": "build/objdiff/target/vt_acc_11_827FEC50.o",
+      "base_path": "build/objdiff/base/vt_acc_11_827FEC50.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827FEC60 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_827FEC60.o",
+      "base_path": "build/objdiff/base/vt_acc_12_827FEC60.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82800DF0 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_82800DF0.o",
+      "base_path": "build/objdiff/base/vt_acc_12_82800DF0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82806C98 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_82806C98.o",
+      "base_path": "build/objdiff/base/vt_acc_12_82806C98.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82812138 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_82812138.o",
+      "base_path": "build/objdiff/base/vt_acc_12_82812138.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82828228 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_82828228.o",
+      "base_path": "build/objdiff/base/vt_acc_12_82828228.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82828230 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_82828230.o",
+      "base_path": "build/objdiff/base/vt_acc_12_82828230.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8282A730 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_8282A730.o",
+      "base_path": "build/objdiff/base/vt_acc_12_8282A730.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8282DF78 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_8282DF78.o",
+      "base_path": "build/objdiff/base/vt_acc_12_8282DF78.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82838708 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_82838708.o",
+      "base_path": "build/objdiff/base/vt_acc_12_82838708.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_828461E8 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_828461E8.o",
+      "base_path": "build/objdiff/base/vt_acc_12_828461E8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8287E048 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_8287E048.o",
+      "base_path": "build/objdiff/base/vt_acc_12_8287E048.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_828935E0 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_828935E0.o",
+      "base_path": "build/objdiff/base/vt_acc_12_828935E0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82896618 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_82896618.o",
+      "base_path": "build/objdiff/base/vt_acc_12_82896618.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_828969C8 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_828969C8.o",
+      "base_path": "build/objdiff/base/vt_acc_12_828969C8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82897030 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_82897030.o",
+      "base_path": "build/objdiff/base/vt_acc_12_82897030.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82897038 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_82897038.o",
+      "base_path": "build/objdiff/base/vt_acc_12_82897038.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_828970D0 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_828970D0.o",
+      "base_path": "build/objdiff/base/vt_acc_12_828970D0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_828970D8 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_828970D8.o",
+      "base_path": "build/objdiff/base/vt_acc_12_828970D8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8289E780 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_8289E780.o",
+      "base_path": "build/objdiff/base/vt_acc_12_8289E780.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_828B166C (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_828B166C.o",
+      "base_path": "build/objdiff/base/vt_acc_12_828B166C.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_828B16C0 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_828B16C0.o",
+      "base_path": "build/objdiff/base/vt_acc_12_828B16C0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_828C49A0 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_828C49A0.o",
+      "base_path": "build/objdiff/base/vt_acc_12_828C49A0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_828C9910 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_828C9910.o",
+      "base_path": "build/objdiff/base/vt_acc_12_828C9910.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_828C9918 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_828C9918.o",
+      "base_path": "build/objdiff/base/vt_acc_12_828C9918.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_828DBF10 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_828DBF10.o",
+      "base_path": "build/objdiff/base/vt_acc_12_828DBF10.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_828DC5A0 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_828DC5A0.o",
+      "base_path": "build/objdiff/base/vt_acc_12_828DC5A0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_828DCEC0 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_828DCEC0.o",
+      "base_path": "build/objdiff/base/vt_acc_12_828DCEC0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_828DDDE8 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_828DDDE8.o",
+      "base_path": "build/objdiff/base/vt_acc_12_828DDDE8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_828DE488 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_828DE488.o",
+      "base_path": "build/objdiff/base/vt_acc_12_828DE488.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_828DE498 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_828DE498.o",
+      "base_path": "build/objdiff/base/vt_acc_12_828DE498.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_828F9218 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_828F9218.o",
+      "base_path": "build/objdiff/base/vt_acc_12_828F9218.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82903D00 (vt_acc_12)",
+      "target_path": "build/objdiff/target/vt_acc_12_82903D00.o",
+      "base_path": "build/objdiff/base/vt_acc_12_82903D00.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82203890 (h1_inner_bit0)",
+      "target_path": "build/objdiff/target/h1_inner_bit0_82203890.o",
+      "base_path": "build/objdiff/base/h1_inner_bit0_82203890.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8219B9A0 (h2_fwd_two_fields)",
+      "target_path": "build/objdiff/target/h2_fwd_two_fields_8219B9A0.o",
+      "base_path": "build/objdiff/base/h2_fwd_two_fields_8219B9A0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821838E8 (h3_fwd_global_arg)",
+      "target_path": "build/objdiff/target/h3_fwd_global_arg_821838E8.o",
+      "base_path": "build/objdiff/base/h3_fwd_global_arg_821838E8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_822DA8B0 (h4_state_copy)",
+      "target_path": "build/objdiff/target/h4_state_copy_822DA8B0.o",
+      "base_path": "build/objdiff/base/h4_state_copy_822DA8B0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8215ED28 (b_bounds_at)",
+      "target_path": "build/objdiff/target/b_bounds_at_8215ED28.o",
+      "base_path": "build/objdiff/base/b_bounds_at_8215ED28.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
       "name": "sub_82806FD0 (chunked_at)",
       "target_path": "build/objdiff/target/chunked_at_82806FD0.o",
       "base_path": "build/objdiff/base/chunked_at_82806FD0.o",
       "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82600AD0 (list_insert)",
+      "target_path": "build/objdiff/target/list_insert_82600AD0.o",
+      "base_path": "build/objdiff/base/list_insert_82600AD0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8217E808 (m_tree_lookup)",
+      "target_path": "build/objdiff/target/m_tree_lookup_8217E808.o",
+      "base_path": "build/objdiff/base/m_tree_lookup_8217E808.o",
+      "metadata": {
         "complete": false
+      }
+    },
+    {
+      "name": "sub_82667EE0 (m_vector_reserve)",
+      "target_path": "build/objdiff/target/m_vector_reserve_82667EE0.o",
+      "base_path": "build/objdiff/base/m_vector_reserve_82667EE0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821F5EE0 (q5_kind_in_set)",
+      "target_path": "build/objdiff/target/q5_kind_in_set_821F5EE0.o",
+      "base_path": "build/objdiff/base/q5_kind_in_set_821F5EE0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8219E748 (g2_ctor_three_vec)",
+      "target_path": "build/objdiff/target/g2_ctor_three_vec_8219E748.o",
+      "base_path": "build/objdiff/base/g2_ctor_three_vec_8219E748.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821F6C40 (g7_release_slot)",
+      "target_path": "build/objdiff/target/g7_release_slot_821F6C40.o",
+      "base_path": "build/objdiff/base/g7_release_slot_821F6C40.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8259C778 (f1_bitread16)",
+      "target_path": "build/objdiff/target/f1_bitread16_8259C778.o",
+      "base_path": "build/objdiff/base/f1_bitread16_8259C778.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82698EE8 (f2_pair_lookup)",
+      "target_path": "build/objdiff/target/f2_pair_lookup_82698EE8.o",
+      "base_path": "build/objdiff/base/f2_pair_lookup_82698EE8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825FAC00 (f3_pack_three_fields)",
+      "target_path": "build/objdiff/target/f3_pack_three_fields_825FAC00.o",
+      "base_path": "build/objdiff/base/f3_pack_three_fields_825FAC00.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8216E778 (f5_relocate_chains)",
+      "target_path": "build/objdiff/target/f5_relocate_chains_8216E778.o",
+      "base_path": "build/objdiff/base/f5_relocate_chains_8216E778.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825478F8 (f6_list_find_key)",
+      "target_path": "build/objdiff/target/f6_list_find_key_825478F8.o",
+      "base_path": "build/objdiff/base/f6_list_find_key_825478F8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825A36C0 (f7_rate_from_scale)",
+      "target_path": "build/objdiff/target/f7_rate_from_scale_825A36C0.o",
+      "base_path": "build/objdiff/base/f7_rate_from_scale_825A36C0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825FAB10 (f8_slot_index)",
+      "target_path": "build/objdiff/target/f8_slot_index_825FAB10.o",
+      "base_path": "build/objdiff/base/f8_slot_index_825FAB10.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_822DD9F8 (h6_find_entry)",
+      "target_path": "build/objdiff/target/h6_find_entry_822DD9F8.o",
+      "base_path": "build/objdiff/base/h6_find_entry_822DD9F8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8253F5D8 (h5_dsp_ctor)",
+      "target_path": "build/objdiff/target/h5_dsp_ctor_8253F5D8.o",
+      "base_path": "build/objdiff/base/h5_dsp_ctor_8253F5D8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82836078 (h8_rotate_triples)",
+      "target_path": "build/objdiff/target/h8_rotate_triples_82836078.o",
+      "base_path": "build/objdiff/base/h8_rotate_triples_82836078.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8280D210 (f4_skip_free_slots)",
+      "target_path": "build/objdiff/target/f4_skip_free_slots_8280D210.o",
+      "base_path": "build/objdiff/base/f4_skip_free_slots_8280D210.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82790710 (h7_read_varint)",
+      "target_path": "build/objdiff/target/h7_read_varint_82790710.o",
+      "base_path": "build/objdiff/base/h7_read_varint_82790710.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82772FC0 (g6_cursor_step)",
+      "target_path": "build/objdiff/target/g6_cursor_step_82772FC0.o",
+      "base_path": "build/objdiff/base/g6_cursor_step_82772FC0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82251AC8 (m20_clear_and_zero64)",
+      "target_path": "build/objdiff/target/m20_clear_and_zero64_82251AC8.o",
+      "base_path": "build/objdiff/base/m20_clear_and_zero64_82251AC8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_822D2550 (m21_table_byte)",
+      "target_path": "build/objdiff/target/m21_table_byte_822D2550.o",
+      "base_path": "build/objdiff/base/m21_table_byte_822D2550.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827865F0 (m22_relative_point_call)",
+      "target_path": "build/objdiff/target/m22_relative_point_call_827865F0.o",
+      "base_path": "build/objdiff/base/m22_relative_point_call_827865F0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82726170 (m23_elem12_addr)",
+      "target_path": "build/objdiff/target/m23_elem12_addr_82726170.o",
+      "base_path": "build/objdiff/base/m23_elem12_addr_82726170.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_822AE7C0 (m24_init_and_notify)",
+      "target_path": "build/objdiff/target/m24_init_and_notify_822AE7C0.o",
+      "base_path": "build/objdiff/base/m24_init_and_notify_822AE7C0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825492B8 (m25_out_or_err37)",
+      "target_path": "build/objdiff/target/m25_out_or_err37_825492B8.o",
+      "base_path": "build/objdiff/base/m25_out_or_err37_825492B8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8264B718 (m26_current_entry_byte)",
+      "target_path": "build/objdiff/target/m26_current_entry_byte_8264B718.o",
+      "base_path": "build/objdiff/base/m26_current_entry_byte_8264B718.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82786608 (m27_relative_rect_call)",
+      "target_path": "build/objdiff/target/m27_relative_rect_call_82786608.o",
+      "base_path": "build/objdiff/base/m27_relative_rect_call_82786608.o",
+      "metadata": {
+        "complete": true
       }
     },
     {
@@ -4325,14 +8741,6 @@
       }
     },
     {
-      "name": "sub_82600AD0 (list_insert)",
-      "target_path": "build/objdiff/target/list_insert_82600AD0.o",
-      "base_path": "build/objdiff/base/list_insert_82600AD0.o",
-      "metadata": {
-        "complete": false
-      }
-    },
-    {
       "name": "sub_827618E8 (wstr_compare)",
       "target_path": "build/objdiff/target/wstr_compare_827618E8.o",
       "base_path": "build/objdiff/base/wstr_compare_827618E8.o",
@@ -4352,14 +8760,6 @@
       "name": "sub_826973C8 (b_strcmp)",
       "target_path": "build/objdiff/target/b_strcmp_826973C8.o",
       "base_path": "build/objdiff/base/b_strcmp_826973C8.o",
-      "metadata": {
-        "complete": false
-      }
-    },
-    {
-      "name": "sub_8215ED28 (b_bounds_at)",
-      "target_path": "build/objdiff/target/b_bounds_at_8215ED28.o",
-      "base_path": "build/objdiff/base/b_bounds_at_8215ED28.o",
       "metadata": {
         "complete": false
       }
@@ -4429,25 +8829,137 @@
       }
     },
     {
-      "name": "sub_82667EE0 (m_vector_reserve)",
-      "target_path": "build/objdiff/target/m_vector_reserve_82667EE0.o",
-      "base_path": "build/objdiff/base/m_vector_reserve_82667EE0.o",
-      "metadata": {
-        "complete": false
-      }
-    },
-    {
-      "name": "sub_8217E808 (m_tree_lookup)",
-      "target_path": "build/objdiff/target/m_tree_lookup_8217E808.o",
-      "base_path": "build/objdiff/base/m_tree_lookup_8217E808.o",
-      "metadata": {
-        "complete": false
-      }
-    },
-    {
       "name": "sub_82583290 (m_audio_ctor)",
       "target_path": "build/objdiff/target/m_audio_ctor_82583290.o",
       "base_path": "build/objdiff/base/m_audio_ctor_82583290.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_82697740 (g_memset_thunk)",
+      "target_path": "build/objdiff/target/g_memset_thunk_82697740.o",
+      "base_path": "build/objdiff/base/g_memset_thunk_82697740.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_8277AA88 (p4_index_span)",
+      "target_path": "build/objdiff/target/p4_index_span_8277AA88.o",
+      "base_path": "build/objdiff/base/p4_index_span_8277AA88.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_826CEA98 (q8_find_tag)",
+      "target_path": "build/objdiff/target/q8_find_tag_826CEA98.o",
+      "base_path": "build/objdiff/base/q8_find_tag_826CEA98.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_82700DF8 (r2_obj_ctor)",
+      "target_path": "build/objdiff/target/r2_obj_ctor_82700DF8.o",
+      "base_path": "build/objdiff/base/r2_obj_ctor_82700DF8.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_82780C20 (s5_cursor_next_block)",
+      "target_path": "build/objdiff/target/s5_cursor_next_block_82780C20.o",
+      "base_path": "build/objdiff/base/s5_cursor_next_block_82780C20.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_8224BCA0 (s5_kind_adjust_call)",
+      "target_path": "build/objdiff/target/s5_kind_adjust_call_8224BCA0.o",
+      "base_path": "build/objdiff/base/s5_kind_adjust_call_8224BCA0.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_825E0118 (t3_init_defaults)",
+      "target_path": "build/objdiff/target/t3_init_defaults_825E0118.o",
+      "base_path": "build/objdiff/base/t3_init_defaults_825E0118.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_827007F8 (u5_ctor_str)",
+      "target_path": "build/objdiff/target/u5_ctor_str_827007F8.o",
+      "base_path": "build/objdiff/base/u5_ctor_str_827007F8.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_8215BD60 (u6_table_agrees)",
+      "target_path": "build/objdiff/target/u6_table_agrees_8215BD60.o",
+      "base_path": "build/objdiff/base/u6_table_agrees_8215BD60.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_821FC4D8 (u7_clamp_advance)",
+      "target_path": "build/objdiff/target/u7_clamp_advance_821FC4D8.o",
+      "base_path": "build/objdiff/base/u7_clamp_advance_821FC4D8.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_825A3528 (b2_pool_insert)",
+      "target_path": "build/objdiff/target/b2_pool_insert_825A3528.o",
+      "base_path": "build/objdiff/base/b2_pool_insert_825A3528.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_826377B0 (b3_hash_remove)",
+      "target_path": "build/objdiff/target/b3_hash_remove_826377B0.o",
+      "base_path": "build/objdiff/base/b3_hash_remove_826377B0.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_82700B30 (a6_obj_ctor)",
+      "target_path": "build/objdiff/target/a6_obj_ctor_82700B30.o",
+      "base_path": "build/objdiff/base/a6_obj_ctor_82700B30.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_82673EC8 (g4_pair_related)",
+      "target_path": "build/objdiff/target/g4_pair_related_82673EC8.o",
+      "base_path": "build/objdiff/base/g4_pair_related_82673EC8.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_8216C240 (g5_chunked_bit)",
+      "target_path": "build/objdiff/target/g5_chunked_bit_8216C240.o",
+      "base_path": "build/objdiff/base/g5_chunked_bit_8216C240.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_826306F8 (g3_float_to_int)",
+      "target_path": "build/objdiff/target/g3_float_to_int_826306F8.o",
+      "base_path": "build/objdiff/base/g3_float_to_int_826306F8.o",
       "metadata": {
         "complete": false
       }
