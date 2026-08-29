@@ -16,11 +16,9 @@ import struct
 import sys
 from pathlib import Path
 
-try:
-    from capstone import Cs, CS_ARCH_PPC, CS_MODE_32, CS_MODE_BIG_ENDIAN
-except ImportError:
-    print("capstone is required: python -m pip install capstone", file=sys.stderr)
-    raise
+import ppcdis   # binutils-backed: capstone cannot decode VMX128, and an
+                # object containing vector code would print .long here while
+                # match.py decoded the same words correctly.
 
 IMAGE_MACHINE = {0x01F0: "POWERPC", 0x01F1: "POWERPCFP", 0x01F2: "POWERPCBE"}
 
@@ -58,24 +56,14 @@ def read_coff(path):
 
 
 def disasm(code, base=0):
-    md = Cs(CS_ARCH_PPC, CS_MODE_32 | CS_MODE_BIG_ENDIAN)
-    md.skipdata = False
+    n = len(code) // 4
+    words = struct.unpack(f">{n}I", code[: n * 4]) if n else ()
     out = []
-    pos = 0
-    while pos + 4 <= len(code):
-        chunk = code[pos : pos + 4]
-        got = list(md.disasm(chunk, base + pos))
-        if got:
-            ins = got[0]
-            out.append((base + pos, chunk, f"{ins.mnemonic} {ins.op_str}".strip()))
-        else:
-            word = struct.unpack(">I", chunk)[0]
-            out.append((base + pos, chunk,
-                        f".long 0x{word:08X}   ; UNDECODED (opcode {word >> 26}) "
-                        f"-- capstone has no VMX128"))
-        pos += 4
-    if pos != len(code):
-        out.append((base + pos, code[pos:], f".byte  ; {len(code) - pos} trailing byte(s)"))
+    for i, (_va, _w, text) in enumerate(ppcdis.words(list(words), base)):
+        out.append((base + i * 4, code[i * 4 : i * 4 + 4], text))
+    if n * 4 != len(code):
+        out.append((base + n * 4, code[n * 4 :],
+                    f".byte  ; {len(code) - n * 4} trailing byte(s)"))
     return out
 
 

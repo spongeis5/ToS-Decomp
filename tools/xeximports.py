@@ -21,7 +21,7 @@ counted, not dropped.
 
 import struct
 import sys
-from collections import Counter, defaultdict
+from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))

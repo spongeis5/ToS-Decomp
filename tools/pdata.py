@@ -130,7 +130,22 @@ def main(argv):
             "entry size; the entry format assumed here is wrong"
         )
 
-    off = pdata["rawptr"]
+    # This tool is the BOOTSTRAP -- it runs before build/functions_all.txt
+    # exists -- so it parses the section table itself rather than going
+    # through peimage. That means it must be explicit about the mapping.
+    #
+    # The unpacked XEX is a MEMORY image: RVA == offset. .pdata is one of the
+    # three sections whose PointerToRawData happens to equal its RVA, which is
+    # the only reason reading through rawptr ever worked here. Assert it, so a
+    # future change cannot silently start reading the wrong bytes -- that
+    # exact defect cost most of a session (FINDINGS.md section 8).
+    rva = base + pdata["va"] - base          # .pdata RVA
+    if pdata["rawptr"] != rva:
+        raise ValueError(
+            ".pdata PointerToRawData (%08X) != its RVA (%08X). The unpacked "
+            "image is a memory image, so the RVA is authoritative; this tool "
+            "assumed they coincide." % (pdata["rawptr"], rva))
+    off = rva
     raw = []
     for i in range(n):
         begin, d = struct.unpack_from(">II", data, off + i * 8)

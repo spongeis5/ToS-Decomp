@@ -21,7 +21,6 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from peimage import Image
 import struct
 
 XDK = Path("SDKFiles/xdk/XDK")

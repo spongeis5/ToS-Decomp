@@ -30,7 +30,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from peimage import Image, load_functions
+from peimage import Image, load_functions, load_inventory
 
 LIBDIR = Path("SDKFiles/xdk/XDK/lib/xbox")
 MIN_UNMASKED = 16
@@ -170,7 +170,12 @@ def unmasked_runs(mask):
 
 def main(argv):
     img = Image()
+    # The SCAN is over every aligned position and does not depend on either
+    # inventory -- but the denominators reported below do. .pdata alone is
+    # ~18% short, so reporting against it understates coverage and disagrees
+    # with attribute.py, which uses the union.
     pdata = dict(load_functions())
+    inventory = dict(load_inventory())
 
     min_bytes = MIN_UNMASKED
     if "--min-bytes" in argv:
@@ -266,6 +271,7 @@ def main(argv):
               % (s["name"], n // 4, hits_here))
 
     in_pdata = sum(1 for va in matched if va in pdata)
+    in_inv = sum(1 for va in matched if va in inventory)
     print()
     print("library functions examined     : %6d" % stats["lib_functions"])
     print("  trimmed to under 8 bytes     : %6d" % stats["too_short"])
@@ -275,15 +281,41 @@ def main(argv):
     print("  aligned positions scanned    : %6d" % positions)
     print()
     print("DISTINCT IMAGE SITES IDENTIFIED: %6d" % len(matched))
-    print("  with a .pdata row            : %6d" % in_pdata)
-    print("  with NO .pdata row           : %6d" % (len(matched) - in_pdata))
+    print("  at a known function start    : %6d" % in_inv)
+    print("    of those, with a .pdata row: %6d" % in_pdata)
+    print("  not a known function start   : %6d" % (len(matched) - in_inv))
     print()
-    print(".pdata functions total         : %6d" % len(pdata))
-    print(".pdata functions identified    : %6d  (%.1f%%)"
-          % (in_pdata, 100.0 * in_pdata / len(pdata)))
-    print(".pdata functions REMAINING     : %6d" % (len(pdata) - in_pdata))
+    print("FUNCTION INVENTORY (.pdata + Ghidra)")
+    print("  total                        : %6d" % len(inventory))
+    print("  identified as XDK library    : %6d  (%.1f%%)"
+          % (in_inv, 100.0 * in_inv / len(inventory)))
+    print("  REMAINING                    : %6d" % (len(inventory) - in_inv))
+    print()
+    print("  (.pdata alone would say %d of %d = %.1f%%; it is ~18%% short and"
+          % (in_pdata, len(pdata), 100.0 * in_pdata / len(pdata)))
+    print("   disagrees with attribute.py, which uses the union.)")
 
+    # Refuse to replace a FULLER result with a narrower one.
+    #
+    # `libmatch.py libcMT.lib` for a quick check silently overwrote the
+    # 62-library output that attribute.py reads, turning 6,332 attributed
+    # functions into 287. Nothing errored; the next attribution run would
+    # simply have been wrong. A partial run is a legitimate thing to want, so
+    # this refuses the WRITE rather than the run, and --force is on the record.
     out = Path("build/lib_matches.txt")
+    if out.exists() and "--force" not in argv:
+        prev = sum(1 for l in out.read_text().splitlines()
+                   if l.strip() and not l.startswith("#"))
+        if prev > len(matched):
+            print()
+            print("REFUSING TO WRITE %s" % out)
+            print("  it holds %d site(s); this run found %d." % (prev, len(matched)))
+            print("  Overwriting would narrow the input attribute.py reads.")
+            print("  Re-run over all libraries, or pass --force if you mean it.")
+            print()
+            print("  (results above are still valid for the libraries given)")
+            return 1
+
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w") as f:
         f.write("# va size lib object symbol unmasked_bytes in_pdata\n")

@@ -21,11 +21,11 @@ confident number.
 import bisect
 import re
 import sys
-from collections import Counter, defaultdict
+from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from peimage import Image, load_functions
+from peimage import Image
 
 INVENTORY = Path("build/functions_all.txt")
 

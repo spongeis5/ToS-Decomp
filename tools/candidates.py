@@ -16,7 +16,6 @@ Havok timer name -- so they are the title's own code.
     python tools/candidates.py --max-size 200 --floats
 """
 
-import bisect
 import struct
 import sys
 from collections import Counter

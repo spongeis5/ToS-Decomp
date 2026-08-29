@@ -26,7 +26,6 @@ binutils.  Agreement is still worth having.
 
 import re
 import struct
-import subprocess
 import sys
 from collections import Counter
 from pathlib import Path
