@@ -40,6 +40,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from peimage import Image, load_inventory
 
+import gen_accessors
+
 ROOT = Path(__file__).resolve().parent.parent
 RTTI_VTABLES = ROOT / "build/rtti_vtables.txt"
 OUT = ROOT / "build/vtables.txt"
@@ -351,13 +353,51 @@ def main(argv):
         _rs, rnames = rtti_starts()
         if want in rnames:
             print("  RTTI names this class %s" % rnames[want])
+
+        # Where a slot holds a single-expression accessor, say WHICH FIELD it
+        # touches. That is the point of the join: the vtable says these
+        # methods belong to one class, and the accessors say what that class
+        # stores and where. Neither half is a layout on its own.
+        sizes = dict(inv)
+        fields = {}
         for k, w in enumerate(slots[want]):
             note = ""
             if w in getters:
-                note = "   <- TYPE ID 0x%08X" % getters[w]
+                note = "   <- TYPE ID 0x%08X (%s)" % (getters[w],
+                                                      classify(getters[w]))
+            elif w in sizes and 0 < sizes[w] <= 16:
+                raw = img.read(w, sizes[w])
+                if raw and len(raw) == sizes[w]:
+                    ws = struct.unpack(">%dI" % (sizes[w] // 4), raw)
+                    d = gen_accessors.decode(ws)
+                    if d and d["kind"] in ("get", "getf", "set"):
+                        ct = d.get("ctype", "float")
+                        note = "   %s %s at +0x%X" % (
+                            "reads" if d["kind"] != "set" else "writes",
+                            ct, d["off"])
+                        prev = fields.get(d["off"])
+                        if prev and prev != ct:
+                            note += "   *** disagrees with %s seen earlier" \
+                                % prev
+                        fields[d["off"]] = ct
+                    elif d and d["kind"] == "adj":
+                        note = "   returns this+0x%X" % d["off"]
+                    elif d and d["kind"] == "empty":
+                        note = "   empty"
             elif w not in starts:
                 note = "   (not a known function start)"
             print("  [%3d] %08X%s" % (k, w, note))
+
+        if fields:
+            print("")
+            print("  FIELDS this class's own accessors prove, %d of them:"
+                  % len(fields))
+            for off in sorted(fields):
+                print("      +0x%-4X  %s" % (off, fields[off]))
+            print("")
+            print("  That is a floor, not a layout: only fields reached by a")
+            print("  one-expression accessor in THIS vtable appear, so the")
+            print("  gaps are unmeasured rather than empty.")
         return 0
 
     rs, rnames = rtti_starts()

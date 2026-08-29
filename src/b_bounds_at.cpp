@@ -1,6 +1,6 @@
 // sub_8215ED28 -- bounds-checked element fetch through an owned array.
 // 48 bytes, 36 callers.
-// NOT MATCHED: 11 of 12 words. One instruction, and it is the last one.
+// MATCHED: 12 of 12 words.
 //
 //      lwz     r11,8(r3)           this->array
 //      cmplwi  cr6,r11,0
@@ -10,7 +10,7 @@
 //      bge-    cr6,fail
 //      lwz     r11,8(r11)          array->items
 //      rlwinm  r10,r4,2,0,29       i * 4
-//      lwzx    r3,r10,r11          <-- the one word that differs
+//      lwzx    r3,r10,r11          index in rA -- see below
 //      blr
 //  fail:
 //      li      r3,0
@@ -21,43 +21,46 @@
 // `return 0`, so the fetch is the fall-through and is written first.
 //
 // ---------------------------------------------------------------------
-// WHAT IS LEFT: the target emits `lwzx r3,r10,r11` (scaled index in rA,
-// base in rB); this source emits `lwzx r3,r11,r10`, the same address with
-// the two operands swapped. Everything else, all eleven other words, is
-// identical.
+// THE ANSWER: an AND-MASK ON THE INDEX FLIPS `lwzx` OPERAND ORDER.
 //
-// It is NOT a flag: tools/flagsweep.py compiled 72 combinations and all 72
-// give 11/12 with the same single difference.
+// `a->items[i]` emits `lwzx r3,r11,r10` -- base in rA. `a->items[i & M]`
+// emits `lwzx r3,r10,r11` -- index in rA -- and, when M keeps all thirty
+// low bits, the scaling instruction is the SAME WORD either way, because
+// the mask is absorbed into the rlwinm the shift already needed:
 //
-// It IS reachable, and the lever is the member-function form -- but only in
-// a shape that cannot be used here. Compiled and read out of the objects:
+//      i * 4          rlwinm r10,r4,2,0,29     (i << 2) & 0xFFFFFFFC
+//      (i & M) * 4    rlwinm r10,r4,2,0,29     identical when M & 0x3FFFFFFF
+//                                              == 0x3FFFFFFF
 //
-//      free  fn, items at offset 0     lwzx r3,r10,r11   <- target order
-//      free  fn, items at offset 4/8/12  lwzx r3,r11,r10
-//      MEMBER fn, `items[i]`, offset 8  lwzx r3,r10,r11   <- target order
+// So the mask is INVISIBLE in the instruction stream and shows up only as
+// the operand order of the load that consumes it. The mechanism is that
+// MSVC matches `base + (index << scale)` as an addressing mode and puts the
+// base in rA; a masked index does not match that pattern, the address falls
+// back to a generic add, and the generic add puts the index in rA.
 //
-// So `this->items[i]` and `a->items[i]` compile to different operand orders
-// for the same address, and a zero displacement does the same thing. That
-// is the same phenomenon as the member lever recorded for sub_826C0FC8 in
-// MATCHED.md, now visible in a second place and in a second form.
+// Only four masks satisfy the constraint -- 0x3FFFFFFF, 0x7FFFFFFF,
+// 0xBFFFFFFF and 0xFFFFFFFF -- and the last folds away to nothing, so the
+// original cleared at least one of the top two bits and none of the rest.
+// All three surviving masks, signed or unsigned, named constant or literal,
+// and the shift pair `((u32)i << 2) >> 2` that means the same thing, give
+// byte-identical code. Which of them was written cannot be recovered from
+// the bytes; the mask is redundant here in any case, because the
+// `(u32)i < count` guard has already rejected everything it would change.
 //
-// The trouble is that INLINING NORMALISES IT. Sixteen shapes were compiled
-// looking for a way to keep the member flavour through the inliner:
-// member At() defined in-class, defined out of line, __forceinline, const,
-// operator[], a template member, the array embedded at offset 8 of the
-// pointed-to object so the member sees offset 0, a base class holding
-// items/count, a reference member, a reference local, a union member,
-// pointer arithmetic in three spellings including the byte offset written
-// first, a computed void*** deref, a const local, a const parameter, and
-// the ternary form. Every one of them, once the call is inlined into the
-// bounds-checked body, emits `lwzx r3,r11,r10`. The standalone member
-// functions in the same objects emit `lwzx r3,r10,r11` -- so the lever is
-// real and it does not survive inlining.
+// Narrower masks flip the order too and are DISTINGUISHABLE, because they
+// leave their own bits in the rlwinm: `(u16)i` gives `rlwinm r10,r4,2,14,29`
+// and `(u8)i` gives `2,22,29`. Neither is this function.
 //
-// A source that reproduces this word therefore has to make the items load
-// carry a zero displacement or reach it through `this` without an inlined
-// call, and no arrangement of these structures does both while keeping
-// items at +8 and count at +12.
+// Ruled out on the way, all still `lwzx r3,r11,r10`: the member-function
+// form of the OUTER function (`Holder::GetAt`), which is the lever that
+// worked for sub_826C0FC8 and does nothing here; unsigned and 64-bit index
+// types; index-first subscript `i[a->items]`; naming the array, the items
+// pointer or the index in a local, in either declaration order; byte
+// pointer arithmetic with the offset written first or last; the base field
+// declared as a u32 holding a pointer; `void* const*` elements; the ternary
+// form; inverted guard polarity; and taking the element's address first.
+// That is 30 shapes over three probe files, and the mask is the only thing
+// that moved the word.
 
 #include "types.h"
 
@@ -82,6 +85,6 @@ ASSERT_OFFSET(Holder, array, 0x08);
 void* GetAt(Holder* h, int i)
 {
     if (h->array != 0 && (u32)i < h->array->count)
-        return h->array->items[i];
+        return h->array->items[i & 0x3FFFFFFF];
     return 0;
 }

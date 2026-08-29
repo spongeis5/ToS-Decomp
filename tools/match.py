@@ -248,6 +248,33 @@ def compile_one(src, flags, workdir):
     return obj
 
 
+def parse_flags(text):
+    """`--flags` accepts the COMMA form the manifest uses, and whitespace.
+
+    This used to be `text.split()`, which had two failure modes and neither
+    announced itself. The manifest's flags column is comma-separated --
+    `flags=/O2,/Os,/Gy,/GS-,/fp:fast` -- and build.py splits it on commas, so
+    passing that same string here produced ONE argument, `/O2,/Os,...`, which
+    cl does not recognise as an option. And because the whole list replaced
+    the defaults, `/c` went with it, so cl tried to LINK and failed with
+
+        LNK1104: cannot open file 'OLDNAMES.lib'
+
+    which reads as a broken toolchain rather than a mistyped flag. Two tools
+    disagreeing about the format of the same string is the drift that put
+    xdkcc.py in this project in the first place.
+
+    So: split on commas as well as whitespace, and put back `/c` and
+    `/nologo` if the caller left them out, since neither is ever a choice --
+    compiling to an object is the only thing this tool does.
+    """
+    parts = [p for p in text.replace(",", " ").split() if p]
+    for need in ("/nologo", "/c"):
+        if need not in parts:
+            parts.insert(0, need)
+    return parts
+
+
 def main(argv):
     if len(argv) < 3:
         print(__doc__)
@@ -256,7 +283,7 @@ def main(argv):
     target = int(argv[2], 16)
     flags = list(DEFAULT_FLAGS)
     if "--flags" in argv:
-        flags = argv[argv.index("--flags") + 1].split()
+        flags = parse_flags(argv[argv.index("--flags") + 1])
     sym_want = argv[argv.index("--sym") + 1] if "--sym" in argv else None
 
     img = Image()

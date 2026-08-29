@@ -94,6 +94,19 @@ def compiled_size(src, sym, flags, addr):
     return len(code)
 
 
+# Files whose contents tools/gen_typeids.py and tools/gen_accessors.py wrote
+# from each function's own encoding. They are real matches -- compiled and
+# compared like every other -- but they are one expression each, and 708 of
+# them alongside 217 hand-written functions would make the headline count say
+# something false about how much of this game has been read. So they are
+# summarised on their own line and kept out of the table.
+GENERATED = ("vt_typeid_", "vt_const_", "vt_acc_")
+
+
+def is_generated(src):
+    return Path(src).name.startswith(GENERATED)
+
+
 def build_table():
     cg = callers()
     if cg is None:
@@ -104,12 +117,18 @@ def build_table():
     body = []
     total = 0
     failed = []
+    gen_n = 0
+    gen_bytes = 0
     for src, addr, sym, flags in rows():
         n = compiled_size(src, sym, flags, addr)
         if n is None:
             failed.append((src, addr))
             continue
         total += n
+        if is_generated(src):
+            gen_n += 1
+            gen_bytes += n
+            continue
         body.append((cg.get(addr, 0), addr, n, src, sym, flags))
     if failed:
         print("%d source(s) would not compile; refusing to write a table that"
@@ -125,20 +144,37 @@ def build_table():
         lvl = "/O2 /Os" if (flags and "/Os" in flags) else "/O2"
         lines.append("| `%08X` | %d | %d | `%s` | %s | `%s` |"
                      % (addr, n, c, Path(src).name, sym or "-", lvl))
-    return "\n".join(lines), len(body), total
+    if gen_n:
+        lines.append("| *(%d generated)* | %d | - | `vt_typeid_*`, "
+                     "`vt_const_*`, `vt_acc_*` | one expression each | `/O2` |"
+                     % (gen_n, gen_bytes))
+    return "\n".join(lines), len(body), total, gen_n, gen_bytes
 
 
 def main(argv):
-    table, count, total = build_table()
+    table, count, total, gen_n, gen_bytes = build_table()
     doc = DOC.read_text(encoding="utf-8")
     i = doc.index(HEADER)
     j = doc.index("\n---", i)
     new = doc[:i] + table + doc[j:]
 
-    # The two counts in the prose above the table are part of the same fact.
+    # Two separate substitutions, each anchored to as little text as it can
+    # be. The first version of this matched `[^\n]*` after the bold total and
+    # ate the rest of the sentence -- "Verify all of them, plus the
+    # reconstructing" -- leaving a paragraph that began "build and five
+    # negative controls". A regex that rewrites documentation should replace
+    # exactly the token it maintains and nothing adjacent to it.
     import re
     new = re.sub(r"\*\*\d+ functions, \d+ bytes\.\*\*",
-                 "**%d functions, %d bytes.**" % (count, total), new, count=1)
+                 "**%d functions, %d bytes.**" % (count + gen_n, total),
+                 new, count=1)
+    # The headline count alone would be true and misleading in one breath, so
+    # the split is maintained beside it rather than left to drift by hand.
+    new = re.sub(r"SPLIT: \d+ hand-written, \d+ bytes; \d+ generated, "
+                 r"\d+ bytes\.",
+                 "SPLIT: %d hand-written, %d bytes; %d generated, %d bytes."
+                 % (count, total - gen_bytes, gen_n, gen_bytes),
+                 new, count=1)
     n_os = sum(1 for r in rows() if r[3] and "/Os" in r[3])
     new = re.sub(r"\*\*The retail build did NOT use one optimisation level "
                  r"everywhere\.\*\* \d+ of",
@@ -147,14 +183,17 @@ def main(argv):
 
     if "--check" in argv:
         same = (new == doc)
-        print("MATCHED.md is %s (%d function(s), %d bytes)"
+        print("MATCHED.md is %s (%d hand-written + %d generated "
+              "= %d function(s), %d bytes)"
               % ("up to date" if same else "STALE -- run without --check",
-                 count, total))
+                 count, gen_n, count + gen_n, total))
         return 0 if same else 1
 
     DOC.write_text(new, encoding="utf-8")
-    print("MATCHED.md: %d function(s), %d bytes, %d at /O2 /Os"
-          % (count, total, n_os))
+    print("MATCHED.md: %d hand-written (%d bytes) + %d generated (%d bytes)"
+          % (count, total - gen_bytes, gen_n, gen_bytes))
+    print("            = %d function(s), %d bytes, %d at /O2 /Os"
+          % (count + gen_n, total, n_os))
     return 0
 
 

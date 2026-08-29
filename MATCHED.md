@@ -11,8 +11,8 @@ the inventory is wrong in both directions, short where a tail call's dead
 `blr` was not counted and long where one `.pdata` row covers several
 frameless bodies.
 
-**559 functions, 16588 bytes.** Verify all of them, plus the reconstructing
-build and five negative controls, with one command:
+**940 functions, 20016 bytes.** Verify all of them, plus the reconstructing
+build and six negative controls, with one command:
 
 ```bash
 python tools/verify.py
@@ -22,7 +22,19 @@ Every match is also a row in `src/manifest.txt`, so `tools/build.py` compiles
 it, resolves its relocations against the retail bytes and splices it into
 `.text`. Nothing here is a match on `match.py`'s word-comparison alone.
 
-**The retail build did NOT use one optimisation level everywhere.** 35 of
+SPLIT: 232 hand-written, 13904 bytes; 708 generated, 6112 bytes.
+<!-- the line above is regenerated; edit tools/matched_table.py, not this -->
+
+The two halves are not comparable and the count should never be quoted
+without them. The hand-written functions were read off the disassembly, one
+at a time, and each one taught something. The generated ones are
+single-expression accessors and constant returns that `tools/gen_typeids.py`
+and `tools/gen_accessors.py` wrote from each function's own encoding: real
+matches, compiled and compared exactly like the others, needed for a link,
+and worth having because each pins a field offset -- but 708 of them say far
+less about how much of this game has been read than 229 does.
+
+**The retail build did NOT use one optimisation level everywhere.** 38 of
 these need `/O2 /Os`; the rest need plain `/O2`. See "Flags are a property of
 the translation unit" below -- this was claimed the other way round for a
 while and the claim was wrong.
@@ -84,7 +96,6 @@ while and the claim was wrong.
 | `82677040` | 20 | 25 | `owner_clear.cpp` | ClearAndHandleOther | `/O2` |
 | `82545348` | 48 | 24 | `m_span_out.cpp` | - | `/O2` |
 | `82724A68` | 44 | 24 | `m_tls_reserve.cpp` | - | `/O2` |
-| `822D0E78` | 8 | 23 | `vt_const_02.cpp` | TypeId_822D0E78 | `/O2` |
 | `82540770` | 40 | 23 | `string_utils.cpp` | StrCopyN | `/O2` |
 | `825408B0` | 68 | 21 | `m_strcmp_n.cpp` | - | `/O2` |
 | `825408F8` | 108 | 20 | `m_stricmp.cpp` | StrCompareI | `/O2` |
@@ -173,7 +184,6 @@ while and the claim was wrong.
 | `825FEFC8` | 132 | 8 | `r1_list_remove.cpp` | - | `/O2` |
 | `82639C28` | 16 | 8 | `chain_add48.cpp` | - | `/O2` |
 | `82724588` | 56 | 8 | `q4_count_leading.cpp` | - | `/O2` |
-| `82790F98` | 8 | 8 | `vt_const_04.cpp` | TypeId_82790F98 | `/O2` |
 | `8279D958` | 20 | 8 | `m_vcall4_f8.cpp` | - | `/O2` |
 | `8287E3D0` | 112 | 8 | `q7_iter_advance.cpp` | - | `/O2 /Os` |
 | `82151690` | 44 | 7 | `m_max_pair.cpp` | - | `/O2` |
@@ -224,370 +234,46 @@ while and the claim was wrong.
 | `8276DDC0` | 112 | 6 | `u8_cursor_skip12.cpp` | - | `/O2 /Os` |
 | `827827B8` | 40 | 6 | `m_release.cpp` | AddRef | `/O2` |
 | `828133B8` | 28 | 6 | `two_vtables_b.cpp` | - | `/O2 /Os` |
+| `82831A48` | 196 | 6 | `b1_extent_bits.cpp` | - | `/O2` |
 | `8288A788` | 28 | 6 | `two_vtables.cpp` | - | `/O2 /Os` |
+| `8214C778` | 16 | 5 | `b5_set_field36.cpp` | - | `/O2` |
+| `8214C788` | 20 | 5 | `b8_set_pair_2c28.cpp` | - | `/O2` |
+| `8215D038` | 32 | 5 | `c3_path_join.cpp` | - | `/O2` |
+| `8215F268` | 28 | 5 | `c2_fwd_callback.cpp` | - | `/O2` |
+| `821A5328` | 40 | 5 | `c7_ready_flag.cpp` | - | `/O2` |
+| `821A6B38` | 16 | 5 | `b6_slot_at83.cpp` | - | `/O2` |
 | `82202BC8` | 28 | 5 | `store_floats.cpp` | - | `/O2` |
-| `82220FA0` | 8 | 5 | `vt_const_01.cpp` | TypeId_82220FA0 | `/O2` |
+| `8224DBB0` | 40 | 5 | `c8_bits_16_19.cpp` | IsAvailable | `/O2` |
 | `8224DF58` | 24 | 5 | `ctor_vt2.cpp` | - | `/O2` |
 | `82250B88` | 24 | 5 | `eq0_stride16.cpp` | - | `/O2` |
+| `8225F168` | 56 | 5 | `d5_kind_notify.cpp` | - | `/O2` |
+| `8225FAC0` | 56 | 5 | `d6_job_ready.cpp` | - | `/O2` |
 | `822D0BE8` | 32 | 5 | `deref_or_zero.cpp` | - | `/O2` |
+| `8252D9A0` | 36 | 5 | `c4_fwd_global6.cpp` | - | `/O2` |
+| `8252F5D8` | 56 | 5 | `d7_block_info.cpp` | - | `/O2` |
 | `825E3598` | 24 | 5 | `vcall_global_2.cpp` | - | `/O2 /Os` |
 | `825E35C8` | 24 | 5 | `vcall_global_4.cpp` | - | `/O2 /Os` |
 | `825E41D8` | 16 | 5 | `zero2.cpp` | - | `/O2` |
+| `825FA780` | 20 | 5 | `c1_socket_wrap.cpp` | - | `/O2` |
+| `826009D8` | 48 | 5 | `d3_pool_pop_free.cpp` | - | `/O2` |
+| `826C1470` | 8 | 5 | `b7_inner_at40.cpp` | - | `/O2` |
+| `827103D8` | 52 | 5 | `d4_handler_or_default.cpp` | - | `/O2 /Os` |
 | `827245C0` | 28 | 5 | `ring_index.cpp` | - | `/O2` |
 | `8272CB68` | 16 | 5 | `load_global_store.cpp` | - | `/O2` |
+| `82761AD0` | 36 | 5 | `c5_flag_pair.cpp` | MarkDirty2 | `/O2 /Os` |
+| `82761AF8` | 36 | 5 | `c5_flag_pair.cpp` | MarkDirty8 | `/O2 /Os` |
+| `82784DE0` | 68 | 5 | `d8_record_clear.cpp` | - | `/O2` |
 | `827C4FB0` | 24 | 5 | `ptr_or_null.cpp` | - | `/O2` |
 | `827FE808` | 16 | 5 | `and_byte.cpp` | - | `/O2 /Os` |
 | `822D2528` | 24 | 4 | `table624.cpp` | - | `/O2` |
 | `827A7C98` | 20 | 4 | `store_two.cpp` | - | `/O2` |
 | `82216918` | 304 | 2 | `m_line_of_sight.cpp` | TtCheckLineOfSight | `/O2` |
 | `822607F0` | 120 | 2 | `grid_indices.cpp` | - | `/O2` |
-| `82275EF8` | 8 | 2 | `vt_const_01.cpp` | TypeId_82275EF8 | `/O2` |
 | `8267ACC0` | 236 | 2 | `m_hkpworld_ctor.cpp` | ??0hkpWorld@@QAA@XZ | `/O2` |
 | `826FE5B8` | 16 | 2 | `set_vtable.cpp` | SetVTableD170 | `/O2` |
 | `826FE5C8` | 16 | 2 | `set_vtable.cpp` | SetVTableD180 | `/O2` |
-| `821BC3A0` | 8 | 1 | `vt_const_01.cpp` | TypeId_821BC3A0 | `/O2` |
-| `82275F18` | 8 | 1 | `vt_const_01.cpp` | TypeId_82275F18 | `/O2` |
-| `823D8BB8` | 12 | 1 | `vt_typeid_06.cpp` | TypeId_823D8BB8 | `/O2` |
-| `825406A0` | 8 | 1 | `vt_const_02.cpp` | TypeId_825406A0 | `/O2` |
-| `8262FD88` | 8 | 1 | `vt_const_03.cpp` | TypeId_8262FD88 | `/O2` |
-| `82648C70` | 8 | 1 | `vt_const_03.cpp` | TypeId_82648C70 | `/O2` |
-| `82648C78` | 8 | 1 | `vt_const_03.cpp` | TypeId_82648C78 | `/O2` |
-| `828461B8` | 8 | 1 | `vt_const_05.cpp` | TypeId_828461B8 | `/O2` |
 | `8289FA50` | 268 | 1 | `m_mixer_clear.cpp` | - | `/O2` |
-| `828CEFB8` | 12 | 1 | `vt_typeid_07.cpp` | TypeId_828CEFB8 | `/O2` |
-| `82126318` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_82126318 | `/O2` |
-| `8219F058` | 8 | 0 | `vt_const_01.cpp` | TypeId_8219F058 | `/O2` |
-| `821A4650` | 8 | 0 | `vt_const_01.cpp` | TypeId_821A4650 | `/O2` |
-| `821A4F00` | 8 | 0 | `vt_const_01.cpp` | TypeId_821A4F00 | `/O2` |
-| `821ADEA0` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821ADEA0 | `/O2` |
-| `821ADEB0` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821ADEB0 | `/O2` |
-| `821ADF78` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821ADF78 | `/O2` |
-| `821ADF88` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821ADF88 | `/O2` |
-| `821ADF98` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821ADF98 | `/O2` |
-| `821ADFA8` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821ADFA8 | `/O2` |
-| `821ADFB8` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821ADFB8 | `/O2` |
-| `821AE050` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE050 | `/O2` |
-| `821AE060` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE060 | `/O2` |
-| `821AE100` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE100 | `/O2` |
-| `821AE110` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE110 | `/O2` |
-| `821AE120` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE120 | `/O2` |
-| `821AE130` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE130 | `/O2` |
-| `821AE140` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE140 | `/O2` |
-| `821AE150` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE150 | `/O2` |
-| `821AE160` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE160 | `/O2` |
-| `821AE170` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE170 | `/O2` |
-| `821AE180` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE180 | `/O2` |
-| `821AE190` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE190 | `/O2` |
-| `821AE1A0` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE1A0 | `/O2` |
-| `821AE1B0` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE1B0 | `/O2` |
-| `821AE1C0` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE1C0 | `/O2` |
-| `821AE1D0` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE1D0 | `/O2` |
-| `821AE1E0` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE1E0 | `/O2` |
-| `821AE1F0` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE1F0 | `/O2` |
-| `821AE200` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE200 | `/O2` |
-| `821AE210` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE210 | `/O2` |
-| `821AE220` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE220 | `/O2` |
-| `821AE230` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE230 | `/O2` |
-| `821AE240` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE240 | `/O2` |
-| `821AE250` | 12 | 0 | `vt_typeid_01.cpp` | TypeId_821AE250 | `/O2` |
-| `821AE260` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE260 | `/O2` |
-| `821AE270` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE270 | `/O2` |
-| `821AE280` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE280 | `/O2` |
-| `821AE290` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE290 | `/O2` |
-| `821AE2A0` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE2A0 | `/O2` |
-| `821AE2B0` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE2B0 | `/O2` |
-| `821AE2C0` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE2C0 | `/O2` |
-| `821AE2D0` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE2D0 | `/O2` |
-| `821AE2E0` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE2E0 | `/O2` |
-| `821AE2F0` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE2F0 | `/O2` |
-| `821AE300` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE300 | `/O2` |
-| `821AE310` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE310 | `/O2` |
-| `821AE320` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE320 | `/O2` |
-| `821AE330` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE330 | `/O2` |
-| `821AE3C8` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE3C8 | `/O2` |
-| `821AE460` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE460 | `/O2` |
-| `821AE4F8` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE4F8 | `/O2` |
-| `821AE508` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE508 | `/O2` |
-| `821AE518` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE518 | `/O2` |
-| `821AE528` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE528 | `/O2` |
-| `821AE538` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE538 | `/O2` |
-| `821AE5D0` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE5D0 | `/O2` |
-| `821AE5E0` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE5E0 | `/O2` |
-| `821AE5F0` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE5F0 | `/O2` |
-| `821AE600` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE600 | `/O2` |
-| `821AE610` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE610 | `/O2` |
-| `821AE620` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE620 | `/O2` |
-| `821AE630` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE630 | `/O2` |
-| `821AE640` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE640 | `/O2` |
-| `821AE650` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE650 | `/O2` |
-| `821AE6C0` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE6C0 | `/O2` |
-| `821AE758` | 12 | 0 | `vt_typeid_02.cpp` | TypeId_821AE758 | `/O2` |
-| `821AE768` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE768 | `/O2` |
-| `821AE778` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE778 | `/O2` |
-| `821AE788` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE788 | `/O2` |
-| `821AE798` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE798 | `/O2` |
-| `821AE7A8` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE7A8 | `/O2` |
-| `821AE7B8` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE7B8 | `/O2` |
-| `821AE7C8` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE7C8 | `/O2` |
-| `821AE7D8` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE7D8 | `/O2` |
-| `821AE7E8` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE7E8 | `/O2` |
-| `821AE7F8` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE7F8 | `/O2` |
-| `821AE808` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE808 | `/O2` |
-| `821AE818` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE818 | `/O2` |
-| `821AE828` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE828 | `/O2` |
-| `821AE838` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE838 | `/O2` |
-| `821AE848` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE848 | `/O2` |
-| `821AE858` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE858 | `/O2` |
-| `821AE868` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE868 | `/O2` |
-| `821AE878` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE878 | `/O2` |
-| `821AE888` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE888 | `/O2` |
-| `821AE898` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE898 | `/O2` |
-| `821AE8A8` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE8A8 | `/O2` |
-| `821AE8B8` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE8B8 | `/O2` |
-| `821AE8C8` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE8C8 | `/O2` |
-| `821AE8D8` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE8D8 | `/O2` |
-| `821AE8E8` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE8E8 | `/O2` |
-| `821AE8F8` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE8F8 | `/O2` |
-| `821AE908` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE908 | `/O2` |
-| `821AE918` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821AE918 | `/O2` |
-| `821B15C0` | 8 | 0 | `vt_const_01.cpp` | TypeId_821B15C0 | `/O2` |
-| `821B15C8` | 8 | 0 | `vt_const_01.cpp` | TypeId_821B15C8 | `/O2` |
-| `821B15D0` | 8 | 0 | `vt_const_01.cpp` | TypeId_821B15D0 | `/O2` |
-| `821B15D8` | 8 | 0 | `vt_const_01.cpp` | TypeId_821B15D8 | `/O2` |
-| `821B15E0` | 8 | 0 | `vt_const_01.cpp` | TypeId_821B15E0 | `/O2` |
-| `821B15E8` | 8 | 0 | `vt_const_01.cpp` | TypeId_821B15E8 | `/O2` |
-| `821B15F0` | 8 | 0 | `vt_const_01.cpp` | TypeId_821B15F0 | `/O2` |
-| `821BC390` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821BC390 | `/O2` |
-| `821BC3C8` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821BC3C8 | `/O2` |
-| `821BC430` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821BC430 | `/O2` |
-| `821BC440` | 12 | 0 | `vt_typeid_03.cpp` | TypeId_821BC440 | `/O2` |
-| `821BD918` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821BD918 | `/O2` |
-| `821C7880` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7880 | `/O2` |
-| `821C7890` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7890 | `/O2` |
-| `821C78A0` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C78A0 | `/O2` |
-| `821C78B0` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C78B0 | `/O2` |
-| `821C78C0` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C78C0 | `/O2` |
-| `821C78D0` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C78D0 | `/O2` |
-| `821C78E0` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C78E0 | `/O2` |
-| `821C78F0` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C78F0 | `/O2` |
-| `821C7900` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7900 | `/O2` |
-| `821C7910` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7910 | `/O2` |
-| `821C7998` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7998 | `/O2` |
-| `821C7AB0` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7AB0 | `/O2` |
-| `821C7AC0` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7AC0 | `/O2` |
-| `821C7BB0` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7BB0 | `/O2` |
-| `821C7C60` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7C60 | `/O2` |
-| `821C7C70` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7C70 | `/O2` |
-| `821C7C80` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7C80 | `/O2` |
-| `821C7C90` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7C90 | `/O2` |
-| `821C7CA0` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7CA0 | `/O2` |
-| `821C7CB0` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7CB0 | `/O2` |
-| `821C7CC0` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7CC0 | `/O2` |
-| `821C7CD0` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7CD0 | `/O2` |
-| `821C7CE0` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7CE0 | `/O2` |
-| `821C7CF0` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7CF0 | `/O2` |
-| `821C7D00` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7D00 | `/O2` |
-| `821C7D10` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7D10 | `/O2` |
-| `821C7D20` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7D20 | `/O2` |
-| `821C7D30` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7D30 | `/O2` |
-| `821C7D40` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7D40 | `/O2` |
-| `821C7D50` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7D50 | `/O2` |
-| `821C7D60` | 12 | 0 | `vt_typeid_04.cpp` | TypeId_821C7D60 | `/O2` |
-| `821C7D70` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7D70 | `/O2` |
-| `821C7D80` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7D80 | `/O2` |
-| `821C7D90` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7D90 | `/O2` |
-| `821C7DA0` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7DA0 | `/O2` |
-| `821C7DB0` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7DB0 | `/O2` |
-| `821C7DC0` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7DC0 | `/O2` |
-| `821C7DD0` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7DD0 | `/O2` |
-| `821C7DE0` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7DE0 | `/O2` |
-| `821C7DF0` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7DF0 | `/O2` |
-| `821C7E00` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7E00 | `/O2` |
-| `821C7E10` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7E10 | `/O2` |
-| `821C7E20` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7E20 | `/O2` |
-| `821C7E30` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7E30 | `/O2` |
-| `821C7E40` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7E40 | `/O2` |
-| `821C7E50` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7E50 | `/O2` |
-| `821C7E60` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7E60 | `/O2` |
-| `821C7E70` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7E70 | `/O2` |
-| `821C7E80` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7E80 | `/O2` |
-| `821C7E90` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7E90 | `/O2` |
-| `821C7EA0` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7EA0 | `/O2` |
-| `821C7EB0` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7EB0 | `/O2` |
-| `821C7EC0` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7EC0 | `/O2` |
-| `821C7ED0` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7ED0 | `/O2` |
-| `821C7EE0` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7EE0 | `/O2` |
-| `821C7EF0` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7EF0 | `/O2` |
-| `821C7F00` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7F00 | `/O2` |
-| `821C7F10` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7F10 | `/O2` |
-| `821C7F20` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7F20 | `/O2` |
-| `821C7F30` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7F30 | `/O2` |
-| `821C7F40` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7F40 | `/O2` |
-| `821C7F50` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7F50 | `/O2` |
-| `821C7F60` | 12 | 0 | `vt_typeid_05.cpp` | TypeId_821C7F60 | `/O2` |
-| `821C7F70` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_821C7F70 | `/O2` |
-| `821C7F80` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_821C7F80 | `/O2` |
-| `821C7F90` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_821C7F90 | `/O2` |
-| `821C7FA0` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_821C7FA0 | `/O2` |
-| `821C7FB0` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_821C7FB0 | `/O2` |
-| `821C7FC0` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_821C7FC0 | `/O2` |
-| `821CA3A0` | 8 | 0 | `vt_const_01.cpp` | TypeId_821CA3A0 | `/O2` |
-| `821CA3A8` | 8 | 0 | `vt_const_01.cpp` | TypeId_821CA3A8 | `/O2` |
-| `821CA3B0` | 8 | 0 | `vt_const_01.cpp` | TypeId_821CA3B0 | `/O2` |
-| `821CA3B8` | 8 | 0 | `vt_const_01.cpp` | TypeId_821CA3B8 | `/O2` |
-| `821CA3C0` | 8 | 0 | `vt_const_01.cpp` | TypeId_821CA3C0 | `/O2` |
-| `821CA3C8` | 8 | 0 | `vt_const_01.cpp` | TypeId_821CA3C8 | `/O2` |
-| `821D1CA8` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_821D1CA8 | `/O2` |
-| `821D34F0` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_821D34F0 | `/O2` |
-| `821D9A10` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_821D9A10 | `/O2` |
-| `821D9A20` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_821D9A20 | `/O2` |
-| `821D9A38` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_821D9A38 | `/O2` |
-| `821D9A48` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_821D9A48 | `/O2` |
-| `821D9A58` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_821D9A58 | `/O2` |
-| `821D9A68` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_821D9A68 | `/O2` |
-| `821D9AE0` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_821D9AE0 | `/O2` |
-| `821D9AF0` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_821D9AF0 | `/O2` |
-| `8220C1D8` | 8 | 0 | `vt_const_01.cpp` | TypeId_8220C1D8 | `/O2` |
-| `8221F180` | 8 | 0 | `vt_const_01.cpp` | TypeId_8221F180 | `/O2` |
-| `8224EB18` | 8 | 0 | `vt_const_01.cpp` | TypeId_8224EB18 | `/O2` |
-| `82274190` | 8 | 0 | `vt_const_01.cpp` | TypeId_82274190 | `/O2` |
-| `82275ED0` | 8 | 0 | `vt_const_01.cpp` | TypeId_82275ED0 | `/O2` |
-| `82275ED8` | 8 | 0 | `vt_const_01.cpp` | TypeId_82275ED8 | `/O2` |
-| `82275EE0` | 8 | 0 | `vt_const_01.cpp` | TypeId_82275EE0 | `/O2` |
-| `82275EE8` | 8 | 0 | `vt_const_01.cpp` | TypeId_82275EE8 | `/O2` |
-| `82275EF0` | 8 | 0 | `vt_const_01.cpp` | TypeId_82275EF0 | `/O2` |
-| `82275F00` | 8 | 0 | `vt_const_01.cpp` | TypeId_82275F00 | `/O2` |
-| `82275F08` | 8 | 0 | `vt_const_01.cpp` | TypeId_82275F08 | `/O2` |
-| `82275F10` | 8 | 0 | `vt_const_01.cpp` | TypeId_82275F10 | `/O2` |
-| `82275F20` | 8 | 0 | `vt_const_02.cpp` | TypeId_82275F20 | `/O2` |
-| `82275F28` | 8 | 0 | `vt_const_02.cpp` | TypeId_82275F28 | `/O2` |
-| `82275F30` | 8 | 0 | `vt_const_02.cpp` | TypeId_82275F30 | `/O2` |
-| `82275F38` | 8 | 0 | `vt_const_02.cpp` | TypeId_82275F38 | `/O2` |
-| `82275F40` | 8 | 0 | `vt_const_02.cpp` | TypeId_82275F40 | `/O2` |
-| `82275F48` | 8 | 0 | `vt_const_02.cpp` | TypeId_82275F48 | `/O2` |
-| `82275F50` | 8 | 0 | `vt_const_02.cpp` | TypeId_82275F50 | `/O2` |
-| `82275F58` | 8 | 0 | `vt_const_02.cpp` | TypeId_82275F58 | `/O2` |
-| `82275F60` | 8 | 0 | `vt_const_02.cpp` | TypeId_82275F60 | `/O2` |
-| `82275F68` | 8 | 0 | `vt_const_02.cpp` | TypeId_82275F68 | `/O2` |
-| `82275F70` | 8 | 0 | `vt_const_02.cpp` | TypeId_82275F70 | `/O2` |
-| `82291F10` | 8 | 0 | `vt_const_02.cpp` | TypeId_82291F10 | `/O2` |
-| `82291F18` | 8 | 0 | `vt_const_02.cpp` | TypeId_82291F18 | `/O2` |
-| `822D3E88` | 8 | 0 | `vt_const_02.cpp` | TypeId_822D3E88 | `/O2` |
-| `822D3E90` | 8 | 0 | `vt_const_02.cpp` | TypeId_822D3E90 | `/O2` |
-| `8232EE58` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_8232EE58 | `/O2` |
-| `823A2EC0` | 8 | 0 | `vt_const_02.cpp` | TypeId_823A2EC0 | `/O2` |
-| `823A2F3C` | 8 | 0 | `vt_const_02.cpp` | TypeId_823A2F3C | `/O2` |
-| `823A2FD4` | 8 | 0 | `vt_const_02.cpp` | TypeId_823A2FD4 | `/O2` |
-| `8241024C` | 8 | 0 | `vt_const_02.cpp` | TypeId_8241024C | `/O2` |
-| `824B9680` | 8 | 0 | `vt_const_02.cpp` | TypeId_824B9680 | `/O2` |
-| `824D0A80` | 8 | 0 | `vt_const_02.cpp` | TypeId_824D0A80 | `/O2` |
-| `825142F0` | 8 | 0 | `vt_const_02.cpp` | TypeId_825142F0 | `/O2` |
-| `8252DD40` | 8 | 0 | `vt_const_02.cpp` | TypeId_8252DD40 | `/O2` |
-| `8253C730` | 8 | 0 | `vt_const_02.cpp` | TypeId_8253C730 | `/O2` |
-| `8257F598` | 8 | 0 | `vt_const_02.cpp` | TypeId_8257F598 | `/O2` |
-| `82591338` | 8 | 0 | `vt_const_02.cpp` | TypeId_82591338 | `/O2` |
-| `825AD7C8` | 8 | 0 | `vt_const_02.cpp` | TypeId_825AD7C8 | `/O2` |
-| `825CDF6C` | 8 | 0 | `vt_const_02.cpp` | TypeId_825CDF6C | `/O2` |
-| `825E4670` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_825E4670 | `/O2` |
-| `825E4680` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_825E4680 | `/O2` |
-| `825E4690` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_825E4690 | `/O2` |
-| `825E46A0` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_825E46A0 | `/O2` |
-| `825E46B0` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_825E46B0 | `/O2` |
-| `825E59A8` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_825E59A8 | `/O2` |
-| `825E7670` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_825E7670 | `/O2` |
-| `825EC7DC` | 8 | 0 | `vt_const_02.cpp` | TypeId_825EC7DC | `/O2` |
-| `825EC9C8` | 8 | 0 | `vt_const_02.cpp` | TypeId_825EC9C8 | `/O2` |
-| `825ECA50` | 8 | 0 | `vt_const_03.cpp` | TypeId_825ECA50 | `/O2` |
-| `825FCE30` | 8 | 0 | `vt_const_03.cpp` | TypeId_825FCE30 | `/O2` |
-| `8261AB88` | 8 | 0 | `vt_const_03.cpp` | TypeId_8261AB88 | `/O2` |
-| `82634938` | 8 | 0 | `vt_const_03.cpp` | TypeId_82634938 | `/O2` |
-| `82636170` | 8 | 0 | `vt_const_03.cpp` | TypeId_82636170 | `/O2` |
-| `826368C0` | 8 | 0 | `vt_const_03.cpp` | TypeId_826368C0 | `/O2` |
-| `82636B20` | 8 | 0 | `vt_const_03.cpp` | TypeId_82636B20 | `/O2` |
-| `826491D8` | 8 | 0 | `vt_const_03.cpp` | TypeId_826491D8 | `/O2` |
-| `8266DF88` | 8 | 0 | `vt_const_03.cpp` | TypeId_8266DF88 | `/O2` |
-| `826730F0` | 8 | 0 | `vt_const_03.cpp` | TypeId_826730F0 | `/O2` |
-| `82674508` | 8 | 0 | `vt_const_03.cpp` | TypeId_82674508 | `/O2` |
-| `82674B08` | 8 | 0 | `vt_const_03.cpp` | TypeId_82674B08 | `/O2` |
-| `82674B10` | 8 | 0 | `vt_const_03.cpp` | TypeId_82674B10 | `/O2` |
-| `8267F3F8` | 8 | 0 | `vt_const_03.cpp` | TypeId_8267F3F8 | `/O2` |
-| `8267FC48` | 8 | 0 | `vt_const_03.cpp` | TypeId_8267FC48 | `/O2` |
-| `8267FC50` | 8 | 0 | `vt_const_03.cpp` | TypeId_8267FC50 | `/O2` |
-| `82681768` | 8 | 0 | `vt_const_03.cpp` | TypeId_82681768 | `/O2` |
-| `82682750` | 8 | 0 | `vt_const_03.cpp` | TypeId_82682750 | `/O2` |
-| `82696930` | 8 | 0 | `vt_const_03.cpp` | TypeId_82696930 | `/O2` |
-| `82696FE8` | 8 | 0 | `vt_const_03.cpp` | TypeId_82696FE8 | `/O2` |
-| `826A4E80` | 8 | 0 | `vt_const_03.cpp` | TypeId_826A4E80 | `/O2` |
-| `826CDD90` | 8 | 0 | `vt_const_03.cpp` | TypeId_826CDD90 | `/O2` |
-| `826CDDA8` | 8 | 0 | `vt_const_03.cpp` | TypeId_826CDDA8 | `/O2` |
-| `826D2DC0` | 8 | 0 | `vt_const_03.cpp` | TypeId_826D2DC0 | `/O2` |
-| `826D3A20` | 8 | 0 | `vt_const_03.cpp` | TypeId_826D3A20 | `/O2` |
-| `826D3E88` | 8 | 0 | `vt_const_03.cpp` | TypeId_826D3E88 | `/O2` |
-| `826D4438` | 8 | 0 | `vt_const_03.cpp` | TypeId_826D4438 | `/O2` |
-| `826D4760` | 8 | 0 | `vt_const_03.cpp` | TypeId_826D4760 | `/O2` |
-| `826D4FE8` | 8 | 0 | `vt_const_03.cpp` | TypeId_826D4FE8 | `/O2` |
-| `826D7750` | 8 | 0 | `vt_const_04.cpp` | TypeId_826D7750 | `/O2` |
-| `826D7850` | 8 | 0 | `vt_const_04.cpp` | TypeId_826D7850 | `/O2` |
-| `826E4310` | 8 | 0 | `vt_const_04.cpp` | TypeId_826E4310 | `/O2` |
-| `826FCC88` | 8 | 0 | `vt_const_04.cpp` | TypeId_826FCC88 | `/O2` |
-| `826FFD68` | 8 | 0 | `vt_const_04.cpp` | TypeId_826FFD68 | `/O2` |
-| `826FFD70` | 8 | 0 | `vt_const_04.cpp` | TypeId_826FFD70 | `/O2` |
-| `82707DC8` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_82707DC8 | `/O2` |
-| `82709618` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_82709618 | `/O2` |
-| `82709C80` | 8 | 0 | `vt_const_04.cpp` | TypeId_82709C80 | `/O2` |
-| `82712EA0` | 8 | 0 | `vt_const_04.cpp` | TypeId_82712EA0 | `/O2` |
-| `82713B20` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_82713B20 | `/O2` |
-| `82715138` | 8 | 0 | `vt_const_04.cpp` | TypeId_82715138 | `/O2` |
-| `8271B078` | 8 | 0 | `vt_const_04.cpp` | TypeId_8271B078 | `/O2` |
-| `8271B080` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_8271B080 | `/O2` |
-| `8271F2E8` | 8 | 0 | `vt_const_04.cpp` | TypeId_8271F2E8 | `/O2` |
-| `8271FB08` | 8 | 0 | `vt_const_04.cpp` | TypeId_8271FB08 | `/O2` |
-| `8272C570` | 8 | 0 | `vt_const_04.cpp` | TypeId_8272C570 | `/O2` |
-| `8272C578` | 8 | 0 | `vt_const_04.cpp` | TypeId_8272C578 | `/O2` |
-| `82790EC8` | 8 | 0 | `vt_const_04.cpp` | TypeId_82790EC8 | `/O2` |
-| `8279D4A0` | 8 | 0 | `vt_const_04.cpp` | TypeId_8279D4A0 | `/O2` |
-| `8279E708` | 8 | 0 | `vt_const_04.cpp` | TypeId_8279E708 | `/O2` |
-| `8279E710` | 8 | 0 | `vt_const_04.cpp` | TypeId_8279E710 | `/O2` |
-| `827AE9D0` | 8 | 0 | `vt_const_04.cpp` | TypeId_827AE9D0 | `/O2` |
-| `827AF3A0` | 8 | 0 | `vt_const_04.cpp` | TypeId_827AF3A0 | `/O2` |
-| `827AF690` | 8 | 0 | `vt_const_04.cpp` | TypeId_827AF690 | `/O2` |
-| `827AFD28` | 8 | 0 | `vt_const_04.cpp` | TypeId_827AFD28 | `/O2` |
-| `827ED5B0` | 8 | 0 | `vt_const_04.cpp` | TypeId_827ED5B0 | `/O2` |
-| `827F8158` | 8 | 0 | `vt_const_04.cpp` | TypeId_827F8158 | `/O2` |
-| `827F86C0` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_827F86C0 | `/O2` |
-| `827FE040` | 8 | 0 | `vt_const_04.cpp` | TypeId_827FE040 | `/O2` |
-| `82815348` | 8 | 0 | `vt_const_04.cpp` | TypeId_82815348 | `/O2` |
-| `828177C0` | 8 | 0 | `vt_const_04.cpp` | TypeId_828177C0 | `/O2` |
-| `8281ACB0` | 8 | 0 | `vt_const_04.cpp` | TypeId_8281ACB0 | `/O2` |
-| `8281C258` | 8 | 0 | `vt_const_04.cpp` | TypeId_8281C258 | `/O2` |
-| `8281E2F8` | 8 | 0 | `vt_const_04.cpp` | TypeId_8281E2F8 | `/O2` |
-| `82846160` | 8 | 0 | `vt_const_04.cpp` | TypeId_82846160 | `/O2` |
-| `82846168` | 8 | 0 | `vt_const_05.cpp` | TypeId_82846168 | `/O2` |
-| `82846170` | 8 | 0 | `vt_const_05.cpp` | TypeId_82846170 | `/O2` |
-| `82846178` | 8 | 0 | `vt_const_05.cpp` | TypeId_82846178 | `/O2` |
-| `828463A0` | 8 | 0 | `vt_const_05.cpp` | TypeId_828463A0 | `/O2` |
-| `828493C0` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_828493C0 | `/O2` |
-| `8284DA38` | 12 | 0 | `vt_typeid_06.cpp` | TypeId_8284DA38 | `/O2` |
-| `828507D8` | 12 | 0 | `vt_typeid_07.cpp` | TypeId_828507D8 | `/O2` |
-| `8286BED0` | 8 | 0 | `vt_const_05.cpp` | TypeId_8286BED0 | `/O2` |
-| `8286E140` | 8 | 0 | `vt_const_05.cpp` | TypeId_8286E140 | `/O2` |
-| `8286FB48` | 8 | 0 | `vt_const_05.cpp` | TypeId_8286FB48 | `/O2` |
-| `828709D8` | 8 | 0 | `vt_const_05.cpp` | TypeId_828709D8 | `/O2` |
-| `82872730` | 8 | 0 | `vt_const_05.cpp` | TypeId_82872730 | `/O2` |
-| `82873EC8` | 8 | 0 | `vt_const_05.cpp` | TypeId_82873EC8 | `/O2` |
-| `82875518` | 8 | 0 | `vt_const_05.cpp` | TypeId_82875518 | `/O2` |
-| `8287A170` | 8 | 0 | `vt_const_05.cpp` | TypeId_8287A170 | `/O2` |
-| `8287D108` | 8 | 0 | `vt_const_05.cpp` | TypeId_8287D108 | `/O2` |
-| `8287F8A8` | 8 | 0 | `vt_const_05.cpp` | TypeId_8287F8A8 | `/O2` |
-| `828823B8` | 8 | 0 | `vt_const_05.cpp` | TypeId_828823B8 | `/O2` |
-| `82884868` | 8 | 0 | `vt_const_05.cpp` | TypeId_82884868 | `/O2` |
-| `82885B80` | 8 | 0 | `vt_const_05.cpp` | TypeId_82885B80 | `/O2` |
-| `82887878` | 8 | 0 | `vt_const_05.cpp` | TypeId_82887878 | `/O2` |
-| `8288AE30` | 8 | 0 | `vt_const_05.cpp` | TypeId_8288AE30 | `/O2` |
-| `8288C618` | 8 | 0 | `vt_const_05.cpp` | TypeId_8288C618 | `/O2` |
-| `8288D978` | 8 | 0 | `vt_const_05.cpp` | TypeId_8288D978 | `/O2` |
-| `8288EF88` | 8 | 0 | `vt_const_05.cpp` | TypeId_8288EF88 | `/O2` |
-| `828DE490` | 8 | 0 | `vt_const_05.cpp` | TypeId_828DE490 | `/O2` |
+| *(708 generated)* | 6112 | - | `vt_typeid_*`, `vt_const_*`, `vt_acc_*` | one expression each | `/O2` |
 ---
 
 ## How these were found
@@ -642,6 +328,28 @@ optimisation level carries no information for this function.
 This is the companion to the note further down that a materialised-then-
 masked bool indicates an inlined helper: the mask means `bool` SOMEWHERE,
 and the first place to look is the return type of the function in hand.
+
+**When the value is a BIT, the tell is the ROTATE AMOUNT, not a trailing
+mask.** Found on `sub_8224DBB0`, and it is the same rule reached from the
+other end. Written inline -- as `flags & 0x10000`, as `(flags >> 16) & 1`,
+or as a one-bit bitfield -- MSVC tests the bit IN PLACE and emits
+
+    rlwinm r10,r11,0,15,15        no rotate; the bit stays where it is
+
+which scores 8 of 10 with every branch, `li` and `cmplwi` already correct. A
+`bool`-returning accessor has to normalise the bit to 0 or 1, and the rotate
+does it for free:
+
+    rlwinm r10,r11,16,31,31       rotated down to bit 31
+
+which is 10 of 10. So there is no redundant `clrlwi` to notice here -- the
+normalisation is absorbed into the rotate, and a rotate amount that lands
+the bit at 31 is the signature.
+
+What the bytes do NOT decide is how the accessor is spelled: a mask, a
+shift-and-mask, and a one-bit bitfield all compile identically. So a match
+of this shape asserts a `bool` return; it asserts no bitfield layout, and a
+source that claims one is claiming more than was measured.
 
 ### Levers, measured this session
 
