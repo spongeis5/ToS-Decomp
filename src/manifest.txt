@@ -1162,7 +1162,7 @@ src/m47_guard_count_call.cpp    82271898
 src/m48_table_elem.cpp          822D2510
 src/m49_guard_flag_call.cpp     822D91C8
 src/n18_flag_move_notify.cpp     821FC180
-src/n19_list_ctor_dup.cpp        825DEB20              
+src/n19_list_ctor_dup.cpp        825DEB20  ListOwner
 src/n20_find_by_name.cpp         826225E8
 src/m50_copy_vec116.cpp         821A5160
 src/m51_prefix_and_format.cpp   821F6250

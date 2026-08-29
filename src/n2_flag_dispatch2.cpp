@@ -40,7 +40,12 @@ struct FlagHolder
 ASSERT_OFFSET(FlagHolder, target, 0x04);
 
 void HandlePlain(void* t);
-void HandleOther(void* t);
+// Named for its ADDRESS, not by analogy. `HandleOther` was
+// already taken by owner_clear.cpp for 826E50D0, a different
+// function; one name resolving to two addresses verifies byte
+// for byte and could never link, which is what build.py's
+// WOULD NOT LINK check exists to catch.
+void HandleFlagged_821716D0(void* t);
 
 void DispatchByFlag(FlagHolder* h, bool flag)
 {
@@ -51,5 +56,5 @@ void DispatchByFlag(FlagHolder* h, bool flag)
     if (flag == 0)
         HandlePlain(t);
     else
-        HandleOther(t);
+        HandleFlagged_821716D0(t);
 }

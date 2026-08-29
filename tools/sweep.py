@@ -125,10 +125,25 @@ def score(img, sizes, blob, target):
             if (struct.unpack_from(">I", tb, i * 4)[0]
                     == struct.unpack_from(">I", code, i * 4)[0]):
                 same += 1
+        # Rank by how CLOSE the function is to the target's size first, and
+        # only then by score.
+        #
+        # Ranking by score alone made a file's small helper outscore the
+        # candidate it was written for: `t4_span_dispatch.cpp` reported
+        # "9 of 11" for a 44-byte `OutOfRange` helper while the 176-byte
+        # function it exists to match was 8 of 41. That number then went
+        # into attempts.txt and into the source comment, and it reads as
+        # nearly-solved when it is nowhere near -- the most expensive kind
+        # of wrong, because nobody re-examines a function that looks one
+        # word away.
+        #
+        # match.py, given no symbol, takes the LARGEST function. Closest-to-
+        # target is the same intent and is right when our code is short.
         row = (same, compared, len(code) == ts, name, nfns)
-        if best is None or (row[0], row[2]) > (best[0], best[2]):
-            best = row
-    return best
+        key = (-abs(len(code) - tsize), same)
+        if best is None or key > best[0]:
+            best = (key, row)
+    return best[1] if best else None
 
 
 def main(argv):

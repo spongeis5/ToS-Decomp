@@ -173,7 +173,7 @@ def main():
     # cache serving an object built from different text is indistinguishable
     # from a match. Keyed on content, and these 7 checks are what says so --
     # 3 of them must MISS the cache.
-    results.append(check("compile memo, 7 cases (3 must miss the cache)",
+    results.append(check("compile memo, 11 cases (in-process + on-disk)",
                          ["tools/test_xdkcc_cache.py"]))
     # permute.py ranks source shapes, so a scorer that counts relocated words
     # as mismatches does not merely under-report -- it recommends the wrong

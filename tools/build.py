@@ -359,8 +359,19 @@ def main(argv):
     # complains. A real link cannot do that: one symbol has one address.
     # Without this check the source model can drift arbitrarily far from
     # something that could ever be linked, while every byte still verifies.
+    # ...but a COMPILER-GENERATED LOCAL LABEL is not a symbol in that sense.
+    # MSVC names a switch's jump-table arms `$LN1`, `$LN3`, `$LN4` and so on,
+    # per function, in the function's own COMDAT. Two files each having a
+    # `$LN1` is not a collision and links perfectly well -- they are never
+    # external. Counting them reported five conflicts where there was one,
+    # and four of the five named labels rather than functions.
+    #
+    # A guard that fires on correct input is worse than no guard, because it
+    # teaches you to read past guards.
     by_symbol = {}
     for site, tname, sym, addr, _why in resolved:
+        if sym.startswith("$"):
+            continue
         by_symbol.setdefault(sym, {}).setdefault(addr, []).append(site)
     conflicts = {s: v for s, v in by_symbol.items() if len(v) > 1}
     if conflicts:

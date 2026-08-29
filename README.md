@@ -843,14 +843,29 @@ named mechanism is not more finished than one without -- if anything it is
 the more promising target, because the mechanism says which lever to reach
 for.
 
+**REFUTED, and it is the second time.** This section said `82583290`
+(m_audio_ctor) lost words to dead-store elimination "which implies an
+INLINING BOUNDARY a single translation unit cannot express", and called it
+"the first thing found here that one `.cpp` provably cannot reproduce". It
+was reached twice, independently, from `82700B30` as well. It is still
+wrong.
+
+Writing the EARLY store group through a `void**` blocks the elimination
+inside one file, and m_audio_ctor went from 1 of 53 at 260 bytes to **42 of
+56 at the exact 272**. `82700DF8` went from 1 of 26 at 120 bytes to 18 of 34
+at the exact 168, using a real `A`+`B` base hierarchy -- which IS an
+inlining boundary, expressed inside a single `.cpp`. Direction matters:
+pinning the LATE group instead gives 288 bytes and 0 of 56.
+
+So both of the project's "a single translation unit provably cannot do
+this" claims have now fallen, along with the three mechanism-backed stalls
+recorded above. The pattern is consistent enough to state as a rule: **a
+measurement of what the compiler did is evidence; a conclusion that nothing
+can be done about it has, so far, always been wrong.** The word "provably"
+in particular has not once survived contact with a new lever.
+
 **Still genuinely open, and the honest reasons:**
 
-* `82583290` **m_audio_ctor** loses words to MSVC's dead-store elimination
-  removing an early write the retail build kept, which implies an INLINING
-  BOUNDARY a single translation unit cannot express. Reached independently a
-  second time on `82700B30`: a flat constructor loses all three duplicate
-  stores to DSE (144 bytes against 176) and only a real base subobject keeps
-  a vptr assignment alive.
 * `82606EC8` / `82606FD8`, the arena twins, 33 of 35. The const-view lever
   that cracked VectorGrow was tried and has a LIMIT worth recording: it works
   on fields reached through a pointer parameter, not on a global's

@@ -80,6 +80,31 @@ def diagnostics(text):
 _MEMO = {}
 _MEMO_STATS = [0, 0]          # [hits, misses]
 
+# ...and an ON-DISK half, for the same key, because the in-process half
+# cannot help the case that dominates the clock.
+#
+# verify.py runs SIX negative controls and each spawns a full build.py as a
+# subprocess. A subprocess starts with an empty memo, so each of the seven
+# builds recompiled all 389 distinct sources: ~2,700 invocations of cl, and
+# about eighteen minutes. The count grows with every source added -- it was
+# fifty files not long ago -- so this got worse every session.
+#
+# The key is the same one, and it is what makes a disk cache safe here: the
+# source's CONTENT, the exact flag list, and the compiler binary's own size
+# and mtime. Nothing is keyed on a path or a timestamp of the source, so an
+# edit cannot be served a previous object, and swapping the XDK cannot serve
+# objects built by the other one. tools/test_xdkcc_cache.py checks both
+# halves, and three of its cases must MISS.
+CACHE = ROOT / "build/objcache"
+
+
+def _cl_stamp():
+    try:
+        st = CL.stat()
+        return "%d-%d" % (st.st_size, int(st.st_mtime))
+    except OSError:
+        return "nocl"
+
 
 def cache_stats():
     """(hits, misses) for this process. Print it rather than assuming it."""
@@ -224,14 +249,30 @@ def compile_obj(src, obj, flags=None, workdir=None):
 
     use = list(flags if flags is not None else DEFAULT_FLAGS)
     try:
-        key = (hashlib.sha256(src.read_bytes()).hexdigest(), tuple(use))
+        digest = hashlib.sha256()
+        digest.update(src.read_bytes())
+        digest.update(b"\0".join(f.encode() for f in use))
+        digest.update(_cl_stamp().encode())
+        tag = digest.hexdigest()
+        key = (tag, tuple(use))
     except OSError:
-        key = None              # unreadable: fall through and let cl say so
+        tag = key = None        # unreadable: fall through and let cl say so
+
     if key is not None and key in _MEMO:
         _MEMO_STATS[0] += 1
         blob, err = _MEMO[key]
         if blob is not None:
             # Write it out anyway: callers are entitled to the .obj on disk.
+            obj.write_bytes(blob)
+        return blob, err
+
+    hit = _disk_get(tag)
+    if hit is not None:
+        _MEMO_STATS[0] += 1
+        blob, err = hit
+        if key is not None:
+            _MEMO[key] = hit
+        if blob is not None:
             obj.write_bytes(blob)
         return blob, err
 
@@ -247,7 +288,45 @@ def compile_obj(src, obj, flags=None, workdir=None):
     _MEMO_STATS[1] += 1
     if key is not None:
         _MEMO[key] = result
+    _disk_put(tag, result)
     return result
+
+
+def _disk_get(tag):
+    """-> (blob, err) from the on-disk cache, or None."""
+    if not tag:
+        return None
+    o = CACHE / (tag + ".obj")
+    e = CACHE / (tag + ".err")
+    try:
+        if o.exists():
+            return (o.read_bytes(), None)
+        if e.exists():
+            return (None, e.read_text(encoding="utf-8"))
+    except OSError:
+        return None
+    return None
+
+
+def _disk_put(tag, result):
+    if not tag:
+        return
+    blob, err = result
+    try:
+        CACHE.mkdir(parents=True, exist_ok=True)
+        # Write to a temporary name and rename, so a killed process cannot
+        # leave a half-written object that a later run reads as complete.
+        # This cache is keyed on content; a TRUNCATED entry would still hash
+        # to a valid key and be served forever.
+        tmp = CACHE / (tag + ".tmp%d" % os.getpid())
+        if blob is not None:
+            tmp.write_bytes(blob)
+            tmp.replace(CACHE / (tag + ".obj"))
+        else:
+            tmp.write_text(err or "", encoding="utf-8")
+            tmp.replace(CACHE / (tag + ".err"))
+    except OSError:
+        pass
 
 
 def self_test():

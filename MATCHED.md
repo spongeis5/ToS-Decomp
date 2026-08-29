@@ -337,7 +337,7 @@ while and the claim was wrong.
 | `825B9E20` | 20 | 4 | `l2_low3_clear.cpp` | - | `/O2` |
 | `825BE3D8` | 36 | 4 | `n4_zero5_ret0.cpp` | - | `/O2` |
 | `825DB730` | 20 | 4 | `l3_bits300_set.cpp` | - | `/O2 /Os` |
-| `825DEB20` | 132 | 4 | `n19_list_ctor_dup.cpp` | - | `/O2` |
+| `825DEB20` | 132 | 4 | `n19_list_ctor_dup.cpp` | ListOwner | `/O2` |
 | `825FF468` | 36 | 4 | `n5_set_bit_pair.cpp` | - | `/O2` |
 | `82600AD0` | 28 | 4 | `list_insert.cpp` | - | `/O2` |
 | `8261B1A8` | 100 | 4 | `m31_hash_find_node.cpp` | - | `/O2` |
