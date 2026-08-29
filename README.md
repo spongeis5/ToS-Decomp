@@ -35,16 +35,20 @@ remaining to decompile         18,126     (60.6%)
 FUNCTIONS MATCHED                  15
 ```
 
-Matches are listed in `MATCHED.md`. Five of the six matched on the first
-attempt, written straight off the disassembly by **reading the target's
-register discipline instead of guessing plausible C** — which value it keeps
-live, and for how long, is the specification.
+Matches are listed in `MATCHED.md`, all at one uniform `/O2 /Gy /GS- /fp:fast`.
+Most matched on the first attempt, written straight off the disassembly by
+**reading the target's register discipline instead of guessing plausible C** —
+which value it keeps live, and for how long, is the specification.
 
-The four that resist all share one thing: the compiler made a free choice the
+The handful that resist share one thing: the compiler made a free choice the
 source cannot express — instruction order, branch polarity, or register
 assignment. That is diagnostic after the fact, not predictive; an attempt to
-turn it into a ranking (`tools/serial.py`) was validated against all ten
-outcomes and failed, and says so on every run.
+turn it into a ranking (`tools/serial.py`) was validated against every known
+outcome and failed, and says so on every run.
+
+**This is still per-function matching, not a reproducing build.** See
+"What this project does not yet do" below — it is the honest limit of the
+current state.
 
 Verify the first match with:
 
@@ -80,6 +84,62 @@ The linker grouped things, so the game's own code is in the gaps:
 82523A1C..828A74A0   THE GAME  (engine, Havok, Scaleform, FMOD, Bink)
 828A74A0..82908510   XDK — the CRT
 ```
+
+---
+
+## What this project does not yet do
+
+Measured against how established matching decompilations are run (SM64,
+Ocarina of Time, and the GC/Wii projects built on dtk/splat), this one is
+strong on evidence discipline and **weak on structure**. Stated plainly so it
+is not discovered later:
+
+**1. There is no reproducing build.** This is the big one. A matching decomp's
+definition of done is that the build emits an image whose hash equals the
+original's; every other number is a proxy. Here, functions are compiled in
+isolation and diffed against bytes read out of the image. Nothing yet proves
+the pieces link together — data, relocations, section layout, COMDAT ordering
+and padding are all unverified. A project can accumulate hundreds of
+"matching" functions this way and still not link.
+
+**2. There is no shared type system.** Each source file invents its own
+`struct` with `char pad00[132]` filler. `src/clear_and_call.cpp` and
+`src/vcall116.cpp` may well describe the same class and have no idea. Real
+projects build one header set and grow it, so a field learned in one function
+is available to the next. Ours is 15 disconnected islands.
+
+**3. The binary is not split into translation units.** Matching is happening
+at whatever address looked tractable, not file by file. The image gives real
+evidence for TU boundaries — `.pdata` ordering, COMDAT grouping, the 188
+recovered source paths, and the Rich header's count of ~1,449 non-`/GL`
+objects — and none of it is being used to segment the work.
+
+**4. Names are invented, not recovered.** `ProcessIfReady`, `ArrayAdd`,
+`GetThroughChain` are descriptions, not the title's symbols. That is normal
+this early, but they should be treated as provisional. Real names exist for
+part of the image (RTTI, profiler scopes, assert strings) and are not yet
+applied to matched code.
+
+**5. Progress is counted in functions, not bytes.** 15 of 25,737 says little;
+byte coverage against the 60.6% that is actually the game's is the number that
+matters, and there is no dashboard computing it.
+
+**6. There is no permuter.** `permute.py` scores a hand-written list of
+shapes. `decomp-permuter` mutates source automatically to search register
+allocation and scheduling outcomes — which is precisely the wall the four
+stalled functions are stuck against.
+
+**7. There is no CI.** Nothing re-runs the matches on commit; the regression
+check is run by hand.
+
+What *is* in good shape: the toolchain is identified and verified three
+independent ways, which is the foundation everything else rests on and the
+thing that most often goes wrong; relocation masking is honest and states its
+denominators; library code is attributed and excluded from scope on byte
+evidence; and every tool is validated against known-good answers before its
+output is believed.
+
+**In priority order the gaps are: (1), then (2) and (3) together, then (6).**
 
 ---
 
