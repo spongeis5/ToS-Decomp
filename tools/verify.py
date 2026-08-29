@@ -149,6 +149,20 @@ def main():
                          ["tools/test_coffreloc.py"]))
     results.append(check("match.py size reconciliation, 12 cases (8 must refuse)",
                          ["tools/test_shrink.py"]))
+    # The compile memo turned 559 invocations of cl into 60 and made a build
+    # take 20 seconds instead of four minutes. It is also the one thing here
+    # that can make a WRONG function look right without failing, because a
+    # cache serving an object built from different text is indistinguishable
+    # from a match. Keyed on content, and these 7 checks are what says so --
+    # 3 of them must MISS the cache.
+    results.append(check("compile memo, 7 cases (3 must miss the cache)",
+                         ["tools/test_xdkcc_cache.py"]))
+    # vtables.py reconstructs 2151 vtables from pointer runs and code
+    # references. rtti.py knows 311 of them by walking MSVC's own structures,
+    # which is a completely independent route, so agreement between the two
+    # is real evidence and disagreement is a boundary rule that has drifted.
+    results.append(check("vtables rediscover rtti.py's 311 (>=90%)",
+                         ["tools/vtables.py", "--check"]))
     results.append(check("MATCHED.md table matches the manifest",
                          ["tools/matched_table.py", "--check"]))
     results.append(check("backslash-heredoc hook, 7 cases",

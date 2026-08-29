@@ -26,6 +26,7 @@ Notes that are load-bearing:
     ASSERT_OFFSET once looked like a byte mismatch.
 """
 
+import hashlib
 import subprocess
 import sys
 from pathlib import Path
@@ -62,6 +63,28 @@ def diagnostics(text):
     return diag or lines
 
 
+# One entry per (source CONTENT, flags) actually compiled in this process.
+#
+# The manifest has one row per FUNCTION, not per file, and a single .cpp can
+# define many -- 194 of the image's functions are a one-line constant return,
+# and putting each in its own file to keep one-compile-per-row would mean 194
+# files and 194 invocations of cl per verify.
+#
+# Keyed on the source's CONTENT, never its path or mtime: a cache keyed on a
+# path serves the previous text after an edit, which is precisely the
+# stale-object failure the `obj.unlink()` below exists to prevent, moved one
+# level up where it is harder to see. Keyed on content it cannot: editing the
+# file changes the key. In-process only, with no on-disk half, so it cannot
+# outlive the run that built it.
+_MEMO = {}
+_MEMO_STATS = [0, 0]          # [hits, misses]
+
+
+def cache_stats():
+    """(hits, misses) for this process. Print it rather than assuming it."""
+    return tuple(_MEMO_STATS)
+
+
 def compile_obj(src, obj, flags=None, workdir=None):
     """Compile `src` to `obj`. -> (object bytes, None) or (None, diagnostics).
 
@@ -76,15 +99,32 @@ def compile_obj(src, obj, flags=None, workdir=None):
     if obj.exists():
         obj.unlink()
 
-    cmd = ([str(CL.resolve())] + list(flags if flags is not None
-                                      else DEFAULT_FLAGS)
+    use = list(flags if flags is not None else DEFAULT_FLAGS)
+    try:
+        key = (hashlib.sha256(src.read_bytes()).hexdigest(), tuple(use))
+    except OSError:
+        key = None              # unreadable: fall through and let cl say so
+    if key is not None and key in _MEMO:
+        _MEMO_STATS[0] += 1
+        blob, err = _MEMO[key]
+        if blob is not None:
+            # Write it out anyway: callers are entitled to the .obj on disk.
+            obj.write_bytes(blob)
+        return blob, err
+
+    cmd = ([str(CL.resolve())] + use
            + ["/Fo" + str(obj.resolve()), str(src.resolve())])
     r = subprocess.run(cmd, capture_output=True, text=True,
                        cwd=str(workdir.resolve()), env=env(workdir))
     out = r.stdout + r.stderr
     if r.returncode != 0 or not obj.exists():
-        return None, "\n".join(diagnostics(out))
-    return obj.read_bytes(), None
+        result = (None, "\n".join(diagnostics(out)))
+    else:
+        result = (obj.read_bytes(), None)
+    _MEMO_STATS[1] += 1
+    if key is not None:
+        _MEMO[key] = result
+    return result
 
 
 def self_test():

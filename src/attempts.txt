@@ -14,7 +14,6 @@ src/arg_shuffle.cpp             8215E5B0
 src/fadd_fwd.cpp                82639C38
 src/list_insert.cpp             82600AD0
 src/wstr_compare.cpp            827618E8
-src/m_state_1or2.cpp            821A5350
 src/m_ctor_94.cpp               825FE880
 src/b_strcmp.cpp                826973C8
 src/b_bounds_at.cpp             8215ED28
@@ -41,3 +40,16 @@ src/j_init_defaults.cpp         82202B50
 src/m_vector_reserve.cpp        82667EE0  VectorGrow
 src/m_tree_lookup.cpp           8217E808
 src/m_audio_ctor.cpp            82583290
+src/g_memset_thunk.cpp           82697740
+src/p4_index_span.cpp            8277AA88
+src/q1_list_push_front.cpp       82155968
+src/q5_kind_in_set.cpp           821F5EE0
+src/q8_find_tag.cpp              826CEA98
+src/r2_obj_ctor.cpp              82700DF8
+src/s5_cursor_next_block.cpp     82780C20
+src/s5_kind_adjust_call.cpp      8224BCA0
+src/t3_init_defaults.cpp         825E0118
+src/t4_span_dispatch.cpp         82772F08
+src/u5_ctor_str.cpp              827007F8
+src/u6_table_agrees.cpp          8215BD60
+src/u7_clamp_advance.cpp         821FC4D8

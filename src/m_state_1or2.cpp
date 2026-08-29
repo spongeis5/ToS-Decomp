@@ -12,26 +12,40 @@
 // out: clrlwi  r3,r11,24
 //      blr
 //
-// Two compares against consecutive constants, folded to one boolean. The
-// trailing `clrlwi rD,rS,24` is the zero-extension of a byte-sized return,
-// so the function returns u8 and not int -- an int return would have left
-// r11 alone.
+// MATCHED -- 9 of 9 words, and the answer was the RETURN TYPE.
+//
+// THE TRAILING `clrlwi rD,rS,24` IS `bool`, NOT `u8`. This file spent a long
+// time reading that mask as "the function returns a byte", which is exactly
+// backwards: `u8`, `char` and `int` returns all let MSVC compute the 0/1
+// straight into r3 and stop -- 32 bytes, 4 of 9 words, one instruction
+// short. Only a `bool` return normalises, and the normalisation is what
+// forces the value into r11 first so there is something to normalise FROM.
+//
+// So the register allocation that looked like the stall was a consequence,
+// not a cause. `u8` and `bool` are the same width and the same values here,
+// and they are NOT the same code.
+//
+// Sixteen shapes were compiled at both /O2 and /O2 /Os. Every one that
+// returns `bool` is 9 of 9 at both levels -- member, free function, and an
+// inlined `bool`-returning helper -- and every one that returns `u8`,
+// `char` or `int` is 4 of 9 at both. Branchy spellings (two `if`s, a
+// `switch`, an int accumulator) are 2 or 3 of 9 and are not the shape.
+// The level carries no information for this function; `/O2` is recorded
+// because that is the default.
+//
+// Companion to the note in MATCHED.md that a materialised-then-masked bool
+// is an inlined helper: the mask means `bool` SOMEWHERE, and here it is the
+// return type of the function itself.
 struct Stateful
 {
     char unk0000[0xD0];
     s32  state;
 
-    u8 IsBusy() const;
+    bool IsBusy() const;
 };
 ASSERT_OFFSET(Stateful, state, 0xD0);
 
-// NOT MATCHED -- 4 of 8 words. The instructions are right and the target
-// keeps the boolean in r11, zero-extending it into r3 only at the end; ours
-// computes straight into r3 and comes out 4 bytes shorter. Tried: the plain
-// expression, a named u8 local (worse, 1 of 8), and the member form (also
-// 4 of 8). It is a register-allocation choice, which is the same wall the
-// six older stalls sit behind.
-u8 Stateful::IsBusy() const
+bool Stateful::IsBusy() const
 {
-    return (u8)(state == 1 || state == 2);
+    return state == 1 || state == 2;
 }
