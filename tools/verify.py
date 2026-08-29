@@ -216,6 +216,18 @@ def main():
     # noticing green rows in objdiff. That is not a detection mechanism.
     results.append(check("no near-miss secretly matches",
                          ["tools/sweep.py", "--attempts", "--check"]))
+    # This repository is meant to be published. Four commits carried a
+    # personal email as author and committer, and eight tracked files
+    # carried an account name inside hardcoded absolute paths -- found by
+    # someone thinking to look, once. Content can be edited away; an
+    # identity in COMMIT HISTORY needs a filter-branch, and once cloned it
+    # cannot be recalled. The guard test plants each violation and requires
+    # a failure, because a check that cannot fail reports success for the
+    # same reason a working one does.
+    results.append(check("no identifying information in tree or history",
+                         ["tools/test_privacy.py"]))
+    results.append(check("privacy guard fires, 6 cases (4 plants)",
+                         ["tools/test_privacy_guard.py"]))
     results.append(check("MATCHED.md table matches the manifest",
                          ["tools/matched_table.py", "--check"]))
     results.append(check("backslash-heredoc hook, 7 cases",

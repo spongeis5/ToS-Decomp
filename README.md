@@ -1047,3 +1047,46 @@ not to match.
 
 `thirdparty/disasm/` is binutils-derived (GPL). `game/` and `SDKFiles/` are
 gitignored and are not distributed with this repository.
+
+## Before publishing
+
+This repository is meant to be public, and three gates exist so identifying
+information cannot reach it. Run the first one on its own at any time:
+
+```bash
+python tools/test_privacy.py
+```
+
+It checks four things, and none of them is a blocklist naming a person --
+a checker that spelled out the name and address it guards would publish
+both to every reader:
+
+* the account name of whoever runs it, derived from the home directory and
+  never stored, must not appear in any tracked file
+* no tracked file may contain a home-directory-shaped path
+  (`C:/Users/<x>/`, `/home/<x>/`, `/Users/<x>/`)
+* every commit author and committer must be a privacy address, matched by
+  shape (`<id>+<user>@users.noreply.github.com`) rather than against a list
+* so must the identity git would use for the next commit
+
+`tools/test_privacy_guard.py` plants each violation in turn and requires a
+failure, because a check that cannot fail reports success for the same
+reason a working one does.
+
+The three gates are `tools/verify.py`, the tracked `hooks/pre-commit`, and
+CI, where it runs first. The hook is tracked rather than installed into
+`.git/hooks` so it survives a clone; point git at it once per checkout:
+
+```bash
+git config core.hooksPath hooks
+```
+
+**Why the pre-commit gate matters more than the others.** Content in a
+tracked file can be edited away in the next commit. An identity written
+into COMMIT HISTORY needs a `filter-branch` and a force-push, and once the
+repository has been cloned it cannot be recalled at all.
+
+**What is deliberately not in the repository**, and is gitignored: the
+retail image (`build/`), the Xbox 360 XDK (`SDKFiles/`), the ripped disc
+(`game/`), and the Ghidra project database. CI therefore cannot run the
+matching checks -- `tools/verify.py` stays a local gate.

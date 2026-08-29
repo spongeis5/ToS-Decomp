@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Refuse to record identifying information in git history.
+#
+# TRACKED, not installed into .git/hooks -- a hook that lives only in
+# .git/hooks does not survive a clone, so the one place it is most needed
+# (someone else's checkout, or this one after a re-clone) is the one place
+# it would not be. `git config core.hooksPath hooks` points git here; the
+# check below re-asserts that, because a hook cannot run to complain that
+# it is not installed.
+#
+# Content in a tracked file can be edited away. An identity already written
+# into COMMIT HISTORY needs a filter-branch and a force-push, and once the
+# repository has been cloned it cannot be recalled at all. So this runs
+# before the commit exists, not after.
+set -euo pipefail
+
+repo="$(git rev-parse --show-toplevel)"
+cd "$repo"
+
+if ! python tools/test_privacy.py; then
+    echo ""
+    echo "COMMIT REFUSED: the above would enter git history."
+    echo ""
+    echo "Fix the file, or if it is a commit identity:"
+    echo "    git config user.email '<id>+<user>@users.noreply.github.com'"
+    echo ""
+    echo "To commit anyway -- and you almost never should, because history"
+    echo "is the part that cannot be taken back:"
+    echo "    git commit --no-verify"
+    exit 1
+fi

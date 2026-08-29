@@ -37,6 +37,16 @@ jobs:
         with:
           python-version: "3.12"
 
+      # FIRST, because it is the only failure here that cannot be undone.
+      # A wrong byte can be fixed in the next commit; an email address in
+      # a public repository's history has already been fetched by anyone
+      # watching, and no force-push recalls it.
+      - name: No identifying information in the tree or history
+        run: |
+          set -o pipefail
+          python tools/test_privacy.py
+          python tools/test_privacy_guard.py
+
       - name: Tool self-tests that need neither the image nor the XDK
         run: |
           set -o pipefail
