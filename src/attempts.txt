@@ -40,3 +40,4 @@ src/j_quat_to_mtx.cpp           82154ED8
 src/j_init_defaults.cpp         82202B50
 src/m_vector_reserve.cpp        82667EE0  VectorGrow
 src/m_tree_lookup.cpp           8217E808
+src/m_audio_ctor.cpp            82583290

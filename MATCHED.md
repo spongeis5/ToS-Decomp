@@ -11,7 +11,7 @@ the inventory is wrong in both directions, short where a tail call's dead
 `blr` was not counted and long where one `.pdata` row covers several
 frameless bodies.
 
-**179 functions, 9776 bytes.** Verify all of them, plus the reconstructing
+**181 functions, 10280 bytes.** Verify all of them, plus the reconstructing
 build and five negative controls, with one command:
 
 ```bash
@@ -206,8 +206,10 @@ while and the claim was wrong.
 | `827A7C98` | 20 | 4 | `store_two.cpp` | - | `/O2` |
 | `82216918` | 304 | 2 | `m_line_of_sight.cpp` | TtCheckLineOfSight | `/O2` |
 | `822607F0` | 120 | 2 | `grid_indices.cpp` | - | `/O2` |
+| `8267ACC0` | 236 | 2 | `m_hkpworld_ctor.cpp` | ??0hkpWorld@@QAA@XZ | `/O2` |
 | `826FE5B8` | 16 | 2 | `set_vtable.cpp` | SetVTableD170 | `/O2` |
 | `826FE5C8` | 16 | 2 | `set_vtable.cpp` | SetVTableD180 | `/O2` |
+| `8289FA50` | 268 | 1 | `m_mixer_clear.cpp` | - | `/O2` |
 ---
 
 ## How these were found
@@ -668,10 +670,10 @@ test is now automated -- `python tools/flagpairs.py` compiles every matched
 function at BOTH levels, classifies it, and reports every adjacent pair:
 
 ```
-178 matched function(s) classified
-  /O2 only     83
+181 matched function(s) classified
+  /O2 only     85
   /Os only     32
-  insensitive  63   <- carries NO evidence, excluded from the pairs
+  insensitive  64   <- carries NO evidence, excluded from the pairs
 
 34 informative adjacent pair(s), 34 agreements, 0 disagreements
 ```

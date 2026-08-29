@@ -35,13 +35,13 @@ attributed as NOT the game's    8,308     (38.5% of .text BYTES)
 remaining to decompile         23,574     (61.5%)
 call-graph edges               85,314
 vetted match candidates         5,020
-FUNCTIONS MATCHED                 178     (9,640 bytes of .text built)
+FUNCTIONS MATCHED                 181     (10,280 bytes of .text built)
 ```
 
 Matches are listed in `MATCHED.md`, whose table is generated from
 `src/manifest.txt` rather than maintained by hand. **The retail build did not
-use one optimisation level everywhere** — of the 178, 83 are `/O2` only, 32
-are `/O2 /Os` only and 63 compile identically either way. The level is a
+use one optimisation level everywhere** — of the 181, 85 are `/O2` only, 32
+are `/O2 /Os` only and 64 compile identically either way. The level is a
 property of the translation unit: `python tools/flagpairs.py` compiles every
 match at both levels and finds **34 informative adjacent pairs and 34
 agreements, no disagreement** — the insensitive half is excluded, because
@@ -74,21 +74,49 @@ image, the inventory, the XDK compiler and the comparison are all intact.
 
 | signal | functions | strength |
 |---|---|---|
-| `lib` | 6,453 | byte-for-byte match against an XDK library object — strong |
+| `lib` | 6,523 | byte-for-byte match against an XDK library object — strong |
 | `rtti_havok` | 1,178 | Havok vtable recovered from MSVC RTTI |
 | `srcpath` | 353 | the function references a middleware source path — weak |
 | `havok` | 251 | pushes a Havok profiler timer name — weak |
 | `game_profiled` | 3 | pushes a `Ttz` name, so it IS the title's own |
 
-These are the counts on the CURRENT inventory. They were stale for a while:
-`attribution.txt` had been generated against the older 25,737-function
-inventory and still summed to it, so `lib` read 6,332 and `rtti_havok` 673.
-Derived files do not regenerate themselves — `tools/verify.py` does not yet
-check for staleness, which is a known gap.
+**"Attributed" and "out of scope" are NOT the same thing, and this file used
+to run them together.** The distinction that matters is whether we hold the
+archive:
 
-`srcpath` and `havok` are attribution by a reference a function *makes*. They
-are deliberately not merged with the byte matches and have never been
-spot-checked.
+```
+                                     functions      bytes   share of .text
+the game's own (unattributed)           23,574   5,193,648    61.4%
+XDK library, WE HAVE THE .lib            6,523   2,713,724    32.1%
+Havok, SDK NOT HELD                      1,429     341,792     4.0%
+other middleware, NOT HELD                 353     198,132     2.3%
+game, profiler-named                         3       7,700     0.1%
+
+linkable from libraries we hold                  2,713,724    32.1%
+MUST BE WRITTEN to ever link                     5,741,272    67.9%
+```
+
+The `lib` bucket really is out of scope: `xgraphics.lib` (2,459 functions),
+`d3dx9.lib` (1,948), `xaudio2.lib` (737), `d3d9.lib` (466), `xapilib.lib`,
+`libcMT.lib`. Those ship with the XDK, the linker can be handed them, and
+nobody has to write a line.
+
+**Havok, FMOD, Ogg Vorbis and Bink are a different case entirely.** 539,924
+bytes, and there is no archive to link. Identifying them by RTTI or by a
+source-path string says what they ARE; it does not make them go away. Either
+the SDK is obtained or the code is written, and until one of those happens
+the image cannot be reassembled. Excluding them from the *count* was
+reasonable — they are not the title's own work — but excluding them from the
+PLAN was not, and the plan is what matters for a decompilation whose goal is
+a linkable image.
+
+**And they may be the easiest 6.3% in the file, not the hardest.** Havok
+functions arrive with their class names already recovered from RTTI (1,178 of
+them), against a published C++ API whose headers and class hierarchy are
+publicly documented for 6.5. Game code arrives with nothing but its bytes.
+`sub_8267ACC0` is a 236-byte constructor writing 52 fields with the
+`.?AVhkpWorld@@` vtable at +0 — a function where the class, the header and
+the field names are all knowable before writing a line.
 
 ### The memory map
 
@@ -121,8 +149,8 @@ checked to land on a real function start or in a data section.
 
 What remains: the undecompiled code is **copied** from the original rather
 than assembled from objects, so section layout, symbol ordering and
-inter-object padding are still unverified. Only 9,640 of 8,467,964 `.text` bytes
-(0.114%) are actually built. The real link — every function as an object,
+inter-object padding are still unverified. Only 10,280 of 8,467,964 `.text` bytes
+(0.121%) are actually built. The real link — every function as an object,
 ordered by a linker script — is still ahead.
 
 **2. The type system is started, not finished.** `include/types.h` now
@@ -452,6 +480,8 @@ broken one pops a modal dialog that blocks until someone clicks OK.
 | `matched_table.py` | regenerate MATCHED.md's table from the manifest; `--check` catches drift |
 | `flagpairs.py` | compile every match at BOTH levels and score the adjacency claim |
 | `climb.py` | which CALLER to match next — ranked by how much of it is already known |
+| `layout.py` | which unmatched function would pin the most LAYOUT — fields, span, vtable, stride |
+| `tunits.py` | named translation units, from the title's own assert-registration stubs |
 | `test_shrink.py` | six cases on `match.can_shrink`, five of which must refuse |
 | `segment.py` | probable translation units — scores itself, and mostly fails |
 | `permuter.py` | automatic source mutation; `--selftest` rediscovers a known match |
@@ -573,46 +603,50 @@ corrupt one fact and require the build to fail. A failing negative control is
 the serious kind -- it means a check reports success without being able to
 detect the failure it exists to detect.
 
-### The fastest way to add matches
+### Three ways to choose what to match next
 
-It is a batch process, and it runs at roughly 70% first-attempt success. In
-one session it took the count from 64 to 116.
+They answer different questions and none of them replaces the others.
 
 ```bash
-python tools/batch.py 40 --no-vmx        # the next 40, ranked by CALLERS
+python tools/batch.py 40 --no-vmx   # by CALLER COUNT -- throughput
+python tools/climb.py               # by what is ALREADY KNOWN -- structure
+python tools/layout.py              # by how much LAYOUT it would pin
 ```
 
-Ranking by caller count rather than by size or address is the whole point: a
-function with 40 callers is a shared accessor whose shape recurs, so
-recognising it once pays repeatedly. `batch.py` excludes anything already in
-`src/manifest.txt` or `src/attempts.txt`, resolves `lis`/`addi` references
-and annotates strings, so a candidate that looks unreadable usually is not.
+**`batch.py` is the throughput loop**, and it runs at roughly 70% on the
+first attempt. Ranking by caller count rather than by size or address is the
+whole point: a function with 40 callers is a shared accessor whose shape
+recurs. It excludes anything already sourced, resolves `lis`/`addi`
+references and annotates strings.
 
-Then: write sources for the twenty that read clearly, compile all twenty at
-once, put the matches in `src/manifest.txt` and the near-misses in
-`src/attempts.txt`. Do not guess plausible C -- **read the register
-discipline off the listing.** Which value the function keeps live, and for
-how long, IS the specification.
+Then write sources for the ones that read clearly, compile them all at once,
+matches to `src/manifest.txt` and near-misses to `src/attempts.txt`. Do not
+guess plausible C: **read the register discipline off the listing.**
 
-**This parallelises well.** Four agents each given eight candidates, the
-`MATCHED.md` levers and the rule that only `tools/match.py` printing MATCH
-counts, returned 6/8, 6/8, 8/8 and 8/8. Three things make it work:
+**But `candidates.py` only offers LEAF functions**, and the most-called code
+in the image is not leaf. Ranking the whole inventory by caller count instead
+reaches `82662E08` (730 callers), `8262F658` (420), `82662938` (367) and
+`82805D20` (276) — all matched that way, none of them ever offered.
 
-* **a distinct filename prefix each** — they share `src/` AND the scratchpad,
-  and two agents did overwrite each other's probe files of the same name;
-* **integrate centrally** — re-run `match.py` yourself on every claim before
-  it goes in the manifest, and run `build.py` after, which is stricter: it
-  RESOLVES relocations rather than excusing them, and it caught an unhandled
-  TLS relocation that `match.py` had passed;
-* **verify serially.** `tools/verify.py` compiles the whole manifest and runs
-  the build six more times; under load it exceeds a two-minute timeout, and
-  one build failed transiently while four agents were compiling. Run it in
-  the background, after they finish, and read the log.
+**`climb.py` goes UP from what is matched**, ranked by how much of each
+caller is already known. A caller whose callees are all matched or all
+library can be written with every name already decided. It also corrects the
+leaves: `VectorGrow`'s call sites revealed a third argument to `BinAlloc`
+that the leaf source had not declared, which is invisible from below.
 
-`MATCHED.md` carries the idiom table and, more valuable, the **levers**: the
-`do/while` that MSVC never rotates, naming or un-naming a local to move a
-load, `||` versus a sequence of `if`s, `lwzx` operand order, the
-`__declspec(thread)` tell. Each was the whole difference on some function.
+**`layout.py` ranks by structure** — distinct field offsets touched, span,
+whether a vtable is stored, any `mulli` stride. `sub_8289FA50` pins 63 field
+offsets and an exact `sizeof`; `sub_8267ACC0` pins 52 and identifies a class.
+
+**This parallelises well.** Four agents of eight candidates each returned
+6/8, 6/8, 8/8, 8/8, 7/8, 7/8, 6/8 and 5/7. Give each a distinct filename
+prefix — they share `src/` AND the scratchpad — and integrate centrally,
+re-running `match.py` yourself on every claim, then `build.py`, which is
+stricter: it RESOLVES relocations rather than excusing them and has caught
+things `match.py` passed.
+
+`MATCHED.md` carries the idiom table and the **levers**, which are most of
+the work. Read them before writing anything.
 
 ### Climbing: leaf, branch, bough
 
@@ -680,55 +714,70 @@ knows it.
 
 ### What still resists
 
-Fifteen near-misses, all in `src/attempts.txt` and all visible in objdiff.
-Each has the right instructions and differs only in a decision made inside
-the compiler. The score is words identical of words compared.
+Twenty-two near-misses, all in `src/attempts.txt`, all exported to objdiff,
+each with its measurement written into its own source file. Every one has the
+right instructions and differs only in a decision made inside the compiler.
 
 ```
-82806FD0    chunked_at      branch polarity -- bgtlr vs ble-, a probability call
-826C1480    init12          instruction order -- one store among five loads
-8215E5B0    arg_shuffle     register assignment across an argument permutation
-82600AD0    list_insert     a reloaded field the compiler will not keep in a register
-82639C38    fadd_fwd        an extra mr to keep the object alive across a float load
-827618E8    wstr_compare    loop rotation; counts kept in callee-saved r30/r31
-821A5350    m_state_1or2    4/8  the boolean stays in r11 and is zero-extended at the end
-825FE880    m_ctor_94       8/12 the vtable store will not move to the front
-826973C8    b_strcmp        9/11 the CR FIELD of one compare -- cr6 against cr0
-8215ED28    b_bounds_at    11/12 `lwzx` operands swapped; the same address either way
-82606EC8    f_arena_alloc  33/40 the operand order of two `add`s
-82202D08    m_pick_slot     2/11 folds a guard into beqlr where the target keeps one exit
-82155080    e_normalize4   45/51 two `fmuls` operand slots
-8214F7E8    e_axis_project  1/47 not close; the load census is recorded in the source
-821A5270    m_copy_adjust   0/10 the copy is integer, so a type here is not float
+82806FD0  chunked_at        branch polarity -- bgtlr vs ble-, a probability call
+826C1480  init12            instruction order -- one store among five loads
+8215E5B0  arg_shuffle       register assignment across an argument permutation
+82600AD0  list_insert       a reloaded field the compiler will not keep in a register
+82639C38  fadd_fwd          an extra mr to keep the object alive across a float load
+827618E8  wstr_compare      loop rotation; counts in callee-saved r30/r31
+821A5350  m_state_1or2       4/8   the boolean stays in r11, zero-extended at the end
+825FE880  m_ctor_94          8/12  the vtable store will not move to the front
+826973C8  b_strcmp           9/11  the CR FIELD of one compare, cr6 against cr0
+8215ED28  b_bounds_at       11/12  `lwzx` operands swapped; same address either way
+82606EC8  f_arena_alloc     33/40  the operand order of two `add`s
+82606FD8  h_arena_twin      33/40  its twin, the same two words
+82202D08  m_pick_slot        2/11  folds a guard into beqlr; target keeps one exit
+82155080  e_normalize4      45/51  two `fmuls` operand slots
+8214F7E8  e_axis_project     1/47  not close; the load census is in the source
+821A5270  m_copy_adjust      0/10  the copy is integer, so a type here is not float
+827261D8  k_kind_weight     84/91  one case body's register allocation
+82154ED8  j_quat_to_mtx     25/44  one `fmuls` operand slot, carried downstream
+82202B50  j_init_defaults    5/29  where the setup block sits
+82667EE0  VectorGrow        31/38  one `mullw` operand order -- MECHANISM KNOWN
+8217E808  m_tree_lookup      7/11  every instruction right; two tail blocks swapped
+82583290  m_audio_ctor      35/38 stores in EXACT order; DSE removes three
 ```
 
-Two of these were measured hard enough to be worth reading before trying
-again. `826973C8`: `/O2` gets the CR field right and the GPRs wrong, `/O2
-/Os` gets the GPRs right and the CR field wrong, and 2,304 flag combinations
-produce nothing better than either. `82606EC8`: the `add` operand-order rule
-in MATCHED.md says the base has to be READ earlier in the source, but any
-source that reads it earlier keeps it live across the if-body, so MSVC hoists
-instead of sinking and the body drops from 40 words to 37.
+**Three of these are now explained rather than merely recorded**, which is
+the difference between a stall and a fact:
 
-`8215E5B0` was on this list with its size recorded as 156 bytes, which is
-wrong -- one `.pdata` unwind row covers six frameless thunks there (§7q).
-That alone explains why objdiff scored it 12.1%, the worst of the fourteen.
-Correcting the extent did not match it, but it did mean the thing being
-measured was finally the right thing.
+* `VectorGrow` is displaced by an EARLIER READ of the same field making the
+  first occurrence the CSE representative. Proved by its sibling
+  `VectorReserve`, which holds the identical multiply with no earlier read
+  and comes out right first time. Not something the source can undo.
+* `m_audio_ctor` loses three words to MSVC's dead-store elimination removing
+  an early write the retail build kept. So the retail source has an INLINING
+  BOUNDARY a single translation unit cannot express — a constructor compiled
+  as its own function and inlined after DSE had already run. The first thing
+  found here that one `.cpp` provably cannot reproduce.
+* `f_arena_alloc` and `h_arena_twin` are the same two `add` operand orders,
+  and `layout.py`'s sibling experiment says operand order follows local
+  DECLARATION order — which is unreachable here, because both operands are
+  global fields with no locals to reorder.
 
-Two things are known about this class that were not. Translation-unit context
-does NOT affect codegen -- the same function compiled six ways with different
-company gives byte-identical output (§7m) -- so reconstructing whole files
+Two things are known about the class as a whole. Translation-unit context
+does NOT affect codegen — the same function compiled six ways with different
+company gives byte-identical output (§7m) — so reconstructing whole files
 would not help. And `tools/permuter.py`'s seven mutations do not reach
 register allocation, so **the next mutation to write is one that changes
 register PRESSURE**, not statement order.
 
 **Larger, in rough order of value:**
 
-1. **Havok**. 322 of 329 RTTI classes are `hk*`, so Havok is a large fraction
-   of the remaining 60.6%. A matching **Havok 6.5.0-r1 for Xbox 360** would let
-   `libmatch.py` eat it directly. The SDK has not turned up; RTTI identifies it
-   without one, which is enough to exclude it from scope but not to link it.
+1. **Havok — 341,792 bytes, and there is no archive to link.** A matching
+   **Havok 6.5.0-r1 for Xbox 360** would let `libmatch.py` eat it directly and
+   is worth real effort to find. But the fallback is to WRITE it, and that is
+   not the worst prospect in this file: 1,178 of those functions already have
+   their class name from RTTI, and Havok 6.5's API is publicly documented, so
+   the header, the hierarchy and the field names are knowable before any
+   function is read. Game code offers none of that.
+   Identifying middleware by RTTI says what it is; it does not make it go
+   away, and the image cannot be reassembled without it.
 2. **Scaleform GFx 3.x and FMOD Ex** for Xbox 360 — same idea.
 3. ~~**VMX128 in Ghidra.**~~ **MOOT.** Nothing in the pipeline uses Ghidra
    any more (`tools/discover.py` replaced it — see "Ghidra, measured and
@@ -807,9 +856,9 @@ The numbers, so nobody has to guess:
 ```
 functions that are probably the game's own    22,392
 their total size                           5,096,224 bytes
-matched                                          178 functions, 9,640 bytes
-                                                0.76% by count
-                                                0.19% by BYTES
+matched                                          181 functions, 10,280 bytes
+                                                0.77% by count
+                                                0.20% by BYTES
 ```
 
 That is up from 64 functions and 1,508 bytes in one session — nearly triple
@@ -823,7 +872,7 @@ non-leaf and were all matched this way.
 It still gets harder from here, because the easy work is taken first:
 
 ```
-mean matched function        40 bytes
+mean matched function        57 bytes
 median unmatched function   112 bytes
 2,013 unmatched functions of 512+ bytes hold 49% of the remaining bytes
 ```

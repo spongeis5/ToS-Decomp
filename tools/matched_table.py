@@ -68,12 +68,16 @@ def callers():
     return counts
 
 
-def compiled_size(src, sym, flags):
+def compiled_size(src, sym, flags, addr):
     use = ["/c", "/nologo"] + (flags.split(",") if flags
                                else ["/O2", "/Gy", "/GS-", "/fp:fast"])
     work = ROOT / "build/table"
     work.mkdir(parents=True, exist_ok=True)
-    tag = Path(src).stem + ("_" + sym if sym else "")
+    # NOT the symbol: a mangled C++ name contains `?` and `@`, which are
+    # illegal in a Windows filename, so a constructor made compile_obj fail
+    # and this refused to write a table -- correctly, but for a reason that
+    # had nothing to do with the source. The address is unique and safe.
+    tag = "%s_%08X" % (Path(src).stem, addr)
     blob, err = xdkcc.compile_obj(str(ROOT / src), work / (tag + ".obj"),
                                   use, work)
     if blob is None:
@@ -101,7 +105,7 @@ def build_table():
     total = 0
     failed = []
     for src, addr, sym, flags in rows():
-        n = compiled_size(src, sym, flags)
+        n = compiled_size(src, sym, flags, addr)
         if n is None:
             failed.append((src, addr))
             continue

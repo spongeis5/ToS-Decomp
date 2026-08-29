@@ -304,6 +304,79 @@ the arms sum to 21,238 exactly.
 
 ---
 
+## 7y. Two functions matched from opposite ends are the same container
+
+*measured 2026-08-29*
+
+`sub_82667E58` and `sub_82667EE0` were matched by climbing up from
+`BinAlloc`/`BinFree`, and modelled as a growable vector:
+
+```
++0  void* data
++4  s32   count
++8  s32   capacityAndFlags     bit 31 = "not ours to free", low 30 = capacity
+```
+
+`sub_8267ACC0` was matched later, chosen for STRUCTURE rather than for
+throughput -- 52 fields written in 236 bytes. Its vtable at 8206BE70 is named
+by MSVC RTTI as `.?AVhkpWorld@@`, and sixteen of those fields are 12-byte
+triples initialised to `{0, 0, 0x80000000}`.
+
+**Those are the same type.** A pointer, a count, and a capacity whose top bit
+is a don't-deallocate flag is `hkArray`, Havok's array. So the "vector" is
+hkArray's growth path, and the constructor is sixteen empty ones.
+
+Neither match knew what it was. They were reached by different means -- one by
+following the call graph up from an allocator, the other by ranking every
+unmatched function by how many field offsets it would pin -- and they met in
+the middle. **That is the first structural fact this project has recovered
+from two independent directions**, and it is the kind of confirmation a
+per-function match cannot give on its own.
+
+It also means `src/m_bin_free.cpp`'s BinAlloc and BinFree, 206 and 420
+callers, are what Havok's memory allocator resolves to in this build.
+
+---
+
+## 7z. Scope, corrected: attributed is not the same as out of scope
+
+*2026-08-29*
+
+The attribution table used to run two different things together. Separated by
+whether the archive is HELD:
+
+```
+                                  functions      bytes   share of .text
+the game's own (unattributed)        23,574   5,193,648    61.4%
+XDK library, WE HAVE THE .lib         6,523   2,713,724    32.1%
+Havok, SDK NOT HELD                   1,429     341,792     4.0%
+other middleware, NOT HELD              353     198,132     2.3%
+game, profiler-named                      3       7,700     0.1%
+
+linkable from libraries we hold                2,713,724    32.1%
+MUST BE WRITTEN to ever link                   5,741,272    67.9%
+```
+
+The `lib` bucket is genuinely out of scope: `xgraphics.lib` (2,459
+functions), `d3dx9.lib` (1,948), `xaudio2.lib` (737), `d3d9.lib` (466),
+`xapilib.lib`, `libcMT.lib`. Those ship with the XDK and the linker can be
+handed them.
+
+Havok, FMOD, Ogg Vorbis and Bink are 539,924 bytes with no archive to link.
+Identifying them by RTTI or by a source-path string says what they ARE; it
+does not make them go away. Excluding them from the COUNT was reasonable --
+they are not the title's own work -- but excluding them from the PLAN was
+not, and the plan is what matters for a decompilation whose goal is a
+linkable image.
+
+**And they may be the easiest 6.3% in the file.** 1,178 Havok functions
+arrive with their class name already recovered from RTTI, against a published
+API whose headers and hierarchy are documented. Game code arrives with
+nothing but its bytes. `sub_8267ACC0` was matched from a standing start
+because RTTI named the class and three constants named the member type.
+
+---
+
 ## 7w. Names are RECOVERABLE for about a hundred functions
 
 *measured 2026-08-29*

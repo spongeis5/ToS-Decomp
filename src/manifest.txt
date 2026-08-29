@@ -189,3 +189,5 @@ src/j_reset_state.cpp           8214CCB8
 src/j_scale_pair.cpp            82167FE0
 src/j_reset_range.cpp           82799B98  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
 src/m_vector_reserve.cpp        82667E58  VectorReserve
+src/m_mixer_clear.cpp           8289FA50
+src/m_hkpworld_ctor.cpp         8267ACC0  ??0hkpWorld@@QAA@XZ

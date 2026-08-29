@@ -3,6 +3,15 @@
 // sub_82667E58 -- reserve an explicit capacity. 136 B, 132 callers.
 //
 // The sibling of sub_82667EE0 (src/m_vector_grow.cpp): same struct, same two
+// IT IS hkArray. Identified later and from the other end of the program:
+// src/m_hkpworld_ctor.cpp constructs SIXTEEN 12-byte members whose empty
+// state is `{0, 0, 0x80000000}` -- a pointer, a count, and a capacity whose
+// top bit means DON'T DEALLOCATE. That is this struct exactly, and its class
+// is named by MSVC RTTI as `.?AVhkpWorld@@`. So these two functions are
+// Havok's array growth path, matched from opposite ends without either
+// knowing what it was -- one by climbing up from an allocator, the other by
+// ranking every function by how much layout it would pin.
+//
 // allocator calls, same memcpy, same packed word at +8 with the same three
 // masks. The only difference is that the new capacity ARRIVES as a parameter
 // instead of being computed as `count ? count * 2 : 1`, so this is Reserve

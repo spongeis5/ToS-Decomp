@@ -1445,6 +1445,22 @@
       }
     },
     {
+      "name": "sub_8289FA50 (m_mixer_clear)",
+      "target_path": "build/objdiff/target/m_mixer_clear_8289FA50.o",
+      "base_path": "build/objdiff/base/m_mixer_clear_8289FA50.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8267ACC0 (m_hkpworld_ctor)",
+      "target_path": "build/objdiff/target/m_hkpworld_ctor_8267ACC0.o",
+      "base_path": "build/objdiff/base/m_hkpworld_ctor_8267ACC0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
       "name": "sub_82806FD0 (chunked_at)",
       "target_path": "build/objdiff/target/chunked_at_82806FD0.o",
       "base_path": "build/objdiff/base/chunked_at_82806FD0.o",
@@ -1600,6 +1616,14 @@
       "name": "sub_8217E808 (m_tree_lookup)",
       "target_path": "build/objdiff/target/m_tree_lookup_8217E808.o",
       "base_path": "build/objdiff/base/m_tree_lookup_8217E808.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_82583290 (m_audio_ctor)",
+      "target_path": "build/objdiff/target/m_audio_ctor_82583290.o",
+      "base_path": "build/objdiff/base/m_audio_ctor_82583290.o",
       "metadata": {
         "complete": false
       }

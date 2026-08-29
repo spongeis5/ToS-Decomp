@@ -57,8 +57,11 @@ def manifest():
 
 
 def matches_at(img, src, addr, sym, flags, work):
-    tag = Path(src).stem + ("_" + sym if sym else "") + \
-        ("_os" if "/Os" in flags else "_o2")
+    # The ADDRESS, not the symbol: a mangled C++ name contains `?` and `@`,
+    # which cannot appear in a Windows filename, so a constructor row would
+    # make compile_obj fail and read as "matches at neither level".
+    tag = "%s_%08X%s" % (Path(src).stem, addr,
+                         "_os" if "/Os" in flags else "_o2")
     blob, _err = xdkcc.compile_obj(str(ROOT / src), work / (tag + ".obj"),
                                    flags, work)
     if blob is None:
