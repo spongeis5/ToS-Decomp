@@ -304,6 +304,44 @@ the arms sum to 21,238 exactly.
 
 ---
 
+## 7p. The game's own source tree, from its assert strings
+
+*measured 2026-08-28*
+
+`tools/srcfiles.py` recovers 188 source paths the code forms addresses to. Most
+are middleware -- Havok's `./Collide/...`, FMOD's `../src/fmod_*.cpp`, Ogg
+Vorbis, and 51 XDK paths under `e:\xenon\mar09\`. Ten are the title's own:
+
+```
+c:\branches\SB09\main\NG\Source\Engine\Graphics\BuildMemory.cpp   82909D80
+c:\branches\SB09\main\NG\Source\Engine\Graphics\Builder.cpp       82909D00
+c:\branches\SB09\main\NG\Source\Engine\Graphics\Display.cpp       82909E00
+c:\branches\SB09\main\NG\Source\Engine\Graphics\Effect.cpp        82909EC8
+c:\branches\SB09\main\NG\Source\Engine\Graphics\Sampler.cpp       8290A1C8
+c:\branches\SB09\main\NG\Source\Engine\Graphics\Scene.cpp         8290A248
+c:\branches\SB09\main\NG\Source\Engine\System\CoreTasking.cpp     829089B0
+c:\branches\SB09\main\NG\Source\Engine\System\Tasking.cpp         82908B08
+c:\branches\SB09\main\NG\Source\Engine\System\Time.cpp            82908BA0
+c:\branches\SB09\main\NG\Source\Engine\UI\Font.cpp                82908E88
+```
+
+Three things follow.
+
+**The engine is `NG`** -- Heavy Iron's "Next Gen" -- laid out as
+`Source/Engine/{Graphics,System,UI}/`. `SB09` is the title branch.
+
+**The platform sits ABOVE `Source/Engine/`**, which is the shape of a shared
+codebase with per-platform branches. That is the concrete reason a
+symbol-bearing Wii build would transfer names and struct layouts to this
+image even though no byte would transfer.
+
+**These ten are ground truth for translation units.** Each address is a
+function that asserts from a named file, so ten TU labels are known outright
+-- a much stronger signal than `tools/segment.py`'s adjacency clustering,
+which scores 55% precision. They have not been used for that yet.
+
+---
+
 ## 7m. Flags are a property of the TRANSLATION UNIT, not of the build
 
 *measured 2026-08-28*

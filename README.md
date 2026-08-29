@@ -315,52 +315,85 @@ and replaced" below. Keep it only if you want an independent cross-check.
 
 ## Rebuilding from scratch
 
-Each step writes into `build/`, which is entirely derived and gitignored.
+Everything under `build/` is derived and gitignored, so a fresh clone has the
+sources and none of the data. This is the whole sequence, in order. It takes
+a couple of minutes, all of it except `libmatch` in seconds.
+
+**1. The VMX128 disassembler, once.** Several tools degrade loudly without it
+and one (`discover.py`) skips a filter rather than apply a wrong one, so build
+it first. MSVC, x64, from `thirdparty/disasm/`:
 
 ```bash
-python tools/xex.py            # DEFAULT.XEX -> build/default.pe.exe
-python tools/flatten_pe.py     # fix the section headers -> default.image.exe
-python tools/verify_mapping.py # CONFIRM the mapping before trusting anything
-python tools/pdata.py          # the .pdata function table -> functions.txt
+cl /O2 /W0 /D_CRT_SECURE_NO_WARNINGS /I.. ..\ppcdis_main.c ..\ppc-dis.c ..\disasm.c /Fe:build\ppcdis.exe
 ```
 
-Then Ghidra, which supplies the other 4,499 functions and the call graph:
+**2. Unpack the image and establish the mapping.** Run `verify_mapping.py`
+before trusting anything downstream: it scores both candidate VA→offset
+mappings against `.pdata` and the wrong one still produces plausible-looking
+instructions.
 
 ```bash
-GHIDRA_HEADLESS_MAXMEM=12G analyzeHeadless <proj> ToS \
-  -import build/default.image.exe -overwrite \
-  -processor "PowerPC:BE:64:A2ALT-32addr" \
-  -scriptPath ghidra_scripts \
-  -preScript TuneAnalysis -preScript ApplyPdata -preScript ApplyKnowledge \
-  -postScript ReportAnalysis -max-cpu 12
+python tools/xex.py             # game/DEFAULT.XEX -> build/default.pe.exe
+python tools/flatten_pe.py      # section headers -> build/default.image.exe
+python tools/verify_mapping.py  # DECIDE the mapping, both arms scored
+python tools/pdata.py           # the unwind table -> build/functions.txt
 ```
 
-then export and build the union inventory:
+**3. Find the functions and the call graph.** About a second, and no Ghidra —
+see "Ghidra, measured and replaced" for why.
 
 ```bash
-analyzeHeadless <proj> ToS -process default.image.exe -noanalysis \
-  -scriptPath ghidra_scripts -postScript DumpFunctions build/ghidra_fn_v2.txt
-python tools/inventory.py
+python tools/discover.py        # branch sweep + data pointers + decodability
+python tools/inventory.py       # .pdata UNION discovery -> functions_all.txt
 ```
 
-Then the analysis passes, in any order:
+**4. The analysis passes.** `libmatch` is the slow one, a few minutes.
 
 ```bash
-python tools/libmatch.py --all --min-bytes 32   # XDK library byte matching (slow)
+python tools/libmatch.py --all --min-bytes 32   # XDK library byte matching
 python tools/rtti.py                            # Havok classes and vtables
 python tools/xeximports.py                      # 207 kernel/XAM imports, named
-python tools/srcfiles.py                        # source paths referenced by code
-python tools/profnames.py                       # engine profiler scope names
-python tools/attribute.py                       # merge it all into one picture
-python tools/candidates.py                      # pick a match target
+python tools/srcfiles.py                        # source paths the code forms
+python tools/profnames.py                       # profiler scope names
+python tools/attribute.py                       # merge every signal
+python tools/candidates.py                      # vetted match targets
 ```
 
-The VMX128 disassembler must be built once (MSVC, x64):
+**Order matters here.** `candidates.py` reads `attribution.txt` and SKIPS any
+inventory entry missing from it, so running it against a stale attribution
+silently hides thousands of candidates — that happened, and the list read
+2,542 instead of 4,231.
+
+**5. Optional, none of it on the critical path:**
 
 ```bash
-cl /O2 /W0 /D_CRT_SECURE_NO_WARNINGS /I.. \
-   ..\ppcdis_main.c ..\ppc-dis.c ..\disasm.c /Fe:build\ppcdis.exe
+python tools/switches.py        # decode switch dispatch; checked by verify.py
+python tools/segment.py         # probable translation units (weak — see its
+                                #   --validate, it mostly fails)
+python tools/objdiff_export.py  # ELF pairs + objdiff.json for visual diffing
+python tools/dumptext.py        # full .text disassembly, 83 MB, only needed
+                                #   by vmx128_intrinsics.py
 ```
+
+**6. Confirm the whole thing.**
+
+```bash
+python tools/verify.py
+```
+
+### If you are setting up the XDK for the first time
+
+`link.exe` and six other EXEs ship without a VC90 activation context and die
+with R6034 the first time they run. Repair every one without touching a
+binary:
+
+```bash
+python tools/fix_manifests.py --write
+```
+
+`python tools/pemanifest.py SDKFiles/xdk/XDK/bin/win32` reports the state of
+all 160 modules without running any of them, which matters because running a
+broken one pops a modal dialog that blocks until someone clicks OK.
 
 ---
 
@@ -393,6 +426,7 @@ cl /O2 /W0 /D_CRT_SECURE_NO_WARNINGS /I.. \
 | `segment.py` | probable translation units — scores itself, and mostly fails |
 | `permuter.py` | automatic source mutation; `--selftest` rediscovers a known match |
 | `objdiff_export.py` | synthesize ELF pairs + `objdiff.json` for visual diffing |
+| `dumptext.py` | full `.text` disassembly to a file (VMX128-aware) |
 | `switches.py` | decode MSVC switch dispatch; check nothing listed as a function is a case body |
 | `verify.py` | **run everything**, including five negative controls |
 | `flagsweep.py` | sweep compiler flags for one source against one target |
@@ -584,6 +618,93 @@ PRESSURE**, not statement order.
   `LNK1123` on the `.pgd`, so which product id a PGO build stamps is unknown
   and the image cannot be checked for it. Not needed to explain the stalled
   matches: the branchless `826C1480` rules out branch layout by construction.
+
+---
+
+---
+
+## Scope, honestly — and the two objections worth taking seriously
+
+Both of these came from someone who knows the scene, and both are largely
+right. Neither is a reason not to do this, but pretending otherwise would be
+worse than useless.
+
+### "There is a reason they did a recomp for Unleashed instead of a decomp"
+
+Correct, and the reason is scale. A static recompilation gets a playable game
+in months by translating the shipped binary; a byte-matching decompilation
+recovers source and takes years. **That is why `../ToS-Port` exists
+separately** — it is the recomp, and it is the right tool for playability.
+This tree is the other thing, and it should not be confused for a faster
+route to the same place.
+
+The numbers, so nobody has to guess:
+
+```
+functions that are probably the game's own    22,392
+their total size                           5,096,224 bytes
+matched                                           64 functions, 1,508 bytes
+                                                0.29% by count
+                                                0.030% by BYTES
+```
+
+And the byte figure will get worse before it gets better, because the easy
+work has been taken first:
+
+```
+mean matched function        23 bytes
+median unmatched function   112 bytes
+2,013 unmatched functions of 512+ bytes hold 49% of the remaining bytes
+```
+
+So: 64 matches is a working pipeline and a validated toolchain, not a dent in
+the program.
+
+### "Better luck doing it for Wii — symbols actually exist for that"
+
+Also correct, and worth acting on rather than arguing with. GameCube/Wii
+titles frequently shipped with a `.map` on the disc or DWARF in the `.dol`,
+which is exactly why that scene's decomps are so far ahead. Nothing of the
+kind exists here: this image has no symbol table, and every name in `src/` is
+invented.
+
+**What a Wii build would give this project, if it shares the codebase:**
+
+* **Struct layouts and field offsets.** Both targets are 32-bit big-endian
+  PowerPC, and a cross-platform engine shares its layouts. Our single largest
+  source of guesswork is `char unk0000[0x84]` padding, and a symbol table
+  would replace it with fields.
+* **Function and class names**, transferable by structure — call-graph shape,
+  string references, vtable order — even though the bytes differ.
+* **Translation-unit boundaries**, which is the gap `tools/segment.py`
+  measured and could not close: adjacency alone gives 55% precision, and a
+  `.map` would give the answer outright.
+
+**What would NOT transfer:** the bytes. Wii is Metrowerks CodeWarrior on
+PowerPC 750CL; this is MSVC 15.00.8153 on Xenon. None of the 64 matches, none
+of the register allocation, none of the instruction scheduling. A Wii decomp
+and this are different programs that share a design.
+
+**The evidence that the codebase IS shared** is in the image already. Assert
+strings recovered by `tools/srcfiles.py` name the game's own build tree:
+
+```
+c:\branches\SB09\main\NG\Source\Engine\Graphics\Builder.cpp
+c:\branches\SB09\main\NG\Source\Engine\System\Tasking.cpp
+c:\branches\SB09\main\NG\Source\Engine\UI\Font.cpp
+                        ^^ platform branch
+```
+
+`SB09` is the title, `NG` is Heavy Iron's "Next Gen" engine, and the platform
+sits at a branch level above `Source/Engine/` — which is what a shared
+codebase with per-platform branches looks like. If a Wii build carries symbols
+for `Source/Engine/...`, those names describe the same classes this image
+contains.
+
+**So the practical answer to both objections is the same:** if a symbol-bearing
+Wii build of this title can be had, getting it is worth more than any number
+of hand-matched functions here, and it would be used to name and lay out —
+not to match.
 
 ---
 
