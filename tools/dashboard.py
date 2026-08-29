@@ -77,7 +77,15 @@ if vp.exists():
         if not line.startswith("  ") or line.startswith("    "):
             continue
         b = line.strip()
-        if b.endswith(" ok"):
+        # A status may be FOLLOWED BY A DETAIL -- "... ok  3 source(s) agree
+        # on 34096" -- so matching only a trailing " ok" silently dropped
+        # the checks that explain themselves, and the page showed 25 of 26
+        # as though that were the whole suite. Split on the status token.
+        m = re.match(r"^(.*?)\s{2,}(ok|FAIL)\b", b)
+        if m:
+            checks.append((m.group(1).strip(),
+                           "ok" if m.group(2) == "ok" else "fail"))
+        elif b.endswith(" ok"):
             checks.append((b[:-3].strip(), "ok"))
         elif " FAIL" in b:
             checks.append((b[:b.index(" FAIL")].strip(), "fail"))
