@@ -30,6 +30,18 @@ supplied each is recorded so the two are never silently conflated.
 
     python tools/inventory.py             .pdata + discovery  (default)
     python tools/inventory.py --ghidra    the old union, for comparison
+    python tools/inventory.py --addrtaken  ALSO fold in tools/addrtaken.py
+
+`--addrtaken` is opt-in because it changes SIZES as well as adding rows, and
+every derived file downstream was built against the current ones. It folds in
+the 1,252 starts found by address-taken-in-code (FINDINGS 7r), and TRUNCATES
+any existing row whose extent runs past one of them -- which is the point:
+521 rows are too long because one `.pdata` unwind record can cover a run of
+adjacent frameless bodies (7q).
+
+After running it, `tools/attribute.py` and `tools/candidates.py` must be
+re-run, in that order, or candidates.py silently drops everything missing
+from a stale attribution.
 """
 
 import sys
@@ -40,6 +52,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from peimage import load_functions
 
 GHIDRA = Path("build/ghidra_fn_v2.txt")
+ADDRTAKEN = Path("build/addrtaken.txt")
 DISCOVERED = Path("build/discovered_inventory.txt")
 OUT = Path("build/functions_all.txt")
 
@@ -54,8 +67,32 @@ def read_pairs(path):
     return out
 
 
+def read_starts(path):
+    out = []
+    for line in path.read_text().splitlines():
+        if line.startswith("#") or not line.strip():
+            continue
+        out.append(int(line.split()[0], 16))
+    return out
+
+
+def trim(img, va, size):
+    """Drop trailing alignment padding, as discover.py does."""
+    import struct
+    while size >= 8:
+        raw = img.read(va + size - 4, 4)
+        if raw is None:
+            break
+        w = struct.unpack(">I", raw)[0]
+        if w not in (0, 0x60000000):
+            break
+        size -= 4
+    return size
+
+
 def main(argv):
     use_ghidra = "--ghidra" in argv[1:]
+    use_taken = "--addrtaken" in argv[1:]
     src_path = GHIDRA if use_ghidra else DISCOVERED
     label = "ghidra" if use_ghidra else "discover"
 
@@ -84,6 +121,33 @@ def main(argv):
     print("  size from .pdata        %6d" % st["pdata"])
     print("  size from %-8s only  %6d" % (label, st["other"]))
     print("  in .pdata but not %-8s %5d" % (label, len(set(pd) - set(other))))
+
+    if use_taken:
+        if not ADDRTAKEN.exists():
+            print("%s missing -- run tools/addrtaken.py first" % ADDRTAKEN,
+                  file=sys.stderr)
+            return 1
+        from peimage import Image
+        img = Image()
+        extra = [a for a in read_starts(ADDRTAKEN)
+                 if a not in {r[0] for r in rows}]
+        merged = sorted(rows + [(a, 0, "addrtaken") for a in extra],
+                        key=lambda r: r[0])
+        out2, shortened = [], 0
+        for i, (a, s, src) in enumerate(merged):
+            limit = (merged[i + 1][0] - a) if i + 1 < len(merged) else s
+            if src == "addrtaken":
+                s = trim(img, a, limit)
+            elif limit < s:
+                s = trim(img, a, limit)
+                shortened += 1
+            out2.append((a, s, src))
+        rows = out2
+        print("")
+        print("--addrtaken: %d start(s) added, %d existing row(s) SHORTENED"
+              % (len(extra), shortened))
+        print("  Re-run tools/attribute.py then tools/candidates.py; a stale")
+        print("  attribution makes candidates.py drop everything not in it.")
 
     with OUT.open("w") as f:
         f.write("# address size source\n")

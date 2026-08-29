@@ -45,6 +45,41 @@ def check(label, args, want_zero=True):
     return ok
 
 
+SENTINEL = ROOT / "build/.verify_restore.json"
+
+
+def restore_if_interrupted():
+    """Put back anything a killed run left corrupted.
+
+    `negative()` corrupts a real source file, runs the build, and restores it
+    in a `finally`. A `finally` does not run when the process is KILLED --
+    and a two-minute command timeout killed one of these mid-control, leaving
+    `src/manifest.txt` holding 821636AC instead of 821636A8. The next run
+    then reported four failures, one of them a negative control reading
+    "pattern absent, test is invalid", which is a confusing way to be told
+    the tree is dirty.
+
+    So the original text goes to disk BEFORE the corruption and is removed
+    only after the restore. If it is still there at startup, the previous run
+    died and this puts the tree back.
+    """
+    if not SENTINEL.exists():
+        return
+    import json
+    try:
+        saved = json.loads(SENTINEL.read_text(encoding="utf-8"))
+    except ValueError:
+        print("build/.verify_restore.json is unreadable; remove it by hand.")
+        sys.exit(1)
+    print("A PREVIOUS RUN WAS KILLED while a negative control had a file")
+    print("corrupted. Restoring before doing anything else:")
+    for rel, text in saved.items():
+        (ROOT / rel).write_text(text, encoding="utf-8")
+        print("  restored %s" % rel)
+    SENTINEL.unlink()
+    print("")
+
+
 def negative(label, path, old, new, expect_substr=None, also=None):
     """Corrupt one thing, require the BUILD to fail, then restore.
 
@@ -60,11 +95,16 @@ def negative(label, path, old, new, expect_substr=None, also=None):
     text = orig.replace(old, new, 1)
     if also:
         text = text.replace(also[0], also[1], 1)
+    import json
+    SENTINEL.parent.mkdir(parents=True, exist_ok=True)
+    SENTINEL.write_text(json.dumps({path: orig}), encoding="utf-8")
     p.write_text(text)
     try:
         rc, out = run(["tools/build.py"])
     finally:
         p.write_text(orig)
+        if SENTINEL.exists():
+            SENTINEL.unlink()
     ok = rc != 0
     if ok and expect_substr:
         ok = expect_substr in out
@@ -99,13 +139,18 @@ MATCHES = load_matches()
 
 
 def main():
+    restore_if_interrupted()
     results = []
 
     print("TOOLS -- each must run and exit 0\n")
     results.append(check("xdkcc self-test (headers + assertions)",
                          ["tools/xdkcc.py"]))
-    results.append(check("coffreloc relocation semantics, 5 cases",
+    results.append(check("coffreloc relocation semantics, 9 cases",
                          ["tools/test_coffreloc.py"]))
+    results.append(check("match.py size shrink, 7 cases (5 must refuse)",
+                         ["tools/test_shrink.py"]))
+    results.append(check("MATCHED.md table matches the manifest",
+                         ["tools/matched_table.py", "--check"]))
     results.append(check("backslash-heredoc hook, 7 cases",
                          [".claude/hooks/test_no_backslash_heredoc.py"]))
     results.append(check("reconstructing build (.text reproduces)",

@@ -525,6 +525,654 @@
       }
     },
     {
+      "name": "sub_82806D08 (a_report_badthis)",
+      "target_path": "build/objdiff/target/a_report_badthis_82806D08.o",
+      "base_path": "build/objdiff/base/a_report_badthis_82806D08.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82160880 (a_copy_fields)",
+      "target_path": "build/objdiff/target/a_copy_fields_82160880.o",
+      "base_path": "build/objdiff/base/a_copy_fields_82160880.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8224E6F8 (a_item_vcall1)",
+      "target_path": "build/objdiff/target/a_item_vcall1_8224E6F8.o",
+      "base_path": "build/objdiff/base/a_item_vcall1_8224E6F8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8224E178 (a_vcall4_or_neg1)",
+      "target_path": "build/objdiff/target/a_vcall4_or_neg1_8224E178.o",
+      "base_path": "build/objdiff/base/a_vcall4_or_neg1_8224E178.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8253A1C0 (a_out_or_err)",
+      "target_path": "build/objdiff/target/a_out_or_err_8253A1C0.o",
+      "base_path": "build/objdiff/base/a_out_or_err_8253A1C0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82602F98 (a_tls_field)",
+      "target_path": "build/objdiff/target/a_tls_field_82602F98.o",
+      "base_path": "build/objdiff/base/a_tls_field_82602F98.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82540770 (string_utils)",
+      "target_path": "build/objdiff/target/string_utils_82540770.o",
+      "base_path": "build/objdiff/base/string_utils_82540770.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825408B0 (m_strcmp_n)",
+      "target_path": "build/objdiff/target/m_strcmp_n_825408B0.o",
+      "base_path": "build/objdiff/base/m_strcmp_n_825408B0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_822481B0 (m_flag_guard)",
+      "target_path": "build/objdiff/target/m_flag_guard_822481B0.o",
+      "base_path": "build/objdiff/base/m_flag_guard_822481B0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82724A68 (m_tls_reserve)",
+      "target_path": "build/objdiff/target/m_tls_reserve_82724A68.o",
+      "base_path": "build/objdiff/base/m_tls_reserve_82724A68.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826918F8 (d_basis_identity)",
+      "target_path": "build/objdiff/target/d_basis_identity_826918F8.o",
+      "base_path": "build/objdiff/base/d_basis_identity_826918F8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8214D998 (d_normalize3)",
+      "target_path": "build/objdiff/target/d_normalize3_8214D998.o",
+      "base_path": "build/objdiff/base/d_normalize3_8214D998.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82151C50 (d_wrap_2pi)",
+      "target_path": "build/objdiff/target/d_wrap_2pi_82151C50.o",
+      "base_path": "build/objdiff/base/d_wrap_2pi_82151C50.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8214D640 (d_normalize_to)",
+      "target_path": "build/objdiff/target/d_normalize_to_8214D640.o",
+      "base_path": "build/objdiff/base/d_normalize_to_8214D640.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82154A68 (d_mtx_translate_row)",
+      "target_path": "build/objdiff/target/d_mtx_translate_row_82154A68.o",
+      "base_path": "build/objdiff/base/d_mtx_translate_row_82154A68.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826731B0 (d_init_obj_1)",
+      "target_path": "build/objdiff/target/d_init_obj_1_826731B0.o",
+      "base_path": "build/objdiff/base/d_init_obj_1_826731B0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825FD7C0 (d_attach_notify)",
+      "target_path": "build/objdiff/target/d_attach_notify_825FD7C0.o",
+      "base_path": "build/objdiff/base/d_attach_notify_825FD7C0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8261B2F8 (d_flag_vcall)",
+      "target_path": "build/objdiff/target/d_flag_vcall_8261B2F8.o",
+      "base_path": "build/objdiff/base/d_flag_vcall_8261B2F8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82724A98 (m_store_ge)",
+      "target_path": "build/objdiff/target/m_store_ge_82724A98.o",
+      "base_path": "build/objdiff/base/m_store_ge_82724A98.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82545348 (m_span_out)",
+      "target_path": "build/objdiff/target/m_span_out_82545348.o",
+      "base_path": "build/objdiff/base/m_span_out_82545348.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826A3328 (m_init_512)",
+      "target_path": "build/objdiff/target/m_init_512_826A3328.o",
+      "base_path": "build/objdiff/base/m_init_512_826A3328.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82600A60 (m_list_head)",
+      "target_path": "build/objdiff/target/m_list_head_82600A60.o",
+      "base_path": "build/objdiff/base/m_list_head_82600A60.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82663370 (b_release_ref)",
+      "target_path": "build/objdiff/target/b_release_ref_82663370.o",
+      "base_path": "build/objdiff/base/b_release_ref_82663370.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826A32E8 (b_hash_lower)",
+      "target_path": "build/objdiff/target/b_hash_lower_826A32E8.o",
+      "base_path": "build/objdiff/base/b_hash_lower_826A32E8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82805F48 (b_setstr_len)",
+      "target_path": "build/objdiff/target/b_setstr_len_82805F48.o",
+      "base_path": "build/objdiff/base/b_setstr_len_82805F48.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8262FB50 (b_free_sentinel)",
+      "target_path": "build/objdiff/target/b_free_sentinel_8262FB50.o",
+      "base_path": "build/objdiff/base/b_free_sentinel_8262FB50.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82637590 (b_free_items)",
+      "target_path": "build/objdiff/target/b_free_items_82637590.o",
+      "base_path": "build/objdiff/base/b_free_items_82637590.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8252D9C8 (b_fwd_global5)",
+      "target_path": "build/objdiff/target/b_fwd_global5_8252D9C8.o",
+      "base_path": "build/objdiff/base/b_fwd_global5_8252D9C8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82665388 (a_fwd24)",
+      "target_path": "build/objdiff/target/a_fwd24_82665388.o",
+      "base_path": "build/objdiff/base/a_fwd24_82665388.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82666360 (a_fwd24_self)",
+      "target_path": "build/objdiff/target/a_fwd24_self_82666360.o",
+      "base_path": "build/objdiff/base/a_fwd24_self_82666360.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82677058 (m_fwd_84)",
+      "target_path": "build/objdiff/target/m_fwd_84_82677058.o",
+      "base_path": "build/objdiff/base/m_fwd_84_82677058.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82639C68 (m_get_48)",
+      "target_path": "build/objdiff/target/m_get_48_82639C68.o",
+      "base_path": "build/objdiff/base/m_get_48_82639C68.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82603108 (c_release_guarded)",
+      "target_path": "build/objdiff/target/c_release_guarded_82603108.o",
+      "base_path": "build/objdiff/base/c_release_guarded_82603108.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8215A420 (c_hash_upper)",
+      "target_path": "build/objdiff/target/c_hash_upper_8215A420.o",
+      "base_path": "build/objdiff/base/c_hash_upper_8215A420.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8219EB58 (c_bucket_find)",
+      "target_path": "build/objdiff/target/c_bucket_find_8219EB58.o",
+      "base_path": "build/objdiff/base/c_bucket_find_8219EB58.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826376E0 (c_probe_map)",
+      "target_path": "build/objdiff/target/c_probe_map_826376E0.o",
+      "base_path": "build/objdiff/base/c_probe_map_826376E0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826632F8 (c_atomic_inc4)",
+      "target_path": "build/objdiff/target/c_atomic_inc4_826632F8.o",
+      "base_path": "build/objdiff/base/c_atomic_inc4_826632F8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826A3648 (c_share_static)",
+      "target_path": "build/objdiff/target/c_share_static_826A3648.o",
+      "base_path": "build/objdiff/base/c_share_static_826A3648.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8287E440 (c_iter_equal)",
+      "target_path": "build/objdiff/target/c_iter_equal_8287E440.o",
+      "base_path": "build/objdiff/base/c_iter_equal_8287E440.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82662F20 (c_handle_lookup)",
+      "target_path": "build/objdiff/target/c_handle_lookup_82662F20.o",
+      "base_path": "build/objdiff/base/c_handle_lookup_82662F20.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C0F28 (g_sum_chain)",
+      "target_path": "build/objdiff/target/g_sum_chain_826C0F28.o",
+      "base_path": "build/objdiff/base/g_sum_chain_826C0F28.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8252BE30 (g_out_or_err36)",
+      "target_path": "build/objdiff/target/g_out_or_err36_8252BE30.o",
+      "base_path": "build/objdiff/base/g_out_or_err36_8252BE30.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8260FEB0 (g_find_by_key)",
+      "target_path": "build/objdiff/target/g_find_by_key_8260FEB0.o",
+      "base_path": "build/objdiff/base/g_find_by_key_8260FEB0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_822E2048 (g_fwd_6args)",
+      "target_path": "build/objdiff/target/g_fwd_6args_822E2048.o",
+      "base_path": "build/objdiff/base/g_fwd_6args_822E2048.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8220F810 (g_vec3_pick)",
+      "target_path": "build/objdiff/target/g_vec3_pick_8220F810.o",
+      "base_path": "build/objdiff/base/g_vec3_pick_8220F810.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8252D950 (g_fwd_global_a)",
+      "target_path": "build/objdiff/target/g_fwd_global_a_8252D950.o",
+      "base_path": "build/objdiff/base/g_fwd_global_a_8252D950.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8252D978 (g_fwd_global_b)",
+      "target_path": "build/objdiff/target/g_fwd_global_b_8252D978.o",
+      "base_path": "build/objdiff/base/g_fwd_global_b_8252D978.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82218F90 (g_fwd_shift4)",
+      "target_path": "build/objdiff/target/g_fwd_shift4_82218F90.o",
+      "base_path": "build/objdiff/base/g_fwd_shift4_82218F90.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826A4528 (g_share_tagged)",
+      "target_path": "build/objdiff/target/g_share_tagged_826A4528.o",
+      "base_path": "build/objdiff/base/g_share_tagged_826A4528.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825408F8 (m_stricmp)",
+      "target_path": "build/objdiff/target/m_stricmp_825408F8.o",
+      "base_path": "build/objdiff/base/m_stricmp_825408F8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82540968 (m_stricmp)",
+      "target_path": "build/objdiff/target/m_stricmp_82540968.o",
+      "base_path": "build/objdiff/base/m_stricmp_82540968.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82663260 (m_ref_ctor)",
+      "target_path": "build/objdiff/target/m_ref_ctor_82663260.o",
+      "base_path": "build/objdiff/base/m_ref_ctor_82663260.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827FE8A0 (m_cached_or_make)",
+      "target_path": "build/objdiff/target/m_cached_or_make_827FE8A0.o",
+      "base_path": "build/objdiff/base/m_cached_or_make_827FE8A0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82799878 (m_scale_sq)",
+      "target_path": "build/objdiff/target/m_scale_sq_82799878.o",
+      "base_path": "build/objdiff/base/m_scale_sq_82799878.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827841D8 (m_release)",
+      "target_path": "build/objdiff/target/m_release_827841D8.o",
+      "base_path": "build/objdiff/base/m_release_827841D8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82600A88 (m_unlink_free)",
+      "target_path": "build/objdiff/target/m_unlink_free_82600A88.o",
+      "base_path": "build/objdiff/base/m_unlink_free_82600A88.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8228AF08 (m_enqueue4)",
+      "target_path": "build/objdiff/target/m_enqueue4_8228AF08.o",
+      "base_path": "build/objdiff/base/m_enqueue4_8228AF08.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821EE668 (m_fwd_ctx)",
+      "target_path": "build/objdiff/target/m_fwd_ctx_821EE668.o",
+      "base_path": "build/objdiff/base/m_fwd_ctx_821EE668.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82265D88 (m_ready_not255)",
+      "target_path": "build/objdiff/target/m_ready_not255_82265D88.o",
+      "base_path": "build/objdiff/base/m_ready_not255_82265D88.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8225B450 (m_state_2to4)",
+      "target_path": "build/objdiff/target/m_state_2to4_8225B450.o",
+      "base_path": "build/objdiff/base/m_state_2to4_8225B450.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8279D958 (m_vcall4_f8)",
+      "target_path": "build/objdiff/target/m_vcall4_f8_8279D958.o",
+      "base_path": "build/objdiff/base/m_vcall4_f8_8279D958.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82600A08 (f_pool_link)",
+      "target_path": "build/objdiff/target/f_pool_link_82600A08.o",
+      "base_path": "build/objdiff/base/f_pool_link_82600A08.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82254A88 (f_find_state)",
+      "target_path": "build/objdiff/target/f_find_state_82254A88.o",
+      "base_path": "build/objdiff/base/f_find_state_82254A88.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82637688 (f_hash_probe)",
+      "target_path": "build/objdiff/target/f_hash_probe_82637688.o",
+      "base_path": "build/objdiff/base/f_hash_probe_82637688.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826C6C60 (f_vec_compact)",
+      "target_path": "build/objdiff/target/f_vec_compact_826C6C60.o",
+      "base_path": "build/objdiff/base/f_vec_compact_826C6C60.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821559D8 (f_name_lookup)",
+      "target_path": "build/objdiff/target/f_name_lookup_821559D8.o",
+      "base_path": "build/objdiff/base/f_name_lookup_821559D8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827156B8 (f_state_advance)",
+      "target_path": "build/objdiff/target/f_state_advance_827156B8.o",
+      "base_path": "build/objdiff/base/f_state_advance_827156B8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825BD9B0 (m_read_le32)",
+      "target_path": "build/objdiff/target/m_read_le32_825BD9B0.o",
+      "base_path": "build/objdiff/base/m_read_le32_825BD9B0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821C77A8 (m_enqueue12)",
+      "target_path": "build/objdiff/target/m_enqueue12_821C77A8.o",
+      "base_path": "build/objdiff/base/m_enqueue12_821C77A8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82151690 (m_max_pair)",
+      "target_path": "build/objdiff/target/m_max_pair_82151690.o",
+      "base_path": "build/objdiff/base/m_max_pair_82151690.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821BCA48 (m_ctor_7zero)",
+      "target_path": "build/objdiff/target/m_ctor_7zero_821BCA48.o",
+      "base_path": "build/objdiff/base/m_ctor_7zero_821BCA48.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_822D2978 (m_upcast_call)",
+      "target_path": "build/objdiff/target/m_upcast_call_822D2978.o",
+      "base_path": "build/objdiff/base/m_upcast_call_822D2978.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82272AA0 (m_first_or_self)",
+      "target_path": "build/objdiff/target/m_first_or_self_82272AA0.o",
+      "base_path": "build/objdiff/base/m_first_or_self_82272AA0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827827B8 (m_release)",
+      "target_path": "build/objdiff/target/m_release_827827B8.o",
+      "base_path": "build/objdiff/base/m_release_827827B8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8216CDA0 (m_flag_dispatch)",
+      "target_path": "build/objdiff/target/m_flag_dispatch_8216CDA0.o",
+      "base_path": "build/objdiff/base/m_flag_dispatch_8216CDA0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82704688 (m_select2)",
+      "target_path": "build/objdiff/target/m_select2_82704688.o",
+      "base_path": "build/objdiff/base/m_select2_82704688.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8277E170 (e_ones_zeros8)",
+      "target_path": "build/objdiff/target/e_ones_zeros8_8277E170.o",
+      "base_path": "build/objdiff/base/e_ones_zeros8_8277E170.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_821FF908 (e_can_use)",
+      "target_path": "build/objdiff/target/e_can_use_821FF908.o",
+      "base_path": "build/objdiff/base/e_can_use_821FF908.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82691C50 (e_mtx23_mul)",
+      "target_path": "build/objdiff/target/e_mtx23_mul_82691C50.o",
+      "base_path": "build/objdiff/base/e_mtx23_mul_82691C50.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_82691CF0 (e_mtx23_premul)",
+      "target_path": "build/objdiff/target/e_mtx23_premul_82691CF0.o",
+      "base_path": "build/objdiff/base/e_mtx23_premul_82691CF0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_826919A8 (e_mtx23_xform)",
+      "target_path": "build/objdiff/target/e_mtx23_xform_826919A8.o",
+      "base_path": "build/objdiff/base/e_mtx23_xform_826919A8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
       "name": "sub_82806FD0 (chunked_at)",
       "target_path": "build/objdiff/target/chunked_at_82806FD0.o",
       "base_path": "build/objdiff/base/chunked_at_82806FD0.o",
@@ -568,6 +1216,78 @@
       "name": "sub_827618E8 (wstr_compare)",
       "target_path": "build/objdiff/target/wstr_compare_827618E8.o",
       "base_path": "build/objdiff/base/wstr_compare_827618E8.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_821A5350 (m_state_1or2)",
+      "target_path": "build/objdiff/target/m_state_1or2_821A5350.o",
+      "base_path": "build/objdiff/base/m_state_1or2_821A5350.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_825FE880 (m_ctor_94)",
+      "target_path": "build/objdiff/target/m_ctor_94_825FE880.o",
+      "base_path": "build/objdiff/base/m_ctor_94_825FE880.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_826973C8 (b_strcmp)",
+      "target_path": "build/objdiff/target/b_strcmp_826973C8.o",
+      "base_path": "build/objdiff/base/b_strcmp_826973C8.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_8215ED28 (b_bounds_at)",
+      "target_path": "build/objdiff/target/b_bounds_at_8215ED28.o",
+      "base_path": "build/objdiff/base/b_bounds_at_8215ED28.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_82606EC8 (f_arena_alloc)",
+      "target_path": "build/objdiff/target/f_arena_alloc_82606EC8.o",
+      "base_path": "build/objdiff/base/f_arena_alloc_82606EC8.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_82202D08 (m_pick_slot)",
+      "target_path": "build/objdiff/target/m_pick_slot_82202D08.o",
+      "base_path": "build/objdiff/base/m_pick_slot_82202D08.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_82155080 (e_normalize4)",
+      "target_path": "build/objdiff/target/e_normalize4_82155080.o",
+      "base_path": "build/objdiff/base/e_normalize4_82155080.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_8214F7E8 (e_axis_project)",
+      "target_path": "build/objdiff/target/e_axis_project_8214F7E8.o",
+      "base_path": "build/objdiff/base/e_axis_project_8214F7E8.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_821A5270 (m_copy_adjust)",
+      "target_path": "build/objdiff/target/m_copy_adjust_821A5270.o",
+      "base_path": "build/objdiff/base/m_copy_adjust_821A5270.o",
       "metadata": {
         "complete": false
       }

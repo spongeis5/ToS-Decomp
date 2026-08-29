@@ -45,6 +45,91 @@ def text(word, va):
     return ppcdis.words([word], va)[0][2]
 
 
+UNCOND = (0x4E800020, 0x4E800420)          # blr, bctr
+
+
+def _is_uncond(w):
+    """blr / bctr / an unconditional branch with no link."""
+    return w in UNCOND or ((w >> 26) == 18 and not (w & 1))
+
+
+def _branch_target(w, a):
+    """Where a branch instruction goes, or None if it is not a branch."""
+    op = w >> 26
+    if op == 18:                                   # b / bl / ba / bla
+        d = w & 0x03FFFFFC
+        if d >= 0x02000000:
+            d -= 0x04000000
+    elif op == 16:                                 # bc and its mnemonics
+        d = w & 0xFFFC
+        if d >= 0x8000:
+            d -= 0x10000
+    else:
+        return None
+    return (d if (w & 2) else (a + d)) & 0xFFFFFFFF
+
+
+def can_shrink(code, mask, tbytes, target, tsize):
+    """May the comparison window be cut down to len(code)?
+
+    The recorded size can be TOO LONG. `.pdata` emits one unwind row for a
+    run of adjacent frameless functions, and discovery sizes what it finds as
+    extent-to-next-known-start, so a row can cover several bodies --
+    8215E5B0 is recorded as 156 bytes and holds six thunks, only the first of
+    which anything calls.
+
+    Shrinking is only safe with PROOF, because the same relaxation would let
+    a source that produces half a function pass. All four must hold:
+
+      1. our code ends in an UNCONDITIONAL terminator, so control cannot fall
+         out of it;
+      2. no branch anywhere inside our code targets the leftover range, so
+         control cannot jump into it either;
+      3. the retail word in that last position is an unconditional terminator
+         too;
+      4. every non-relocated word of the prefix agrees, and
+      5. at least ONE such word exists.
+
+    (5) is not pedantry. Without it clause (4) is vacuously true over an
+    empty set: a one-instruction source whose only word is a relocated tail
+    call shrinks any row that begins with a tail call, and match.py reports
+    MATCH having verified nothing. Found by pointing a `b <target>` thunk at
+    82697740, which printed "1 word(s) compared: 0 identical, 0 differ, 1
+    differ in a relocated word" and exited 0. A check that cannot fail is
+    worse than no check, and this project has a rule about that exact shape.
+
+    (4) has to be taken UNDER THE RELOCATION MASK. Comparing raw bytes would
+    never succeed for a function ending in a tail call -- the `b` displacement
+    is the linker's and always differs -- so the check would silently never
+    fire, which is the failure mode this project has a rule about.
+
+    Together these say the retail function ends where ours does.
+    """
+    if tbytes is None or len(code) < 4 or len(code) >= tsize:
+        return False
+    if len(tbytes) < len(code):
+        return False
+    if not _is_uncond(struct.unpack_from(">I", code, len(code) - 4)[0]):
+        return False                                            # (1)
+    if not _is_uncond(struct.unpack_from(">I", tbytes, len(code) - 4)[0]):
+        return False                                            # (3)
+    lo, hi = target + len(code), target + tsize
+    for i in range(len(code) // 4):
+        w = struct.unpack_from(">I", code, i * 4)[0]
+        t = _branch_target(w, target + i * 4)
+        if t is not None and lo <= t < hi:
+            return False                                        # (2)
+    verified = 0
+    for i in range(len(code) // 4):
+        if not all(mask[i * 4:i * 4 + 4]):
+            continue                                            # relocated
+        if (struct.unpack_from(">I", tbytes, i * 4)[0]
+                != struct.unpack_from(">I", code, i * 4)[0]):
+            return False                                        # (4)
+        verified += 1
+    return verified >= 1                                        # (5)
+
+
 def compile_one(src, flags, workdir):
     """Compile via tools/xdkcc, the one place that knows the invocation."""
     obj = Path(workdir) / (Path(src).stem + ".obj")
@@ -135,6 +220,11 @@ def main(argv):
                     extended = len(code)
                     tbytes, tsize = grown, len(code)
 
+    shrunk = None
+    if can_shrink(code, mask, tbytes, target, tsize):
+        shrunk = (tsize, len(code))
+        tbytes, tsize = tbytes[:len(code)], len(code)
+
     print()
     print("target  %08X  %d byte(s)" % (target, recorded))
     print("ours    %-40s %d byte(s)%s"
@@ -151,6 +241,20 @@ def main(argv):
         print("  unreachable trailing instruction that a reachability-based")
         print("  body computation does not count. Comparing %d bytes."
               % extended)
+    if shrunk:
+        was, now = shrunk
+        print()
+        print("SIZE RECONCILED THE OTHER WAY: the inventory records %d byte(s)"
+              % was)
+        print("  and this function is %d. Our code ends in an unconditional"
+              % now)
+        print("  terminator, the retail word there is one too, no branch in")
+        print("  the compared range reaches %08X..%08X, and every"
+              % (target + now, target + was))
+        print("  non-relocated word of the prefix agrees -- so the retail")
+        print("  function ends here as well and the row covers more than one")
+        print("  body. One `.pdata` unwind record can span a run of adjacent")
+        print("  frameless functions. Comparing %d bytes." % now)
     print()
 
     n = min(len(code), tsize) // 4
@@ -179,6 +283,18 @@ def main(argv):
     if extra:
         print("%d word(s) of length difference not compared" % extra)
 
+    # Never report a match having compared nothing. A function every one of
+    # whose words is relocated is not confirmed by this tool at all -- the
+    # comparison excuses relocated words, so "0 identical, 0 differ" is an
+    # empty statement dressed as a success.
+    if diff == 0 and len(code) == tsize and n and same == 0:
+        print("")
+        print("NOT A MATCH -- all %d word(s) are relocated, so nothing was" % n)
+        print("actually verified. A function whose every word is supplied by")
+        print("the linker cannot be confirmed by comparison. build.py, which")
+        print("RESOLVES relocations instead of excusing them, is what can")
+        print("speak about it.")
+        return 1
     if diff == 0 and len(code) == tsize:
         print("\nMATCH: every non-relocated word is identical.")
         return 0

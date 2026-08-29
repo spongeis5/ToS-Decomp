@@ -84,7 +84,26 @@ PATCH_BITS = {
     GPREL:    0x0000FFFF,
     ADDR32NB: 0x0000FFFF,
     SECREL:   0x0000FFFF,
+    TOCREL14: 0x0000FFFF,
 }
+
+# TOCREL14 is the `__declspec(thread)` case, and its width was MEASURED, not
+# read off the name. A probe with members at offsets 0,1,2,4,8 compiled to
+#
+#     li   r11,0            <- TOCREL14 on the symbol, immediate ALWAYS zero
+#     lwz  r10,0(r13)
+#     addi r11,r11,1        <- the member offset, in a SEPARATE instruction
+#
+# five times out of five. The compiler never folds a member offset into the
+# relocated immediate, so every bit of that D-form immediate is chosen by the
+# linker (it is the TLS slot offset) and taking all sixteen from the retail
+# word cannot mask anything the source decided.
+#
+# That reasoning depends entirely on the placeholder being zero, so it is
+# ENFORCED rather than assumed: a non-zero field here means the compiler did
+# fold something in, the justification above is void, and build.py must
+# refuse instead of copying retail bits over a source-determined value.
+PLACEHOLDER_MUST_BE_ZERO = (TOCREL14,)
 
 # Records that carry an operand for a NEIGHBOURING relocation rather than
 # patching a site of their own. SECTION appears on the same offset as the
@@ -196,4 +215,9 @@ def solve_address(rtype, target_word, va):
         return ("hi", (target_word & 0xFFFF) << 16)
     if rtype in (REFLO, ADDR16, SECRELLO, SECREL):
         return ("lo", sign_extend(target_word & 0xFFFF, 16))
+    if rtype == TOCREL14:
+        # Not an address at all: the linker's TLS slot offset, read through
+        # r13. Reported as its own kind so it is not printed as though some
+        # location had been recovered.
+        return ("tls", sign_extend(target_word & 0xFFFF, 16))
     return None

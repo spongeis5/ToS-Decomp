@@ -34,14 +34,18 @@ attributed as NOT the game's    8,238     (39.4% of .text BYTES)
 remaining to decompile         22,392     (60.6%)
 call-graph edges               85,314
 vetted match candidates         4,231
-FUNCTIONS MATCHED                  64
+FUNCTIONS MATCHED                 145     (6,248 bytes of .text built)
 ```
 
-Matches are listed in `MATCHED.md`. **The retail build did not use one
-optimisation level everywhere** — 8 of the 64 need `/O2 /Os`, the rest plain
-`/O2`, and adjacent functions always agree while distant ones need not. The
-level is a property of the translation unit and `src/manifest.txt` records it
-per unit.
+Matches are listed in `MATCHED.md`, whose table is generated from
+`src/manifest.txt` rather than maintained by hand. **The retail build did not
+use one optimisation level everywhere** — of the 145, 64 are `/O2` only, 22
+are `/O2 /Os` only and 59 compile identically either way. The level is a
+property of the translation unit: `python tools/flagpairs.py` compiles every
+match at both levels and finds **25 informative adjacent pairs and 25
+agreements, no disagreement** — the insensitive half is excluded, because
+counting it would report near-total agreement whatever the truth was.
+`src/manifest.txt` records the level per unit.
 Most matched on the first attempt, written straight off the disassembly by
 **reading the target's register discipline instead of guessing plausible C** —
 which value it keeps live, and for how long, is the specification.
@@ -116,8 +120,8 @@ checked to land on a real function start or in a data section.
 
 What remains: the undecompiled code is **copied** from the original rather
 than assembled from objects, so section layout, symbol ordering and
-inter-object padding are still unverified. Only 436 of 8,467,964 `.text` bytes
-(0.0051%) are actually built. The real link — every function as an object,
+inter-object padding are still unverified. Only 6,248 of 8,467,964 `.text` bytes
+(0.074%) are actually built. The real link — every function as an object,
 ordered by a linker script — is still ahead.
 
 **2. The type system is started, not finished.** `include/types.h` now
@@ -130,8 +134,8 @@ ASSERT_SIZE(Entry, 1856);          // the stride `mulli r11,r3,1856` states
 
 A wrong field offset is now `error C2118: negative subscript` before anything
 is compared, instead of surfacing later as a one-word diff that reads like a
-scheduling problem. Every offset the 15 matched functions established is
-asserted, and three negative controls confirm a corrupted one fails the build.
+scheduling problem. Every offset the matched functions establish is
+asserted, and two negative controls confirm a corrupted one fails the build.
 
 What is *not* done: only one type identity across files is actually supported
 by evidence (`src/owner_clear.cpp`), so most structs are still per-file. That
@@ -161,7 +165,12 @@ at all. That is exactly why gap 2 stops where it does — a wrong merge invents
 a false type identity that compiles fine and is very hard to notice, while a
 wrong split only costs duplicated effort.
 
-The two merges that *were* made rest on direct evidence, not the clustering:
+The merges that *were* made rest on direct evidence, not the clustering. The
+largest is the string routines: `tools/flagpairs.py` shows StrLen, StrCopy,
+StrCopyN, StrCompareN, StrCompareI and StrCompareNI as six consecutive
+`/O2`-only functions spanning 82540728..82540968 with four agreeing adjacent
+pairs, which is a translation unit identified by measurement rather than by
+guess. The two older ones:
 `StrLen`/`StrCopy` sit 4 bytes apart and share 12 callers;
 `ClearAndHandle`/`ClearAndHandleOther` sit 4 bytes apart, read the same field
 of the same argument, and write neighbouring fields.
@@ -347,6 +356,12 @@ python tools/discover.py        # branch sweep + data pointers + decodability
 python tools/inventory.py       # .pdata UNION discovery -> functions_all.txt
 ```
 
+`tools/addrtaken.py` is a third source — function pointers formed in code —
+and finds 1,252 starts the other two cannot see. It needs
+`build/switch_targets.txt` first (see step 5) and is **not merged into the
+inventory**; see §7r for why, and for the calibration that says its output is
+real.
+
 **4. The analysis passes.** `libmatch` is the slow one, a few minutes.
 
 ```bash
@@ -405,7 +420,7 @@ broken one pops a modal dialog that blocks until someone clicks OK.
 | `flatten_pe.py` | rewrite section headers to match the memory image |
 | `verify_mapping.py` | **decide** the VA→offset mapping against `.pdata`, both arms scored |
 | `pdata.py` | walk the unwind table; picks the entry layout by marking four arms |
-| `inventory.py` | `.pdata` ∪ Ghidra — the real function population |
+| `inventory.py` | `.pdata` ∪ discovery — the real function population; `--addrtaken` folds in the third source |
 | `peimage.py` | shared image access, `load_inventory()`, XDK region map |
 | `ppcdis.py` | disassembly via binutils — **the only decoder here that knows VMX128** |
 | `disasm.py` | disassemble a guest address range, annotating string references |
@@ -423,6 +438,11 @@ broken one pops a modal dialog that blocks until someone clicks OK.
 | `build.py` | **the reconstructing build**: compile, resolve relocations, hash `.text` |
 | `coffreloc.py` | COFF functions with their relocation records |
 | `discover.py` | function starts and the call graph, from the image alone |
+| `addrtaken.py` | a THIRD discovery source: function pointers formed in code by `lis`+`addi` |
+| `batch.py` | dump the next N candidates with disassembly, ranked by CALLER COUNT |
+| `matched_table.py` | regenerate MATCHED.md's table from the manifest; `--check` catches drift |
+| `flagpairs.py` | compile every match at BOTH levels and score the adjacency claim |
+| `test_shrink.py` | six cases on `match.can_shrink`, five of which must refuse |
 | `segment.py` | probable translation units — scores itself, and mostly fails |
 | `permuter.py` | automatic source mutation; `--selftest` rediscovers a known match |
 | `objdiff_export.py` | synthesize ELF pairs + `objdiff.json` for visual diffing |
@@ -483,6 +503,36 @@ BYTE FOR BYTE" for a test with no power -- the same shape as the
 five negative controls, each corrupting one fact and requiring the build to
 fail.
 
+**A relaxation of a check needs its own negative controls, written at the
+same time.** `match.py` was taught to shrink its comparison window when the
+recorded size covers more than one function -- a real defect, and the fix
+unlocked four matches. The proof had four clauses and clause four was "every
+non-relocated word of the prefix agrees", which is **vacuously true over an
+empty set**: a one-instruction source whose only word is a relocated tail
+call shrank any row starting with a tail call and printed MATCH having
+verified nothing. That hole existed for about an hour and was found by
+someone else pointing a thunk at 82697740. `tools/test_shrink.py` now has
+seven cases of which five must REFUSE, and `match.py` additionally refuses to
+report a match when every compared word was relocated.
+
+**A `finally` does not run when the process is killed.** `verify.py`'s
+negative controls corrupt a real source file, run the build, and restore it
+in a `finally`. A two-minute command timeout killed one mid-control and left
+`src/manifest.txt` holding a corrupted address; the next run reported four
+failures, one of them reading "pattern absent, test is invalid", which is a
+confusing way to be told the tree is dirty. The original text now goes to
+disk BEFORE the corruption and is restored at the next startup if it is still
+there.
+
+**Two tools that measure the same thing must be made to agree, or the
+disagreement must be explained.** `tools/objdiff_export.py` reported 138
+units complete while `tools/verify.py` reported 145 matches, and the gap was
+exactly the seven functions whose `.pdata` row covers more than one body:
+the exporter read the target at the recorded size and had none of the
+reconciliation `match.py` and `build.py` had grown. Seven verified matches
+were being shown as failures in the visual diff, which is the direction that
+gets ignored rather than investigated. Both now agree at 145.
+
 **State the denominator.** Not "24 draws" but "24 draws of 59 walked". Every
 count here names its population, and a bounded search reports when its bound
 was reached rather than presenting the bound as an answer.
@@ -504,25 +554,44 @@ detect the failure it exists to detect.
 
 ### The fastest way to add matches
 
-It is a batch process, and it runs at roughly 70% first-attempt success:
+It is a batch process, and it runs at roughly 70% first-attempt success. In
+one session it took the count from 64 to 116.
 
-1. `python tools/candidates.py` -- 4,231 vetted targets.
-2. Dump forty of them with their disassembly, ranked by caller count.
-3. Write sources for the twenty that read clearly. Do not guess plausible C:
-   **read the register discipline off the listing.** Which value the function
-   keeps live, and for how long, IS the specification.
-4. Compile all twenty at once and score them.
-5. Add the matches to `src/manifest.txt`; put the near-misses in
-   `src/attempts.txt` so objdiff shows them.
+```bash
+python tools/batch.py 40 --no-vmx        # the next 40, ranked by CALLERS
+```
 
-`MATCHED.md` carries the idiom table -- the branchless `x == 1`, the `i * 24`
-built as `(i + i*2) * 8`, the biased pointer before an update-form access, and
-the rest. Recognising those is most of the work.
+Ranking by caller count rather than by size or address is the whole point: a
+function with 40 callers is a shared accessor whose shape recurs, so
+recognising it once pays repeatedly. `batch.py` excludes anything already in
+`src/manifest.txt` or `src/attempts.txt`, resolves `lis`/`addi` references
+and annotates strings, so a candidate that looks unreadable usually is not.
 
-**Three things that are source shape and not compiler flags:** branch polarity
-(write the fall-through path FIRST), store order (the emitted order is the
-source order even when it is not address order), and `x > 0` versus `x != 0`
-for an unsigned value, which compile to different branch conditions.
+Then: write sources for the twenty that read clearly, compile all twenty at
+once, put the matches in `src/manifest.txt` and the near-misses in
+`src/attempts.txt`. Do not guess plausible C -- **read the register
+discipline off the listing.** Which value the function keeps live, and for
+how long, IS the specification.
+
+**This parallelises well.** Four agents each given eight candidates, the
+`MATCHED.md` levers and the rule that only `tools/match.py` printing MATCH
+counts, returned 6/8, 6/8, 8/8 and 8/8. Three things make it work:
+
+* **a distinct filename prefix each** — they share `src/` AND the scratchpad,
+  and two agents did overwrite each other's probe files of the same name;
+* **integrate centrally** — re-run `match.py` yourself on every claim before
+  it goes in the manifest, and run `build.py` after, which is stricter: it
+  RESOLVES relocations rather than excusing them, and it caught an unhandled
+  TLS relocation that `match.py` had passed;
+* **verify serially.** `tools/verify.py` compiles the whole manifest and runs
+  the build six more times; under load it exceeds a two-minute timeout, and
+  one build failed transiently while four agents were compiling. Run it in
+  the background, after they finish, and read the log.
+
+`MATCHED.md` carries the idiom table and, more valuable, the **levers**: the
+`do/while` that MSVC never rotates, naming or un-naming a local to move a
+load, `||` versus a sequence of `if`s, `lwzx` operand order, the
+`__declspec(thread)` tell. Each was the whole difference on some function.
 
 ### The flag column
 
@@ -545,28 +614,50 @@ Verified against objdiff-cli 3.8.0. It will not decode VMX128, so the
 engine's vector maths will not render; `tools/disasm.py` is the reader that
 knows it.
 
-### What still resists, and it is a short list now
+### What still resists
 
-Six functions, down from eleven. Each has the right instructions in the right
-multiset and differs only in a decision made inside the compiler. None
-matches at `/O2`, `/O1` or `/O2 /Os`, so the flag explanation is exhausted,
-and `tools/permuter.py` has not moved any of them.
+Fifteen near-misses, all in `src/attempts.txt` and all visible in objdiff.
+Each has the right instructions and differs only in a decision made inside
+the compiler. The score is words identical of words compared.
 
 ```
-82806FD0   84 B   branch polarity -- bgtlr vs ble-, a probability decision
-826C1480   76 B   instruction order -- one store among five loads
-8215E5B0   28 B   register assignment across an argument permutation
-82600AD0   28 B   a reloaded field the compiler will not keep in a register
-82639C38   20 B   an extra mr to keep the object alive across a float load
-827618E8  136 B   loop rotation; counts kept in callee-saved r30/r31
+82806FD0    chunked_at      branch polarity -- bgtlr vs ble-, a probability call
+826C1480    init12          instruction order -- one store among five loads
+8215E5B0    arg_shuffle     register assignment across an argument permutation
+82600AD0    list_insert     a reloaded field the compiler will not keep in a register
+82639C38    fadd_fwd        an extra mr to keep the object alive across a float load
+827618E8    wstr_compare    loop rotation; counts kept in callee-saved r30/r31
+821A5350    m_state_1or2    4/8  the boolean stays in r11 and is zero-extended at the end
+825FE880    m_ctor_94       8/12 the vtable store will not move to the front
+826973C8    b_strcmp        9/11 the CR FIELD of one compare -- cr6 against cr0
+8215ED28    b_bounds_at    11/12 `lwzx` operands swapped; the same address either way
+82606EC8    f_arena_alloc  33/40 the operand order of two `add`s
+82202D08    m_pick_slot     2/11 folds a guard into beqlr where the target keeps one exit
+82155080    e_normalize4   45/51 two `fmuls` operand slots
+8214F7E8    e_axis_project  1/47 not close; the load census is recorded in the source
+821A5270    m_copy_adjust   0/10 the copy is integer, so a type here is not float
 ```
 
-Two things are now known about these that were not before. Translation-unit
-context does NOT affect codegen -- the same function compiled six ways with
-different company gives byte-identical output (§7m) -- so reconstructing whole
-files would not help. And the permuter's seven mutations do not reach register
-allocation, so **the next mutation to write is one that changes register
-PRESSURE**, not statement order.
+Two of these were measured hard enough to be worth reading before trying
+again. `826973C8`: `/O2` gets the CR field right and the GPRs wrong, `/O2
+/Os` gets the GPRs right and the CR field wrong, and 2,304 flag combinations
+produce nothing better than either. `82606EC8`: the `add` operand-order rule
+in MATCHED.md says the base has to be READ earlier in the source, but any
+source that reads it earlier keeps it live across the if-body, so MSVC hoists
+instead of sinking and the body drops from 40 words to 37.
+
+`8215E5B0` was on this list with its size recorded as 156 bytes, which is
+wrong -- one `.pdata` unwind row covers six frameless thunks there (§7q).
+That alone explains why objdiff scored it 12.1%, the worst of the fourteen.
+Correcting the extent did not match it, but it did mean the thing being
+measured was finally the right thing.
+
+Two things are known about this class that were not. Translation-unit context
+does NOT affect codegen -- the same function compiled six ways with different
+company gives byte-identical output (§7m) -- so reconstructing whole files
+would not help. And `tools/permuter.py`'s seven mutations do not reach
+register allocation, so **the next mutation to write is one that changes
+register PRESSURE**, not statement order.
 
 **Larger, in rough order of value:**
 
@@ -643,22 +734,26 @@ The numbers, so nobody has to guess:
 ```
 functions that are probably the game's own    22,392
 their total size                           5,096,224 bytes
-matched                                           64 functions, 1,508 bytes
-                                                0.29% by count
-                                                0.030% by BYTES
+matched                                          145 functions, 6,248 bytes
+                                                0.65% by count
+                                                0.12% by BYTES
 ```
 
-And the byte figure will get worse before it gets better, because the easy
-work has been taken first:
+That is up from 64 functions and 1,508 bytes in one session — the count more
+than doubled and the byte figure more than quadrupled, because ranking
+candidates by CALLER COUNT rather than by size puts 40- to 170-byte shared
+routines in front of 16-byte accessors.
+
+It still gets harder from here, because the easy work is taken first:
 
 ```
-mean matched function        23 bytes
+mean matched function        40 bytes
 median unmatched function   112 bytes
 2,013 unmatched functions of 512+ bytes hold 49% of the remaining bytes
 ```
 
-So: 64 matches is a working pipeline and a validated toolchain, not a dent in
-the program.
+So: 140 matches is a working pipeline, a validated toolchain and a growing
+body of compiler-behaviour knowledge, not a dent in the program.
 
 ### "Better luck doing it for Wii — symbols actually exist for that"
 

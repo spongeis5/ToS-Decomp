@@ -41,6 +41,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from peimage import Image, load_inventory
 from libmatch import trim_padding
+from match import can_shrink
 from coffreloc import functions_with_relocs
 import build as buildmod
 
@@ -182,6 +183,22 @@ def main(argv):
             print("  %-28s %08X  unreadable" % (src.name, target))
             failed += 1
             continue
+
+        # ... but the recorded extent can be TOO LONG. One .pdata unwind row
+        # can cover a run of adjacent frameless functions, so a row may hold
+        # several bodies (FINDINGS 7q). match.py and build.py both handle
+        # that; without it here, seven verified matches exported as
+        # `complete: false` and the unit list disagreed with verify.py --
+        # a tool reporting a benign-looking failure it cannot actually see.
+        #
+        # Same proof as match.can_shrink, and it needs the relocation mask
+        # rather than the raw bytes, so rebuild the mask from the relocs.
+        mask = bytearray([1]) * len(code)
+        for r in relocs:
+            if r.off + 4 <= len(mask):
+                mask[r.off:r.off + 4] = bytes(4)
+        if can_shrink(code, bytes(mask), tbytes, target, tsize):
+            tbytes, tsize = tbytes[:len(code)], len(code)
         # Relocations are resolved against the overlapping prefix only.
         reloc_ref = tbytes[:len(code)] if tsize >= len(code) else             tbytes + bytes(len(code) - tsize)
         patched, _notes, _problems = buildmod.relocate(code, relocs, target,

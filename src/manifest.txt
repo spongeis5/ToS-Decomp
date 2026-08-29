@@ -74,3 +74,84 @@ src/and_byte.cpp                827FE808  -                      flags=/O2,/Os,/
 src/two_vtables_b.cpp           828133B8  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
 src/vcall_arg_adj.cpp           828864E0  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
 src/two_vtables.cpp             8288A788  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/a_report_badthis.cpp        82806D08
+src/a_copy_fields.cpp           82160880
+src/a_item_vcall1.cpp           8224E6F8
+src/a_vcall4_or_neg1.cpp        8224E178
+src/a_out_or_err.cpp            8253A1C0
+src/a_tls_field.cpp             82602F98
+src/string_utils.cpp            82540770  StrCopyN
+src/m_strcmp_n.cpp              825408B0
+src/m_flag_guard.cpp            822481B0
+src/m_tls_reserve.cpp           82724A68
+src/d_basis_identity.cpp        826918F8
+src/d_normalize3.cpp            8214D998  Normalize3
+src/d_wrap_2pi.cpp              82151C50
+src/d_normalize_to.cpp          8214D640  NormalizeTo
+src/d_mtx_translate_row.cpp     82154A68
+src/d_init_obj_1.cpp            826731B0
+src/d_attach_notify.cpp         825FD7C0
+src/d_flag_vcall.cpp            8261B2F8
+src/m_store_ge.cpp              82724A98
+src/m_span_out.cpp              82545348
+src/m_init_512.cpp              826A3328
+src/m_list_head.cpp             82600A60
+src/b_release_ref.cpp           82663370  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/b_hash_lower.cpp            826A32E8  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/b_setstr_len.cpp            82805F48
+src/b_free_sentinel.cpp         8262FB50
+src/b_free_items.cpp            82637590
+src/b_fwd_global5.cpp           8252D9C8
+src/a_fwd24.cpp                 82665388
+src/a_fwd24_self.cpp            82666360
+src/m_fwd_84.cpp                82677058
+src/m_get_48.cpp                82639C68
+src/c_release_guarded.cpp       82603108
+src/c_hash_upper.cpp            8215A420
+src/c_bucket_find.cpp           8219EB58
+src/c_probe_map.cpp             826376E0
+src/c_atomic_inc4.cpp           826632F8
+src/c_share_static.cpp          826A3648  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/c_iter_equal.cpp            8287E440  IterEqual              flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/c_handle_lookup.cpp         82662F20  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/g_sum_chain.cpp             826C0F28
+src/g_out_or_err36.cpp          8252BE30
+src/g_find_by_key.cpp           8260FEB0
+src/g_fwd_6args.cpp             822E2048
+src/g_vec3_pick.cpp             8220F810
+src/g_fwd_global_a.cpp          8252D950
+src/g_fwd_global_b.cpp          8252D978
+src/g_fwd_shift4.cpp            82218F90
+src/g_share_tagged.cpp          826A4528  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/m_stricmp.cpp               825408F8  StrCompareI
+src/m_stricmp.cpp               82540968  StrCompareNI
+src/m_ref_ctor.cpp              82663260  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/m_cached_or_make.cpp        827FE8A0
+src/m_scale_sq.cpp              82799878  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/m_release.cpp               827841D8  Release                flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/m_unlink_free.cpp           82600A88
+src/m_enqueue4.cpp              8228AF08  Enqueue
+src/m_fwd_ctx.cpp               821EE668
+src/m_ready_not255.cpp          82265D88
+src/m_state_2to4.cpp            8225B450
+src/m_vcall4_f8.cpp             8279D958
+src/f_pool_link.cpp             82600A08
+src/f_find_state.cpp            82254A88
+src/f_hash_probe.cpp            82637688
+src/f_vec_compact.cpp           826C6C60
+src/f_name_lookup.cpp           821559D8
+src/f_state_advance.cpp         827156B8  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/m_read_le32.cpp             825BD9B0
+src/m_enqueue12.cpp             821C77A8  Enqueue
+src/m_max_pair.cpp              82151690
+src/m_ctor_7zero.cpp            821BCA48
+src/m_upcast_call.cpp           822D2978
+src/m_first_or_self.cpp         82272AA0
+src/m_release.cpp               827827B8  AddRef
+src/m_flag_dispatch.cpp         8216CDA0
+src/m_select2.cpp               82704688  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/e_ones_zeros8.cpp           8277E170
+src/e_can_use.cpp               821FF908
+src/e_mtx23_mul.cpp             82691C50  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/e_mtx23_premul.cpp          82691CF0  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/e_mtx23_xform.cpp           826919A8  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast

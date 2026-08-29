@@ -26,25 +26,31 @@ from libmatch import trim_padding
 from coffreloc import functions_with_relocs
 from build import compile_one, relocate
 
-# (source, address, description) -- a function whose first two words are a
-# relocated lis/addi pair addressing an extern.
+# (source, address) -- a function whose first two words are a relocated
+# lis/addi pair addressing an extern.
 CASE = (Path("src/global_field.cpp"), 0x82600BD8)
 
+# The __declspec(thread) case. Its one relocation is TOCREL14, which is
+# excused ONLY because the compiler leaves the immediate at zero and puts any
+# member offset in a separate instruction. That precondition is enforced in
+# build.relocate, so it needs a test that breaks it.
+TLS_CASE = (Path("src/a_tls_field.cpp"), 0x82602F98)
 
-def load():
-    blob, err = compile_one(CASE[0], "test_reloc")
+
+def load(case=CASE):
+    blob, err = compile_one(case[0], "test_reloc")
     if blob is None:
         raise SystemExit("compile failed: %s" % err)
     name, code, relocs = max(functions_with_relocs(blob),
                              key=lambda f: len(f[1]))
     code, _m = trim_padding(code, b"\x01" * len(code))
     relocs = [r for r in relocs if r.off < len(code)]
-    tbytes = Image().read(CASE[1], len(code))
+    tbytes = Image().read(case[1], len(code))
     return name, code, relocs, tbytes
 
 
-def run(label, code, relocs, tbytes, expect_ok):
-    patched, _notes, problems = relocate(code, relocs, CASE[1], tbytes, False)
+def run(label, code, relocs, tbytes, expect_ok, case=CASE):
+    patched, _notes, problems = relocate(code, relocs, case[1], tbytes, False)
     ok = (patched == tbytes) and not problems
     verdict = "PASS" if ok == expect_ok else "FAIL"
     print("  %-4s %-52s %s" % (verdict, label,
@@ -92,6 +98,43 @@ def main():
     struct.pack_into(">I", bad, 8, (w2 & ~0x03E00000) | (7 << 21))
     results.append(run("register in a NON-relocated word changed",
                        bytes(bad), relocs, tbytes, False))
+
+    # ---- TOCREL14, the __declspec(thread) relocation --------------------
+    tname, tcode, trelocs, ttbytes = load(TLS_CASE)
+    print("")
+    print("%s at %08X, %d bytes, %d relocation(s)\n"
+          % (tname, TLS_CASE[1], len(tcode), len(trelocs)))
+    print("  %-4s %-52s %s" % ("", "case", "result"))
+
+    results.append(run("unmodified source", tcode, trelocs, ttbytes, True,
+                       TLS_CASE))
+
+    # The relocated word is `li r11,0`. Changing its DESTINATION register
+    # must still be caught -- the excused field is the immediate only.
+    off = trelocs[0].off
+    w = struct.unpack_from(">I", tcode, off)[0]
+    bad = bytearray(tcode)
+    struct.pack_into(">I", bad, off, (w & ~0x03E00000) | (10 << 21))
+    results.append(run("destination register of the relocated `li` changed",
+                       bytes(bad), trelocs, ttbytes, False, TLS_CASE))
+
+    # A non-zero placeholder must be REFUSED, not merged. The justification
+    # for excusing all sixteen bits is that the compiler leaves them zero and
+    # expresses any addend separately; if that stops being true the tool has
+    # to stop, because it would otherwise copy a linker value over a value
+    # the source chose.
+    bad = bytearray(tcode)
+    struct.pack_into(">I", bad, off, (w & ~0xFFFF) | 0x0008)
+    results.append(run("non-zero TOCREL14 placeholder (must be refused)",
+                       bytes(bad), trelocs, ttbytes, False, TLS_CASE))
+
+    # A non-relocated word is still compared.
+    bad = bytearray(tcode)
+    other = 0 if off != 0 else 4
+    w2 = struct.unpack_from(">I", tcode, other)[0]
+    struct.pack_into(">I", bad, other, (w2 & ~0x03E00000) | (7 << 21))
+    results.append(run("register in a NON-relocated word changed",
+                       bytes(bad), trelocs, ttbytes, False, TLS_CASE))
 
     print("")
     print("%d of %d case(s) behaved as required." % (sum(results), len(results)))

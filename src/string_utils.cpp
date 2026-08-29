@@ -60,3 +60,47 @@ char* StrCopy(char* d, const char* s)
         ;
     return d;
 }
+
+// sub_82540770, 40 bytes, 23 callers. Sits 4 bytes after StrCopy, which is
+// the same adjacency evidence that put StrLen and StrCopy in one file.
+//
+//      addi    r9,r3,-1        d - 1
+//      addi    r10,r4,-1       s - 1
+//  L:  cmpwi   cr6,r5,0        test n BEFORE decrementing it
+//      addi    r5,r5,-1
+//      beqlr   cr6             n was 0: return
+//      lbzu    r11,1(r10)
+//      cmplwi  cr6,r11,0
+//      stbu    r11,1(r9)
+//      bne+    cr6,L
+//      blr
+//
+// The compare-then-decrement pair is a post-decrement in the condition. The
+// copy happens before the NUL test, so the terminator is written out.
+//
+// IT IS A do/while, AND THAT IS THE WHOLE DIFFICULTY. Written as
+// `while (n--) { ... }` or as `for (;;) { if (n-- == 0) break; ... }` the
+// compiler ROTATES the loop: it peels the first `n == 0` test out in front
+// of the pointer setup and puts a second copy at the bottom, giving 48 bytes
+// with the two `addi`s in the middle. Both forms produced exactly that.
+//
+// The target does not rotate -- the loop top IS the `n` test, reached by
+// falling into it. A do/while is the one loop MSVC never rotates, because
+// its body always runs once and there is no entry test to peel.
+//
+// So: WHEN THE TARGET'S LOOP TOP IS A BRANCH TARGET REACHED BY FALL-THROUGH,
+// WITH NO PEELED COPY OF THE TEST AHEAD OF IT, THE SOURCE IS A do/while.
+char* StrCopyN(char* d, const char* s, int n)
+{
+    char* p = d;
+    char c = 0;
+    do
+    {
+        if (n-- == 0)
+            break;
+        c = *s++;
+        *p++ = c;
+    }
+    while (c != 0);
+    return d;
+}

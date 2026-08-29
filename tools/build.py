@@ -47,7 +47,8 @@ from libmatch import trim_padding
 import coffreloc
 import xdkcc
 from coffreloc import (functions_with_relocs, type_name, solve_address,
-                       PATCH_BITS, WHOLE_WORD, COMPANION, REFHI, REFLO)
+                       PATCH_BITS, WHOLE_WORD, COMPANION, REFHI, REFLO,
+                       PLACEHOLDER_MUST_BE_ZERO)
 
 XDK = Path("SDKFiles/xdk/XDK")
 CL = XDK / "bin/win32/cl.exe"
@@ -143,12 +144,27 @@ def relocate(code, relocs, target, tbytes, verbose):
                             % (type_name(r.type), r.off))
             continue
 
+        # Some types are only safe to excuse because the compiler leaves the
+        # whole field at zero and expresses any addend in a separate
+        # instruction. Where that is the justification, check it rather than
+        # trust it -- a non-zero field means the justification is void and
+        # copying retail bits in would hide a source-determined value.
+        if r.type in PLACEHOLDER_MUST_BE_ZERO and (ours & bits):
+            problems.append(
+                "%s at +%#x has a non-zero placeholder (%#x); this type is "
+                "only excused because the compiler leaves it zero"
+                % (type_name(r.type), r.off, ours & bits))
+            continue
+
         merged = (ours & ~bits) | (theirs & bits)
         struct.pack_into(">I", out, r.off, merged)
 
         solved = solve_address(r.type, theirs, target + r.off)
         if solved is None:
             notes.append((r.off, type_name(r.type), r.sym, None, ""))
+        elif solved[0] == "tls":
+            notes.append((r.off, type_name(r.type), r.sym, None,
+                          "TLS slot offset %d" % solved[1]))
         elif solved[0] == "abs":
             notes.append((r.off, type_name(r.type), r.sym, solved[1], ""))
         elif solved[0] == "hi":

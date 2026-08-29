@@ -170,3 +170,61 @@ the flags were silently dropped rather than refused.
   files came out read-only, and `mt.exe` failed with "Access is denied" until
   they were cleared — an error that reads like a permissions problem with the
   tool rather than an attribute on the file.
+
+---
+
+## A killed process does not run its `finally`
+
+Two-minute command timeouts are normal here -- `tools/verify.py` compiles
+over a hundred functions and runs the build six more times for its negative
+controls, and it exceeds that whenever anything else is competing for the
+CPU. When it is killed, any cleanup in a `finally` does not happen.
+
+That is not hypothetical: `verify.py`'s last negative control corrupts
+`src/manifest.txt` on purpose and restores it afterwards. A timeout killed
+one run at exactly that moment and left the corrupted address in the file.
+The next run then failed FOUR checks -- the build, the match list, the table
+and the control itself, which reported "pattern absent, test is invalid".
+Nothing said "the tree is dirty".
+
+**So: anything that deliberately corrupts a file must record how to undo it
+on disk, before the corruption, and undo it at the next startup if the record
+is still there.** `verify.py` writes `build/.verify_restore.json`.
+
+**And run long things in the background** rather than fighting the timeout:
+
+```bash
+python tools/verify.py > build/verify.log 2>&1
+```
+
+with `run_in_background`, then read the log.
+
+---
+
+## The backslash trap can write NUL BYTES into a source file
+
+2026-08-29, and this is the shape that hides best. A patch script contained
+
+    mask[r.off:r.off + 4] = b"[backslash][backslash]x00" * 4
+
+which is correct Python for producing the four-character escape in the output
+file. The heredoc stripped one backslash level, Python read the remaining
+escape as a real NUL, and four NUL bytes went into `tools/objdiff_export.py`.
+
+**The file still parsed.** `ast.parse` was happy, the module imported, and
+the only symptom was that `grep` answered
+
+    Binary file tools/objdiff_export.py matches
+
+instead of printing lines. That one line is the entire signal.
+
+So, in addition to "never put a backslash in a heredoc":
+
+* **treat "Binary file ... matches" on a source file as a corruption
+  report**, not as a grep quirk;
+* after any scripted edit, `python -c "import ast; ast.parse(open(P).read())"`
+  proves syntax and NOT content -- a NUL inside a byte literal is valid
+  syntax;
+* the repair has to be done in binary, because the corrupt bytes cannot be
+  typed into a heredoc either. `open(p,'rb')`, replace, `open(p,'wb')`.
+

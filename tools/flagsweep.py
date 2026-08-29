@@ -26,6 +26,7 @@ thing.
 import itertools
 import struct
 import subprocess
+import os
 import sys
 from pathlib import Path
 
@@ -38,7 +39,11 @@ import xdkcc
 XDK = Path("SDKFiles/xdk/XDK")
 CL = XDK / "bin/win32/cl.exe"
 INCLUDE = XDK / "include/xbox"
-WORK = Path("build/flagsweep3")
+# Per-process work directory. A single shared one made two concurrent runs
+# collide on the same s.obj -- WinError 32, the file is in use by another
+# process -- and the failure was invisible because the run was piped to
+# `tail`, so the pipeline's exit status was the tail's zero.
+WORK = Path("build/flagsweep-%d" % os.getpid())
 
 FIXED = ["/c", "/nologo"]
 

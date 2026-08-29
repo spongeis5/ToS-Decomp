@@ -304,6 +304,280 @@ the arms sum to 21,238 exactly.
 
 ---
 
+## 7t. The per-unit flag claim, measured over every match
+
+*measured 2026-08-28*
+
+7m established that the optimisation level is a property of the TRANSLATION
+UNIT on the strength of six adjacent pairs. `tools/flagpairs.py` now compiles
+every matched function at both levels and reports the whole picture:
+
+```
+118 matched function(s) classified
+  /O2 only     51
+  /Os only     16
+  insensitive  50   <- carries NO evidence, excluded from the pairs
+
+19 informative adjacent pair(s), 19 agreements, 0 disagreements
+```
+
+**Excluding the insensitive half is the discipline, not a convenience.**
+Roughly 43% of matched functions compile identically at both levels -- small
+accessors mostly -- and a pair count that included them would report
+near-total agreement no matter what the truth was. It would be the same shape
+as `.pdata` inflating the data-pointer hit rate (7f) and switch case bodies
+inflating the address-taken count (7r): a population padded with items that
+cannot disagree.
+
+The longest run is the string routines, six consecutive functions and four
+agreeing adjacent pairs:
+
+```
+82540728  StrLen         /O2 only
+82540750  StrCopy        /O2 only   gap  40
+82540770  StrCopyN       /O2 only   gap  32
+825408B0  StrCompareN    /O2 only   gap 320
+825408F8  StrCompareI    /O2 only   gap  72
+82540968  StrCompareNI   /O2 only   gap 112
+```
+
+That is a translation unit identified by measurement rather than by guess,
+and it is the first one this project has. Two `/Os` runs of the same shape
+exist at `825E3598`/`825E35C8` and across
+`82662F20`/`82663260`/`82663370`.
+
+`flagpairs.py` prints any disagreeing pair in full and says in its own output
+that such a pair would mean the claim needs rewriting rather than defending.
+There are none, at 19 pairs.
+
+**A false alarm worth recording.** `sub_827FE8A0` sits 152 bytes after
+`sub_827FE808`, which is `/Os` only, and it matched at `/O2` -- which would
+have been the first disagreement. It also matches at `/O2 /Os`. It is
+insensitive, so it says nothing, which is exactly why the three-way
+classification exists.
+
+---
+
+## 7q. One `.pdata` unwind row can cover SEVERAL functions
+
+*measured 2026-08-28*
+
+`sub_8215E5B0` is recorded as **156 bytes**. It is **28**. The other 128 bytes
+are five more functions:
+
+```
+8215E5B0  lwz r10,0(r3) ; ... ; b 82602EA0      <- the function, 28 B
+8215E5CC  .long 0                                  alignment
+8215E5D0  lwz r10,32(r3) ; ... ; mtctr ; bctr   <- a second body
+8215E5F8  ...                                   <- a third
+8215E628  ...                                   <- a fourth
+```
+
+That row is one of the six stalls in MATCHED.md, and it had been compared
+against 156 bytes the whole time -- which is why objdiff scored it 12.1%, the
+worst of the fourteen.
+
+**Where the wrong size comes from.** `.pdata` has rows at 8215E560 and
+8215E650 and NOTHING between, so the 160-byte gap is not described by the
+unwind table at all. These are frameless thunks: no prologue, nothing to
+unwind, so the linker emits no row. `discover.py` found the first one through
+the branch sweep and sized it extent-to-next-known-start.
+
+**Why the other five were invisible.** Nothing branches to them and no data
+word holds their address, so neither of discovery's two sources could see
+them -- see 7r.
+
+**How many rows are like this.** A conservative detector -- an unconditional
+terminator, then ZERO padding (the linker pads COMDATs with zeros; MSVC pads
+loop alignment inside a function with nops), landing on a 16-byte boundary,
+with nothing inside the row branching there -- fires on **156 of 30,630 rows
+(0.51%)**, and **123 of them are offered as match candidates**. That is a
+floor, not a count: `82665388` holds two 8-byte bodies back to back with no
+padding at all, and no pad-based detector can see that class.
+
+**A wider rule was tried and rejected.** Dropping the padding and alignment
+requirements and keeping only reachability gives 1,288 rows and 6,047 new
+starts, and scores **60.0% precision / 58.3% recall** against the 36
+byte-matched library starts that are currently hidden inside a larger row.
+That is not good enough to change an inventory with. Worse, the ground truth
+is itself noisy -- several of those "real starts" are preceded by a
+CONDITIONAL forward branch, which is not a function-boundary shape -- so the
+60% is not trustworthy either.
+
+**Two earlier versions of this measurement were wrong, both in the
+denominator.** The first scored precision as "predictions inside the
+byte-matched address range", and that range is nearly the whole image, so
+predictions in GAME code -- which the library matcher could never confirm --
+counted as failures. It reported 1.1%. The second restricted to rows
+containing a known library start, which is better but still assumes absence
+from `lib_matches.txt` means "not a function", when it only means "not
+matched". **Three attempts, three denominators, and only the third could
+speak.**
+
+**The structural rule DOES have independent support, found later.** Scoring
+it against `lib_matches.txt` was hopeless -- only 3 of its 185 predictions
+fell where that ground truth could speak. But the address-taken source (7r)
+is a completely different derivation, and the two overlap:
+
+```
+second bodies found by the structural rule   185
+  of those ALSO found by address-taken        60   (32.4%)
+  found ONLY by the structural rule          125
+address-taken starts                       1,252
+  found ONLY by address-taken              1,192
+union                                      1,377
+```
+
+60 independent confirmations is worth far more than the 2-of-3 that
+`lib_matches` could offer, and the two sources being 96% disjoint says they
+are finding different populations rather than the same one twice.
+
+**And there is a fourth class that NEITHER finds.** The second bodies inside
+the small merged rows -- `82665390`, `82666370`, `82677060`, `82639C70`,
+`82697748` -- return **zero** references from all three scans: no branch, no
+data word, no `lis`/`addi` pair. They are reachable by nothing in the image.
+Only the structural rule finds them, and only because of where they sit. So:
+
+```
+called                  -> the branch sweep
+in a vtable or table    -> the data-pointer scan
+address formed in code  -> addrtaken.py            (7r)
+referenced by NOTHING   -> only the shape of the row around it   (this section)
+```
+
+**What was done instead of changing the inventory.** `match.py` grew
+`can_shrink()`: it cuts the comparison window to our code's length when, and
+only when, our code ends in an unconditional terminator, the retail word
+there is one too, no branch inside our code reaches the leftover range, and
+every non-relocated prefix word agrees. Together those say the retail
+function ends where ours does. It is a relaxation of a size check, so it has
+six tests of its own (`tools/test_shrink.py`) of which **five must refuse**;
+`verify.py` runs them. Four matches came straight out of it.
+
+---
+
+## 7r. A THIRD discovery source: addresses taken in code
+
+*measured 2026-08-28*
+
+`discover.py` had two sources and neither can see a function pointer that is
+formed in code and stored through a register:
+
+```
+lis  r11, hi
+addi r11, r11, lo        ; = 8215E5D0
+stw  r11, 32(r3)
+```
+
+The branch sweep reads `bl`/`b`, so it finds what is CALLED. The data-pointer
+scan reads words in data sections, so it finds what a vtable POINTS AT.
+Neither sees the above. `tools/addrtaken.py` does.
+
+```
+scanned 2,133,029 instruction words; 55,914 lis sites
+  9,077 ran to the 32-word lookahead bound without pairing (a BOUND)
+distinct .text addresses formed in code            2,414
+  MSVC switch case bodies, excluded                   89
+  remaining                                        2,325
+    already a known function start                 1,070  (46.0%)
+    inside a known function but not its start        524
+    in no known function at all                      731
+```
+
+**The switch exclusion is not cosmetic.** A switch dispatch builds `caseBase`
+with exactly this `lis`/`addi` pair, so every one of the 2,571 case targets
+`switches.py` recovered is an address formed in code and none of them is a
+function. Before the exclusion, the first "new function" this reported was
+82107B58 -- row one of `build/switch_targets.txt`. That is the same shape as
+`.pdata` contaminating the data-pointer hit rate (7f), and it is the third
+time in this project that a population has been inflated by including the
+very thing being predicted.
+
+**The independent check is CALIBRATED, which is the point.** The check is
+that the word before the address is an unconditional terminator, which is
+what a function boundary looks like and has nothing to do with how these were
+found. Run first on the addresses that are already known starts, where the
+answer is known:
+
+```
+known starts (calibration)   1,070   terminator before  1,066   99.6%
+interior, unknown              524   terminator before    521   99.4%
+outside any function           731   terminator before    731  100.0%
+```
+
+99.6% is what "yes" looks like on this instrument. The unknowns score the
+same, which is the evidence.
+
+**Result: 1,252 new function starts**, 521 of them interior to an existing
+row (so those rows are too long) and 731 in no known function at all. Written
+to `build/addrtaken.txt`.
+
+**Available but NOT adopted**, as `python tools/inventory.py --addrtaken`.
+Tested end to end:
+
+```
+rows           30,630  ->  31,882
+rows SHORTENED because a new start falls inside them        341
+.text covered by the inventory   8,432,420  ->  8,454,996 bytes  (99.6% -> 99.85%)
+tools/build.py with that inventory:  exit 0, all 145 matches still OK
+```
+
+It is left opt-in for one reason: adopting it makes every derived file stale
+at once. `attribute.py` and `candidates.py` would both have to be re-run in
+that order -- running `candidates.py` against a stale attribution silently
+hides thousands of candidates, which has happened here before -- and every
+headline count in README.md would need re-measuring. That is a deliberate
+step, not a side effect of a session that was doing something else.
+`can_shrink` in match.py already removes the immediate harm, which is what
+made it safe to defer.
+
+Checked before proposing it: of the matched and attempted functions,
+**exactly one** is affected -- `8215E5B0`, whose extent it corrects from 156
+to 32.
+
+**It does not subsume 7q.** It recovers the 8215E5B0 thunk family, which is
+what prompted it, but of eight known hidden bodies it finds one. The second
+bodies of the small merged rows are referenced by nothing at all and are
+reachable only through the shape of the row containing them. The two sources
+are 96% disjoint; neither replaces the other.
+
+---
+
+## 7s. IMAGE_REL_PPC_TOCREL14, measured rather than named
+
+*measured 2026-08-28*
+
+`build.py` refused `sub_82602F98` with "TOCREL14 at +0x0 is not handled". The
+relocation is `__declspec(thread)`: r13 holds the thread block and the linker
+fills in the slot offset.
+
+The name says 14 bits. Rather than believe it, a probe with members at
+offsets 0, 1, 2, 4 and 8 was compiled:
+
+```
+li   r11,0            <- TOCREL14 on the symbol, immediate ALWAYS zero
+lwz  r10,0(r13)
+addi r11,r11,1        <- the member offset, in a SEPARATE instruction
+```
+
+Five cases out of five. **The compiler never folds a member offset into the
+relocated immediate**, so every bit of that D-form immediate is the linker's
+and taking all sixteen from the retail word cannot mask anything the source
+decided.
+
+That reasoning depends entirely on the placeholder being zero, so it is
+ENFORCED rather than assumed: `PLACEHOLDER_MUST_BE_ZERO` in `coffreloc.py`,
+and `build.relocate` refuses when the field is non-zero. `test_coffreloc.py`
+grew four TOCREL14 cases, one of which sets the placeholder and requires the
+refusal.
+
+The un-folded `li` is also the diagnostic when READING the image: two
+ordinary literals would have folded into one `addi`. `li <slot>` + `lwz
+rX,0(r13)` + `lwzx` reads a thread variable's value; `lwz` + `li` + `add`
+takes its address.
+
+---
+
 ## 7p. The game's own source tree, from its assert strings
 
 *measured 2026-08-28*

@@ -14,3 +14,23 @@ src/arg_shuffle.cpp             8215E5B0
 src/fadd_fwd.cpp                82639C38
 src/list_insert.cpp             82600AD0
 src/wstr_compare.cpp            827618E8
+src/m_state_1or2.cpp            821A5350
+src/m_ctor_94.cpp               825FE880
+src/b_strcmp.cpp                826973C8
+src/b_bounds_at.cpp             8215ED28
+# src/g_memcmp_n.cpp targets 82697748, which the inventory does NOT list as a
+# function start: the 68-byte row at 82697740 is three 8-byte thunks followed
+# by a 60-byte counted byte compare, and only the first thunk is known. So it
+# cannot be given an address here until that start is added. Its measured
+# state is 2 of 14 words, and the 12 are one missing instruction, not twelve
+# -- the target copies its second argument into a scratch, so everything
+# after the prologue is off by one word.
+#
+# src/g_memset_thunk.cpp is not an attempt at all: it is the source that
+# demonstrated match.py could report MATCH having verified nothing. Kept as
+# a worked example; tools/test_shrink.py now covers the case.
+src/f_arena_alloc.cpp           82606EC8
+src/m_pick_slot.cpp             82202D08
+src/e_normalize4.cpp            82155080  QuatNormalize
+src/e_axis_project.cpp          8214F7E8  ProjectOntoAxes
+src/m_copy_adjust.cpp           821A5270
