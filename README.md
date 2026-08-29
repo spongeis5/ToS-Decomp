@@ -111,6 +111,20 @@ where `link.fix.manifest` declares a dependency on
 `Microsoft.VC90.CRT version 1.9.7.21022 x86`. Clear the read-only attribute
 first — 7-Zip preserves it from the archive and `mt` reports "Access is denied".
 
+**`link.exe` is not the only one.** Six EXEs ship with no manifest at all and
+die the same way the first time they are run — `dumpbin`, `editbin`, `lib`,
+`pgocvt`, `pgodump`, `pgomgr`. Repair them all without touching any binary:
+
+```bash
+python tools/fix_manifests.py --write
+```
+
+That writes an external `<name>.exe.manifest` beside each, the mechanism
+Microsoft already used for `cl.exe` in that folder. `python tools/pemanifest.py
+SDKFiles/xdk/XDK/bin/win32` reports the state of all 160 modules without
+running any of them — running a broken one pops a modal dialog that blocks
+until someone clicks OK.
+
 **3. Ghidra 12.x** with `analyzeHeadless`. Only needed to rebuild the call
 graph and the extra 4,499 functions.
 
@@ -191,6 +205,11 @@ cl /O2 /W0 /D_CRT_SECURE_NO_WARNINGS /I.. \
 | `attribute.py` | merge every signal into one scope picture |
 | `candidates.py` | vetted match targets: leaf, unattributed, outside XDK, sound |
 | `vmx128_*.py` | four independent VMX128 validations — see `VMX128.md` |
+| `rich.py` | decode a PE's Rich header — the linker's census of contributing tools |
+| `rich_calibrate.py` | **measure** what each product id means, by building known flag sets |
+| `compid.py` | `@comp.id` per object; `--join` cross-checks the matched library objects |
+| `pemanifest.py` | which XDK tools will raise R6034 — read statically, nothing is run |
+| `fix_manifests.py` | repair those, with an external manifest rather than by editing binaries |
 | `verify_ghidra.py` | **superseded**; kept as a worked example of a vacuous check |
 
 ---
@@ -230,40 +249,33 @@ was reached rather than presenting the bound as an answer.
 
 ## Where to pick up
 
-**FIRST: settle whether the retail build used LTCG.** This decides whether the
-matching loop this project is built around can work at all for the game's own
-code, so nothing else is worth doing until it is answered.
-
-Three functions have now been attempted. All three reached the exact byte
-size with the right instructions and stalled on **instruction scheduling** —
-where the compiler places one instruction — which no source shape and no flag
-combination reached:
+**The LTCG question is settled — see §7l.** It was the top priority because it
+decided whether object-level matching could work at all. It can:
 
 ```
-822607F0  120 B   MATCHED 30/30
+of 1,528 objects in the retail image carrying a code-producing stamp,
+1,474 (96.5%) were compiled WITHOUT /GL.  54 were not.  No C TU used /GL.
+```
+
+Measured by calibrating the Rich header's product ids against this XDK
+(`tools/rich_calibrate.py`) rather than looking them up, and cross-checked
+from the other direction — every one of the 610 library objects that matched
+byte-for-byte into the image carries a plain C/C++/asm stamp
+(`tools/compid.py --join`). The library-variant question is answered with it:
+the retail build linked the **non-LTCG** variants.
+
+So the three stalled matches are not stalled by LTCG, and the wall is still
+**instruction scheduling**:
+
+```
+822607F0  120 B   MATCHED 30/30   <- in the game's own band, so game code
+822607F0                             demonstrably compiles to matchable objects
 82806FD0   84 B   11/21   8 source shapes, 65 flag combinations
 826C1480   76 B   13/19   branchless, so NOT a branch-layout problem
 827618E8  136 B   partial
 ```
 
-`/GL` was tested directly and produces a machine-0000 object with **zero
-PowerPC code bytes** — under LTCG, codegen happens at link time and there is
-nothing in the object to compare. If the game's own translation units were
-built that way, object-level matching cannot work and the unit of comparison
-must become the linked image.
-
-Evidence is split and neither side settles it. 6,332 functions match
-**non-LTCG** XDK library objects byte for byte, which proves those libraries
-were not regenerated — but `/LTCG` regenerates `/GL` objects while leaving
-precompiled libraries alone, so it says nothing about the game's code.
-
-The test to run: build a two-function object, link it with and without
-`/LTCG`, and locate the code through the PE section table. A first attempt
-compared raw file windows and scored 0/19 for BOTH arms, including the
-non-LTCG build known to score 13/19 at object level — so that harness was
-wrong, not the answer. `link.exe` works (see the manifest fix above).
-
-**Then: match a second function.** `python tools/candidates.py` gives 2,565
+**FIRST: match a second function.** `python tools/candidates.py` gives 2,565
 vetted targets — leaf, unattributed, outside the XDK bands, at least 16 bytes,
 ending in a real terminator. `tools/permute.py` scores several source shapes
 against one target in a single command.
@@ -298,9 +310,13 @@ specification. Writing assignments in the target's own field order took
 - `vmaddcfp128` (175 sites) and `vpkd3d128` (94) have no declared XDK
   intrinsic. Decoding them is fine; whether ordinary vector expressions can
   *write* them is NOT_MEASURED.
-- Which XDK lib variant the retail build linked (LTCG or not) is NOT_MEASURED.
-- The `2909` toolchain in the Rich header is a prebuilt third-party library,
-  unidentified.
+- **What the 54 `/GL` objects are** is NOT_MEASURED — either the title's own
+  translation units, or members of `xact3ltcg.lib` / `x3daudioltcg.lib`, the
+  only two LTCG libraries with no matched twin. At worst 3.5% of the image.
+- **Whether PGO was used** is NOT_MEASURED. `/LTCG:PGI` fails here with
+  `LNK1123` on the `.pgd`, so which product id a PGO build stamps is unknown
+  and the image cannot be checked for it. Not needed to explain the stalled
+  matches: the branchless `826C1480` rules out branch layout by construction.
 
 ---
 

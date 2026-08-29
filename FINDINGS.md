@@ -81,13 +81,25 @@ the title's own compiler produced carries it. 54+25+5+359+1090+1+1 = **1,535
 objects** from that toolchain, of which the two large buckets (1,090 and 359)
 are ~1,449 translation units.
 
-The `2909` pair is a prebuilt third-party library — consistent with the
-`BINK`/`BINKCONS`/`BINKDATA`/`BINKBSS` sections, which RAD ships as objects.
+> **CORRECTED IN §7l — read that instead of the "reading" column above.**
+> Every product id has since been MEASURED against this XDK by building known
+> flag combinations: 131 = C, 132 = C++, 137 = C `/GL`, 138 = C++ `/GL`,
+> 145 = linker, 146 = export descriptor, 147 = XEX import descriptor,
+> 149 = PowerPC assembler. Two readings below are wrong and are kept for the
+> record: `2909` is **not** third-party (it is `xboxkrnl.lib`), and the
+> `1 / 0 / 324` row is sixth in the file, not fourth.
+
+~~The `2909` pair is a prebuilt third-party library — consistent with the
+`BINK`/`BINKCONS`/`BINKDATA`/`BINKBSS` sections, which RAD ships as objects.~~
 
 **The prodid → tool NAMES are NOT_MEASURED.** The community prodid table was not
 consulted; naming 132 "the C++ compiler" from memory is exactly the move that
 produces a confident wrong name. The *counts and builds* are read directly and
 are what the verification needs.
+
+> **Right caution, wrong conclusion.** Declining to *look up* the names was
+> correct. Concluding they were therefore unavailable was not — the toolchain
+> that stamps them is in `SDKFiles/`, so the meaning is measurable. See §7l.
 
 **XDK version, from the image's own strings:**
 
@@ -132,14 +144,18 @@ game's Rich header records. Three agreeing facts — Rich header, linker version
 and a live compile — from sources with nothing in common.
 *measured 2026-08-28*
 
-**The `2909` pair in the Rich header is still NOT_MEASURED.** It is a prebuilt
-third-party library and is not from this XDK.
+~~**The `2909` pair in the Rich header is still NOT_MEASURED.** It is a prebuilt
+third-party library and is not from this XDK.~~
+**MEASURED, and both halves of that sentence are wrong** — it *is* from this
+XDK, `xboxkrnl.lib`, which every title links. §7l.
 
-**Which lib variant the retail build linked is NOT_MEASURED.** `XDK/lib/xbox/`
-carries 117 libs, 1.6 GB, including `ltcg` (link-time codegen) variants beside
-ordinary ones. The PDB path names the configuration `Xbox 360MasterWAD`, which
-suggests LTCG, but that is an inference from a folder name and matching is what
-will settle it.
+~~**Which lib variant the retail build linked is NOT_MEASURED.**~~ **ANSWERED
+in §7l: the non-LTCG variants.** `XDK/lib/xbox/` carries 117 libs, 1.6 GB,
+including `ltcg` variants beside ordinary ones. Nine matched libraries have an
+LTCG twin and in all nine the ordinary variant is the one that matched
+byte-for-byte; the two cannot both be linked. The PDB path naming the
+configuration `Xbox 360MasterWAD` did suggest LTCG — an inference from a folder
+name, and it did not survive measurement.
 
 ### Operational: MSVC flags and Git Bash
 
@@ -285,6 +301,249 @@ CHECKER — it hashed a fixed 256 bytes from the file against Ghidra's hash of a
 `ApplyPdata.java` created **20,674** functions of 21,238 rows; 2 already existed,
 0 not in memory, 0 `createFunction` failures, **562 disassembly failures**, and
 the arms sum to 21,238 exactly.
+
+---
+
+## 7l. LTCG SETTLED — the Rich header is a census, and it can be calibrated
+
+*measured 2026-08-28*
+
+This was the top open question in the project, because it decided whether the
+matching loop could work at all. Under `/GL`, the compiler emits intermediate
+language and `link.exe` does codegen, so the object holds **no PowerPC code to
+compare against**. Directly measured here earlier:
+
+```
+without /GL :  626 B object, machine 01F2, 1 PowerPC function, 76 code bytes
+with    /GL : 4737 B object, machine 0000, 0 PowerPC functions,  0 code bytes
+```
+
+The previous attempt tried to answer it by linking both ways and diffing the
+linked output. That scored 0/19 for **both** arms, including a build known to
+score 13/19 at object level, so the harness was wrong rather than the answer.
+
+**The answer was already in the image, and had been read past twice.** §2
+decodes the Rich header and records its rows, then says:
+
+> The prodid -> tool NAMES are NOT_MEASURED. The community prodid table was
+> not consulted; naming 132 "the C++ compiler" from memory is exactly the move
+> that produces a confident wrong name.
+
+That caution was right, and the conclusion drawn from it was wrong. Refusing to
+*look up* the names was correct. Concluding that the names were therefore
+unavailable was not — **the toolchain that stamped them is sitting in
+`SDKFiles/`.** A meaning that can be measured does not need a table.
+
+### What the Rich header is
+
+Not a version banner. It is a **census**: one row per (product id, build), with
+a count of how many objects that tool contributed. The per-object term of the
+same sum is the absolute symbol `@comp.id`, whose value is
+`(prodid << 16) | build`.
+
+That gives two instruments over the same fact from different places — the
+linker's tally in the DOS stub, and each compiler's own stamp inside each
+object. They can disagree, so agreement means something.
+
+* `tools/rich.py` decodes the header, refusing rather than guessing on any of
+  five structural checks.
+* `tools/compid.py` reads `@comp.id` out of objects and archives.
+* `tools/rich_calibrate.py` builds known flag combinations and reports which
+  ids appear.
+
+### The product ids, MEASURED against this XDK
+
+Each row below is a single-variable change from the control arm. The control
+is one C++ TU with no `/GL`; it must produce prodid 132, the id that dominates
+the retail image, or nothing else is interpretable and the harness refuses.
+
+| prodid | meaning | how it was established |
+|---|---|---|
+| **131** | C, no `/GL` | adding `/TC` moved one object 132 -> 131 |
+| **132** | C++, no `/GL` | the control arm |
+| **137** | C, `/GL` | `/TC /GL` moved one object 131 -> 137 |
+| **138** | C++, `/GL` | `/GL` moved one object 132 -> 138 |
+| **145** | linker | exactly one per image, in every arm |
+| **146** | export descriptor | disappears when `dllexport` is removed |
+| **147** | XEX import descriptor | only ever on `xam.xex@...`, `xbdm.xex@...` |
+| **149** | PowerPC assembler | see below |
+| 1 / build 0 | import descriptors | 52 in a minimal link, 324 in retail |
+
+**149 is the assembler.** Every one of the 89 objects in the XDK carrying it is
+hand-written PowerPC: `crtgpr.obj`, `crtfpr.obj`, `crtvmx.obj`, `memcpyp.obj`,
+`strlenp.obj`, `setjmp.obj`, `longjmp.obj`, `chkstk.obj`, `stackppc.obj`,
+`sqrta.obj`, `fibera.obj`, `intrlock.obj`, `ppcbetramp.obj`. `crtgpr`/`crtfpr`
+are `__savegprlr`/`__restgprlr` — already known to be assembly from §7e. The
+`p` and `a` suffixes are that build's convention for PowerPC assembly sources.
+
+**The id is stamped at COMPILE time, by `/GL`, not at link time by `/LTCG`.**
+An arm that compiled `/GL` and linked *without* `/LTCG` still produced 138. So
+the header records how each translation unit was compiled, which is exactly the
+question.
+
+### The retail image, read through that table
+
+```
+prodid  build  count   meaning
+   131   8153    359   C,     no /GL
+   132   8153   1090   C++,   no /GL
+   149   8153     25   PowerPC assembly
+   138   8153     54   C++, /GL          <-- the only link-time-codegen rows
+   137      -      0   C, /GL            <-- ABSENT
+   147   8153      5   XEX import descriptors
+   145   8153      1   linker
+   146   8153      1   export descriptor
+     1      0    324   import descriptors
+   123   2909      2   see the correction below
+   109   2909      1   "
+```
+
+**Of 1,528 objects carrying a code-producing stamp, 1,474 were compiled
+without `/GL` — 96.5%.** Fifty-four were not, and no C translation unit used
+`/GL` at all.
+
+**So object-level byte matching is sound methodology for this image.** Not by
+inference: `sub_822607F0` is at an address inside the game's own band and it
+matched 30/30 words as a compiled object (§7d). The game's own code demonstrably
+compiles to comparable objects.
+
+### The cross-check, from the other instrument
+
+`tools/compid.py --join` reads `@comp.id` for every object `libmatch.py`
+matched byte-for-byte into the retail image — 6,541 functions from **610
+distinct objects across 27 libraries**:
+
+```
+prodid 132  x363   C++, no /GL
+prodid 131  x230   C,   no /GL
+prodid 149  x17    PowerPC assembly
+prodid 137/138  x0
+```
+
+Not one carries a `/GL` id, which is what a byte match requires. Two
+instruments with nothing in common agree.
+
+*(Note: a `/GL` object carries no `@comp.id` this parser can read at all — the
+IL container has machine 0000. So `--join` confirms the matched objects are
+stamped plain C/C++/asm; it cannot separately detect a `/GL` object masquerading
+as one. It does not need to: such an object holds no PowerPC code to match.)*
+
+### Which library variants the retail build linked — ANSWERED
+
+`XDK/lib/xbox/` ships `ltcg` variants beside ordinary ones, and which the
+retail build used was recorded as NOT_MEASURED. It is measurable: an LTCG
+library's members are IL with no `@comp.id`, and 2,595 such objects sit across
+11 `*ltcg*.lib` files.
+
+**Nine of the matched libraries have an LTCG twin, and in all nine cases the
+NON-LTCG variant is the one that matched byte-for-byte:** `d3d9`, `xact`,
+`xaudio`, `xavatar`, `xmahal`, `xmcore`, `xuirender`, `xuirun` (and `d3d9ltcgi`).
+The two variants cannot both be linked — they define the same symbols — so the
+LTCG twins were not linked.
+
+### What the 54 are is still NOT_MEASURED
+
+They are either the title's own `/GL` translation units, or members of an LTCG
+library that has no matched twin. Only two such libraries exist —
+`xact3ltcg.lib` (60 objects) and `x3daudioltcg.lib` (3) — and neither
+`xact3.lib` nor `x3daudio.lib` appears among the matched libraries.
+
+The image's extracted source paths contain no XACT3 or X3DAudio reference, but
+**that negative is uninformative**: those 188 paths contain no `xact` or
+`xaudio` reference of any kind, so the instrument cannot see audio libraries.
+Checked before quoting, per the rule that produced it.
+
+This does not gate anything. At worst it is 54 of 1,528 objects — 3.5% — and a
+function that will not match for this reason would be found by failing to match.
+
+### Correction to §2: the `2909` toolchain is NOT third-party
+
+§2 records:
+
+> The `2909` pair is a prebuilt third-party library — consistent with the
+> `BINK`/`BINKCONS`/`BINKDATA`/`BINKBSS` sections, which RAD ships as objects.
+
+**That is wrong.** A minimal test program built here — linking no middleware
+whatsoever — reproduces both `123/2909` and `109/2909` in its own Rich header.
+The census locates them exactly:
+
+```
+prodid 109  build 2909   xboxkrnl.lib   obj/xbox/bldnum.obj
+prodid 123  build 2909   xboxkrnl.lib   xboxkrnl.exe@8276.0+1861.0   (x3)
+```
+
+They come from **`xboxkrnl.lib`**, an XDK library every title links. The Bink
+reading was a plausible story fitted to a number, and the number had a duller
+source. It also means the retail image contains **no evidence of a second
+toolchain** — the earlier reading of "a second, older toolchain" in §2's table
+is an artifact of the same mistake.
+
+### Correction to §2: row order
+
+§2's table lists `1 / 0 / 324` as the fourth row. In the file it is the sixth,
+after the two `8153` rows for prodids 138 and 149. Row order is the linker's
+own emission order, so it is data; the table was reordered by hand when written.
+
+### PGO — the tooling now runs, the measurement does not
+
+The competing hypothesis for the stalled matches was profile-guided
+optimisation. `/LTCG:PGI` fails here with `LNK1123: failure during conversion
+to COFF` on the `.pgd`, so which prodid a PGO build stamps is **NOT_MEASURED**
+and the retail image cannot yet be checked for it.
+
+What *is* established is that PGO is not needed to explain the stalls: the
+branchless `sub_826C1480` cannot be affected by branch-probability data and
+still will not match (§ MATCHED.md), and LTCG — the other candidate — is now
+excluded for 96.5% of the image.
+
+### R6034: fifteen XDK modules ship with no activation context
+
+Found while running the PGO arm, which popped the same R6034 dialog that
+`link.exe` produced before its manifest was repaired. `tools/pemanifest.py`
+answers this statically, without running anything — running a broken tool pops
+a **modal dialog that blocks until a human clicks OK**, which is a poor
+instrument.
+
+Of 160 modules in `XDK/bin/win32`:
+
+```
+139  do not import the VC90 CRT and cannot raise R6034
+  6  carry an embedded VC90 manifest        link.exe (repaired), mspdb*, msobj*, msdis*
+  1  covered by an external .manifest       cl.exe   <-- why cl works and lib.exe does not
+  8  DLLs with no manifest                  c1, c1xx, c2, pgodb90, xpft90, ...
+  6  EXEs with no manifest -- BROKEN        dumpbin, editbin, lib, pgocvt, pgodump, pgomgr
+```
+
+A first version of that tool reported cl.exe as "WILL RAISE R6034" while cl.exe
+was demonstrably compiling. It was not distinguishing an EXE that can be covered
+by an external `<name>.manifest` from a DLL that inherits its host's context.
+**A guard that fires on known-good input teaches you to reach past guards**, so
+it was fixed before being used.
+
+`tools/fix_manifests.py --write` repairs the six by writing an external
+`<name>.exe.manifest` beside each — the mechanism Microsoft already used for
+`cl.exe` in that same folder. It modifies no binary and is undone by deleting a
+file, unlike the `mt.exe` embedding that repaired `link.exe`. Verified:
+
+```
+dumpbin.exe    Microsoft (R) COFF/PE Dumper Version 9.00.8153
+lib.exe        Microsoft (R) Library Manager Version 9.00.8153
+pgomgr.exe     Microsoft (R) Profile Guided Optimization Manager 9.00.8153
+```
+
+### The rule this paid for
+
+**A fact you declined to look up is not the same as a fact you cannot
+measure.** The prodid names were marked NOT_MEASURED for a good reason — the
+community table is for a different compiler generation and naming from memory
+invents answers. But the tool that assigns those ids was already extracted in
+this repository, and one afternoon of controlled builds gave the table
+directly, with a control arm that refuses to interpret anything if it does not
+reproduce the retail image's dominant id.
+
+The cost of not noticing: three functions attempted, eight source shapes, 65
+flag combinations, and a linked-output harness that scored 0/19 on a build
+known to score 13/19 — all to answer a question the image had already answered.
 
 ---
 

@@ -48,16 +48,17 @@ Tried and rejected, all at exactly 84 bytes:
 | flag sweep, 5 optimisation levels x 13 combinations | 11/21 (`/O1`) |
 | aliasing: all reads through one pointer type | 10/21 |
 
-**Leading hypothesis: the retail build used PGO.** Branch probability is not
-reachable from source shape or from any flag tried, and the XDK ships the
+**Hypothesis at the time: the retail build used PGO.** Branch probability is
+not reachable from source shape or from any flag tried, and the XDK ships the
 tooling — `pgomgr.exe` and `pgodb90.dll` are present and `link.exe` imports
-`pgodb90.dll`. Whether *this title* used it is NOT_MEASURED. If it did,
-functions whose layout depends on measured branch frequencies will not match
-without the profile data, which is not recoverable from the image.
+`pgodb90.dll`.
 
-Worth testing on a function with no conditional branch at all: if straight-line
-functions match cleanly and branchy ones stall at this same wall, that is
-strong evidence for PGO and it changes what "matchable" means for this project.
+**That hypothesis was tested and does not survive**, by the branchless target
+below: a function with no conditional branch cannot be affected by
+branch-probability data, and it stalls at the same wall. Whether the title
+used PGO at all remains NOT_MEASURED — `/LTCG:PGI` fails here with `LNK1123`
+on the `.pgd`, so the product id a PGO build stamps is unknown and the image
+cannot be checked for it. But PGO is no longer needed to explain anything.
 
 ### `sub_826C1480` — 12-field initialiser, BRANCHLESS
 
@@ -83,7 +84,7 @@ everywhere.
 cannot be affected by branch-probability data, and it still will not match.
 The wall on both attempts is INSTRUCTION SCHEDULING, not branch layout.
 
-### LTCG, and what it would mean
+### LTCG — RESOLVED, and it is not the cause
 
 `/GL` was tested directly:
 
@@ -93,29 +94,28 @@ with    /GL :  4737 B object, machine 0000, 0 PowerPC functions, 0 code bytes
 ```
 
 **With LTCG the object holds intermediate language and no machine code at
-all** — codegen happens at link time. If the retail build used it for the
-game's own code, per-object byte comparison is the wrong methodology and
-matching would have to be done against linked output.
+all** — so if the retail build had used it for the game's own code, per-object
+comparison would be the wrong methodology entirely. It did not:
 
-Evidence both ways, none conclusive:
+```
+of 1,528 objects in the retail image carrying a code-producing stamp,
+1,474 (96.5%) were compiled WITHOUT /GL.  54 were.  No C TU used /GL.
+```
 
-* FOR: the build config is `Xbox 360MasterWAD`; the XDK ships 11 LTCG library
-  variants; and link-time codegen would explain a scheduling difference that
-  no source shape or flag reaches.
-* AGAINST: 6,332 functions match **non-LTCG** XDK library objects byte for
-  byte. Had those libraries been regenerated at link time they would not.
-  That proves the LIBRARIES were linked without LTCG; it says nothing about
-  the game's own objects, which `/LTCG` would regenerate while leaving
-  precompiled libraries alone.
+Read out of the image's own Rich header, whose product ids were **measured**
+against this XDK rather than looked up — see FINDINGS §7l. Cross-checked from
+an independent direction: all 610 library objects that `libmatch.py` matched
+byte-for-byte carry a plain C/C++/asm stamp, none a `/GL` one.
 
-An attempt to compare LTCG against non-LTCG *linked* output was inconclusive:
-both produced 0/19 in a raw window search, including the non-LTCG build that
-scores 13/19 at object level, so the harness is wrong rather than the answer
-being no. Comparing linked output needs relocations resolved properly.
+The decisive point for this file is simpler than the statistics, though.
+`sub_822607F0` sits at an address inside the game's own band and matched 30/30
+words **as a compiled object**. The game's own code demonstrably compiles to
+comparable objects, so nothing about the two stalls below is explained by
+link-time codegen.
 
-**This is the most important open question in the project.** It decides
-whether byte-matching at object level is viable at all for the game's own
-code.
+What the 54 `/GL` objects are is NOT_MEASURED — either the title's own
+translation units or members of `xact3ltcg.lib`/`x3daudioltcg.lib`, the only
+two LTCG libraries without a matched twin.
 
 ### `sub_827618E8` — counted wide-string compare
 
