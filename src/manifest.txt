@@ -65,3 +65,4 @@ src/ring_index.cpp              827245C0
 src/ring_index2.cpp             827245E0
 src/zero48.cpp                  8253FE28
 src/vcall_global_arg.cpp        826C5E00
+src/deref_or_zero.cpp           822D0BE8

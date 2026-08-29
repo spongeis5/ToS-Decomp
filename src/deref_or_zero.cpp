@@ -8,13 +8,18 @@
 // cmplwi with ble is an UNSIGNED <= 0, true only at zero, so the count is
 // unsigned. The branch jumps AWAY to the zero return, so the dereference is
 // the fall-through and must be written first.
+//
+// The last word came down to `> 0` versus `!= 0`. For an unsigned value
+// those mean the same thing, and the compiler emits a different branch
+// condition for each: `ble-` for the first, `beq-` for the second. Writing
+// the comparison the way the target's condition reads is the whole fix.
 struct Counted { char unk0000[0x44]; u32 count; void** items; };
 ASSERT_OFFSET(Counted, count, 0x44);
 ASSERT_OFFSET(Counted, items, 0x48);
 
 void* FirstOrNull(Counted* c)
 {
-    if (c->count)
+    if (c->count > 0)
         return c->items[0];
     return 0;
 }

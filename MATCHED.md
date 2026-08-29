@@ -4,7 +4,7 @@ Byte-for-byte matches against the retail image, compiled with the original
 XDK 8276 toolchain (`cl.exe` 15.00.8153), every one at
 `/O2 /Gy /GS- /fp:fast`.
 
-**55 functions, 1300 bytes.** Verify all of them, plus the reconstructing build
+**56 functions, 1332 bytes.** Verify all of them, plus the reconstructing build
 and five negative controls, with one command:
 
 ```bash
@@ -187,3 +187,100 @@ real trailing instruction has ever been eaten.
 is executable but is not `.text`, is middleware, and has no business being
 decompiled here. `candidates.py` now excludes that range. The match is
 correct and is not counted.
+
+---
+
+## Browsing this in objdiff
+
+objdiff compares two OBJECT FILES per unit. This project has neither shape
+lying around -- the target is a linked retail image and the base is a COFF
+object -- so `tools/objdiff_export.py` synthesizes both as PowerPC ELF
+relocatables and writes `objdiff.json`:
+
+```bash
+python tools/objdiff_export.py
+objdiff-cli report generate -p . -o build/objdiff/report.json
+```
+
+Verified end to end against objdiff-cli 3.8.0: it reads the synthesized
+objects, decodes them as PowerPC, and reports
+
+```
+units       70 total, 56 complete
+functions   70 total, 56 matched
+code        2008 bytes total, 1332 matched
+matched     66.33%   fuzzy 85.51%
+```
+
+Two decisions worth knowing:
+
+**The export includes the functions that do NOT match**, from
+`src/attempts.txt`. A unit list where every row reads 100% shows nothing; the
+near-misses are the reason to open a visual diff at all. They are kept out of
+`src/manifest.txt` because that is what `build.py` verifies and a
+non-matching row there would break the build.
+
+**The base has its relocations already resolved**, as `build.py` does. A
+relocation's address is chosen by the original linker and is not knowable
+from source, so emitting the base un-patched would show every `bl` and every
+`lis`/`addi` pair as a difference even for a function that verifies
+perfectly.
+
+**objdiff will not decode VMX128.** None of the currently matched functions
+contain any -- checked, 0 of 325 instructions -- but the engine's vector
+maths will not render. `tools/disasm.py` is the reader that knows it.
+
+### The near-misses, as objdiff scores them
+
+| unit | fuzzy match |
+|---|---|
+| `sub_827C5198 (vcall116)` | 98.0% |
+| `sub_828864E0 (vcall_arg_adj)` | 98.0% |
+| `sub_827007E8 (set_vtable_827007E8)` | 97.5% |
+| `sub_8288A788 (two_vtables)` | 97.1% |
+| `sub_828133B8 (two_vtables_b)` | 97.1% |
+| `sub_825E35C8 (vcall_global_4)` | 96.7% |
+| `sub_825E3598 (vcall_global_2)` | 96.7% |
+| `sub_826C1480 (init12)` | 89.5% |
+| `sub_82600AD0 (list_insert)` | 71.4% |
+| `sub_82639C38 (fadd_fwd)` | 65.8% |
+| `sub_827FE808 (and_byte)` | 58.8% |
+| `sub_82806FD0 (chunked_at)` | 57.1% |
+| `sub_827618E8 (wstr_compare)` | 38.4% |
+| `sub_8215E5B0 (arg_shuffle)` | 12.1% |
+
+---
+
+## The permuter
+
+`tools/permuter.py` mutates a source in ways that cannot change what it
+computes, compiles each mutation with the real XDK compiler, and scores it
+against the retail bytes -- the decomp-permuter idea, sized to this project.
+
+```bash
+python tools/permuter.py src/vcall116.cpp 827C5198 --iters 500
+python tools/permuter.py --selftest
+```
+
+**It validates against a known answer.** `sub_826C0FC8` scores 2/6 as a free
+function and 6/6 as a member; `--selftest` requires the permuter to
+rediscover that, and it does, in about 8 mutations. A search tool that cannot
+find an answer already known by hand has no business reporting a negative.
+
+Mutations: `reorder` (swap adjacent independent statements), `invert` (branch
+polarity), `member` (free function to member), `compare` (`x != 0` versus
+`x > 0`, which compile to *different branch conditions* for an unsigned
+value), `inline` (remove a local that only names a subexpression), `temp`,
+`sign`.
+
+**Two bugs it had, both found by validating rather than by running it:**
+substituting the parameter name into raw text rewrote `the target's own` in a
+COMMENT to `the target'this own`; and converting `sub_826C1480` to a member
+silently shadowed the member `f[12]` with its parameter `int f`. Mutations
+now rewrite code only, and refuse when a parameter collides with a member.
+
+**What it has not done is crack a single stall.** Six of them are the same
+shape -- a chained load where the target REUSES `r11` and we allocate fresh
+registers -- and none of the seven mutations reaches register allocation.
+That is the honest result, and it says the next mutation to write is one that
+changes register pressure rather than statement order.

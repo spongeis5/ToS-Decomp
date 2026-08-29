@@ -34,7 +34,7 @@ attributed as NOT the game's    8,238     (39.4% of .text BYTES)
 remaining to decompile         22,392     (60.6%)
 call-graph edges               85,314
 vetted match candidates         4,231
-FUNCTIONS MATCHED                  55
+FUNCTIONS MATCHED                  56
 ```
 
 Matches are listed in `MATCHED.md`, all at one uniform `/O2 /Gy /GS- /fp:fast`.
@@ -173,10 +173,12 @@ byte coverage against the 60.6% that is actually the game's is the number that
 matters. `tools/build.py` now reports byte coverage of `.text`, but there is
 still no dashboard tracking it over time.
 
-**6. There is no permuter.** `permute.py` scores a hand-written list of
-shapes. `decomp-permuter` mutates source automatically to search register
-allocation and scheduling outcomes — which is precisely the wall the four
-stalled functions are stuck against.
+**6. The permuter exists but does not reach the wall.** `tools/permuter.py`
+mutates source automatically and validates against a known answer
+(`--selftest` rediscovers the member-function match for `sub_826C0FC8`). It
+has not cracked a single stall: six of them are one shape — a chained load
+where the target reuses `r11` and we allocate fresh registers — and none of
+its seven mutations touches register allocation.
 
 **7. There is no CI.** Nothing re-runs the matches on commit; the regression
 check is run by hand.
@@ -385,6 +387,9 @@ cl /O2 /W0 /D_CRT_SECURE_NO_WARNINGS /I.. \
 | `coffreloc.py` | COFF functions with their relocation records |
 | `discover.py` | function starts and the call graph, from the image alone |
 | `segment.py` | probable translation units — scores itself, and mostly fails |
+| `permuter.py` | automatic source mutation; `--selftest` rediscovers a known match |
+| `objdiff_export.py` | synthesize ELF pairs + `objdiff.json` for visual diffing |
+| `verify.py` | **run everything**, including five negative controls |
 | `flagsweep.py` | sweep compiler flags for one source against one target |
 | `permute.py` | sweep source shapes for one target at fixed flags |
 | `vmx128_*.py` | four independent VMX128 validations — see `VMX128.md` |
