@@ -238,6 +238,29 @@ def main():
     # never link. build.py reports it; nothing should be reporting it.
     rc, out = run(["tools/build.py"])
     linkable = "WOULD NOT LINK" not in out
+
+    # The progress report and the build must agree on how many bytes are
+    # reproduced. They count it by different routes -- build.py splices each
+    # function into .text and sums what it wrote, report.py sums compiled
+    # lengths per source file -- so agreement is evidence and disagreement is
+    # one of them being wrong. Written the easy way, report.py used inventory
+    # extents and said 34,340 against build.py's 34,096; the inventory is
+    # wrong in both directions, and two numbers for one fact is the drift
+    # that has produced most of this project's tooling bugs.
+    import re as _re
+    m = _re.search(r"VERIFIED: (\d+) of \d+ \.text byte", out)
+    rc2, out2 = run(["tools/report.py"])
+    m2 = _re.search(r"matched_code\s+(\d+) of", out2)
+    if m and m2:
+        agree = m.group(1) == m2.group(1)
+        detail = "" if agree else "  build %s, report %s" % (m.group(1),
+                                                            m2.group(1))
+    else:
+        agree = False
+        detail = "  could not read one of the two figures"
+    print("  %-42s %s%s" % ("report.py agrees with build.py on bytes",
+                            "ok" if agree else "FAIL", detail))
+    results.append(agree)
     print("  %-42s %s" % ("no symbol resolves to two addresses",
                           "ok" if linkable else "FAIL -- see build.py output"))
     results.append(linkable)
