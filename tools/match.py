@@ -36,6 +36,7 @@ INCLUDE = XDK / "include/xbox"
 DEFAULT_FLAGS = ["/c", "/nologo", "/O2", "/Gy", "/GS-", "/fp:fast"]
 
 import ppcdis
+import xdkcc
 
 
 def text(word, va):
@@ -45,26 +46,14 @@ def text(word, va):
 
 
 def compile_one(src, flags, workdir):
-    workdir.mkdir(parents=True, exist_ok=True)
-    obj = workdir / (src.stem + ".obj")
-    if obj.exists():
-        obj.unlink()
-    env = {"PATH": str((XDK / "bin/win32").resolve()),
-           "INCLUDE": str(INCLUDE.resolve()),
-           "SystemRoot": "C:\\Windows", "TEMP": str(workdir.resolve())}
-    cmd = [str(CL.resolve())] + flags + ["/Fo" + str(obj.resolve()),
-                                         str(src.resolve())]
-    r = subprocess.run(cmd, capture_output=True, text=True,
-                       cwd=str(workdir.resolve()), env=env)
-    if r.returncode != 0 or not obj.exists():
-        print("COMPILE FAILED (exit %d)" % r.returncode)
-        print(r.stdout)
-        print(r.stderr)
+    """Compile via tools/xdkcc, the one place that knows the invocation."""
+    obj = Path(workdir) / (Path(src).stem + ".obj")
+    blob, err = xdkcc.compile_obj(src, obj, flags, workdir)
+    if blob is None:
+        print("COMPILE FAILED")
+        for line in (err or "").splitlines()[:6]:
+            print("  cl: %s" % line)
         return None
-    for line in r.stdout.splitlines():
-        s = line.strip()
-        if s and not s.endswith(".cpp") and not s.endswith(".c"):
-            print("  cl: %s" % s)
     return obj
 
 
@@ -98,7 +87,19 @@ def main(argv):
 
     fns = coff_functions(obj.read_bytes())
     if sym_want:
-        fns = [f for f in fns if sym_want in f[0]]
+        # Anchor on the mangled form: MSVC emits `?Name@@YA...`, so "?Name@@"
+        # pins the whole name. A plain substring made `ClearAndHandle` also
+        # select `ClearAndHandleOther`, and the tie was then broken by size --
+        # which is to say, arbitrarily.
+        exact = [f for f in fns if ("?" + sym_want + "@@") in f[0]]
+        fns = exact or [f for f in fns if f[0] == sym_want] \
+            or [f for f in fns if sym_want in f[0]]
+        if len(fns) > 1:
+            print("--sym %r selects %d functions; it must select one:"
+                  % (sym_want, len(fns)))
+            for n, c, _m in fns:
+                print("    %-50s %d byte(s)" % (n, len(c)))
+            return 2
     if not fns:
         print("no PowerPC function found in the object")
         return 2

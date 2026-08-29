@@ -120,22 +120,33 @@ def sweep(img):
     return calls, tails, edges, examined, undecodable
 
 
-def data_pointers(img, ranges, known):
-    """Aligned words in NON-executable sections that point at known code.
+def data_pointers(img, ranges, known, interior=None):
+    """Words in NON-executable sections that point at code.
 
     A virtual function is never the target of a `bl`, so the branch sweep
     cannot see one. Its address is in a vtable instead. This finds those
-    without needing to identify vtables as such: an aligned word in a data
-    section whose value is a known function start is a reference to it, and
-    a word that lands on a start we do NOT know is a candidate for one.
+    without needing to identify vtables as such: a word in a data section
+    whose value is a known function start is a reference to it, and one that
+    lands somewhere not yet known is a candidate for a new start.
 
-    Deliberately conservative. Requiring 4-byte alignment and a target inside
-    an executable section still admits coincidences -- an integer or a float
-    can look like a code address -- so this reports its own hit rate against
-    ALREADY-KNOWN starts, which is the check on whether the rest are credible.
+    An integer or a float can look like a code address, so candidates are
+    filtered by two things that are impossible for a real function start
+    rather than merely unlikely:
+
+      * a PowerPC instruction is 4-byte ALIGNED by construction, so a value
+        with low bits set cannot be an entry point;
+      * a start strictly INSIDE a .pdata function contradicts the compiler's
+        own unwind table, which is authoritative about extents.
+
+    Without those two filters this admitted 148 impossible candidates out of
+    3,620 (4.1%), and they showed up downstream as inventory entries whose
+    extent overran the next "function" -- including starts at addresses like
+    82106901, which is not even aligned.
+
+    `interior(va)` should return the containing .pdata function or None.
     """
     hits, confirmed = set(), 0
-    total = 0
+    total = rejected_align = rejected_interior = 0
     for s in img.sections:
         if s["exec"] or not (s["rawsz"] or s["vsize"]):
             continue
@@ -150,9 +161,15 @@ def data_pointers(img, ranges, known):
             total += 1
             if w in known:
                 confirmed += 1
-            else:
-                hits.add(w)
-    return hits, confirmed, total
+                continue
+            if w & 3:
+                rejected_align += 1
+                continue
+            if interior is not None and interior(w):
+                rejected_interior += 1
+                continue
+            hits.add(w)
+    return hits, confirmed, total, rejected_align, rejected_interior
 
 
 def main(argv):
@@ -188,15 +205,34 @@ def main(argv):
 
     ranges = exec_ranges(img)
     known = pset | found
-    ptr_new, ptr_confirmed, ptr_total = data_pointers(img, ranges, known)
+
+    import bisect
+    pstarts = sorted(pset)
+    psize = dict(pdata)
+
+    def interior(va):
+        """The .pdata function strictly containing va, or None."""
+        i = bisect.bisect_right(pstarts, va) - 1
+        if i < 0:
+            return None
+        s = pstarts[i]
+        return s if s < va < s + psize.get(s, 0) else None
+
+    (ptr_new, ptr_confirmed, ptr_total,
+     rej_align, rej_interior) = data_pointers(img, ranges, known, interior)
     print("DATA POINTERS -- for functions only ever reached through a vtable,")
     print("which no `bl` names:")
     print("  aligned data words pointing into code %8d" % ptr_total)
     print("  of those, on an ALREADY-KNOWN start   %8d  (%.1f%%)"
           % (ptr_confirmed, 100.0 * ptr_confirmed / max(ptr_total, 1)))
+    print("  rejected, not 4-byte aligned          %8d" % rej_align)
+    print("  rejected, inside a .pdata function    %8d" % rej_interior)
     print("  landing somewhere not yet known       %8d" % len(ptr_new))
     print("  (the hit rate above is the check: if most data words that look")
-    print("   like code addresses ARE known starts, the rest are credible)")
+    print("   like code addresses ARE known starts, the rest are credible.")
+    print("   The two rejections are impossibilities, not improbabilities:")
+    print("   a PowerPC entry point is aligned, and .pdata is authoritative")
+    print("   about the extent of the functions it lists.)")
     print("")
 
     found |= ptr_new
@@ -243,6 +279,30 @@ def main(argv):
     print("   that is not a zero or a nop, so this is a floor, not a defect)")
     print("")
 
+    ordered = [a for a in all_starts if a in sizes_out or a in pd_size]
+    final = [(a, pd_size.get(a, sizes_out.get(a, 0))) for a in ordered]
+    overlap = [(final[i][0], final[i][1], final[i + 1][0])
+               for i in range(len(final) - 1)
+               if final[i][0] + final[i][1] > final[i + 1][0]]
+    # An overlap is only a defect if the interior address is NOT a real
+    # secondary entry point. The register save/restore helpers legitimately
+    # have many: __restgprlr is one 84-byte body with 15 `bl`-able entries
+    # (FINDINGS 7e). A `bl` naming an interior address is evidence it IS an
+    # entry point; a data word landing there is not, which is why those are
+    # rejected before this point.
+    ov_branch = [x for x in overlap if x[2] in found]
+    ov_other = [x for x in overlap if x[2] not in found]
+    print("OVERLAP CHECK on the emitted inventory:")
+    print("  entries                               %8d" % len(final))
+    print("  whose extent overruns the next start  %8d" % len(overlap))
+    print("    interior address is a BRANCH target %8d  <- secondary entry"
+          % len(ov_branch))
+    print("    interior address is not             %8d  <- unexplained"
+          % len(ov_other))
+    for a, s, n in ov_other[:5]:
+        print("      %08X + %d overruns %08X" % (a, s, n))
+    print("")
+
     inv_out = Path("build/discovered_inventory.txt")
     inv_out.write_text("# address size  (.pdata sizes where known, else "
                        "extent-to-next-start with padding trimmed)\n"
@@ -258,11 +318,27 @@ def main(argv):
     print("")
 
     if "--compare" in argv[1:]:
-        inv = dict(load_inventory())
-        ghidra_only = sorted(set(inv) - pset)
-        gset = set(ghidra_only)
+        # Read GHIDRA'S OWN export, not load_inventory(). The inventory is now
+        # built from this very sweep, so comparing against it compares
+        # discovery with itself and reports a perfect score for nothing --
+        # which is exactly what it did once the default was switched.
+        if not GHIDRA.exists():
+            print("COMPARISON skipped: %s is not present." % GHIDRA)
+            print("  Nothing in the pipeline needs it; it is only the")
+            print("  cross-check. Re-export it from Ghidra to compare.")
+            return 0
+        gh = set()
+        for line in GHIDRA.read_text().splitlines():
+            if line.startswith("#") or not line.strip():
+                continue
+            try:
+                gh.add(int(line.split()[0], 16))
+            except (ValueError, IndexError):
+                pass
+        gset = gh - pset
         bset = set(beyond)
-        print("COMPARISON with Ghidra's contribution:")
+        print("COMPARISON with Ghidra's contribution (from %s):" % GHIDRA.name)
+        print("  Ghidra function starts               %8d" % len(gh))
         print("  functions Ghidra adds beyond .pdata  %8d" % len(gset))
         print("  functions this sweep adds            %8d" % len(bset))
         print("  found by BOTH                        %8d" % len(gset & bset))

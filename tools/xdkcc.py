@@ -1,0 +1,122 @@
+"""One place that knows how to invoke the XDK compiler.
+
+There were four copies of this: match.py, permute.py, flagsweep.py and
+build.py each built their own environment dict and their own argv. They drifted
+the moment `include/` was added to the search path -- build.py got it, the
+other three did not, and seven functions that still compiled and still
+reproduced under build.py started reporting
+
+    fatal error C1083: Cannot open include file: 'types.h'
+
+under match.py. Nothing was wrong with the sources or the matches; three
+harnesses were simply compiling differently from the one that verifies.
+
+So the invocation lives here, once.
+
+Notes that are load-bearing:
+
+  * cl.exe is invoked through subprocess DIRECTLY, never through a shell. Git
+    Bash rewrites MSVC-style `/c` and `/nologo` into Windows paths and the
+    flags are then silently dropped rather than refused (SHELL-TRAPS.md 2).
+  * `include/` comes BEFORE the XDK's own include directory, so the project's
+    headers win.
+  * The compiler's diagnostics are returned in full. cl prints the source
+    filename as line 1, so a caller that shows only the first line of output
+    reports the filename and hides the error -- which is how a working
+    ASSERT_OFFSET once looked like a byte mismatch.
+"""
+
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+XDK = ROOT / "SDKFiles/xdk/XDK"
+BIN = XDK / "bin/win32"
+CL = BIN / "cl.exe"
+XDK_INCLUDE = XDK / "include/xbox"
+PROJECT_INCLUDE = ROOT / "include"
+
+DEFAULT_FLAGS = ["/c", "/nologo", "/O2", "/Gy", "/GS-", "/fp:fast"]
+
+
+def env(workdir):
+    import os
+    return {
+        "PATH": str(BIN.resolve()),
+        "INCLUDE": os.pathsep.join([str(PROJECT_INCLUDE.resolve()),
+                                    str(XDK_INCLUDE.resolve())]),
+        "SystemRoot": "C:/Windows",
+        "TEMP": str(Path(workdir).resolve()),
+    }
+
+
+def diagnostics(text):
+    """The lines of cl output that are actually diagnostics.
+
+    cl prints the source filename first, so `output.splitlines()[0]` is never
+    the error.
+    """
+    lines = [l.strip() for l in (text or "").splitlines() if l.strip()]
+    diag = [l for l in lines if "error" in l.lower() or "warning" in l.lower()]
+    return diag or lines
+
+
+def compile_obj(src, obj, flags=None, workdir=None):
+    """Compile `src` to `obj`. -> (object bytes, None) or (None, diagnostics).
+
+    `obj` is removed first, so a stale object from a previous run can never be
+    mistaken for a successful compile.
+    """
+    src = Path(src)
+    obj = Path(obj)
+    workdir = Path(workdir) if workdir else obj.parent
+    workdir.mkdir(parents=True, exist_ok=True)
+    obj.parent.mkdir(parents=True, exist_ok=True)
+    if obj.exists():
+        obj.unlink()
+
+    cmd = ([str(CL.resolve())] + list(flags if flags is not None
+                                      else DEFAULT_FLAGS)
+           + ["/Fo" + str(obj.resolve()), str(src.resolve())])
+    r = subprocess.run(cmd, capture_output=True, text=True,
+                       cwd=str(workdir.resolve()), env=env(workdir))
+    out = r.stdout + r.stderr
+    if r.returncode != 0 or not obj.exists():
+        return None, "\n".join(diagnostics(out))
+    return obj.read_bytes(), None
+
+
+def self_test():
+    """Compile a file that includes a project header. Both arms must behave.
+
+    This exists because the failure it guards against was invisible: the
+    sources were fine, the matches were fine, and only the harness differed.
+    """
+    work = ROOT / "build/xdkcc_selftest"
+    work.mkdir(parents=True, exist_ok=True)
+    good = work / "good.cpp"
+    good.write_text('#include "types.h"\n'
+                    'struct S { char a[8]; s32 v; };\n'
+                    'ASSERT_OFFSET(S, v, 8);\n'
+                    'int f(S* s) { return s->v; }\n')
+    bad = work / "bad.cpp"
+    bad.write_text('#include "types.h"\n'
+                   'struct S { char a[4]; s32 v; };\n'
+                   'ASSERT_OFFSET(S, v, 8);\n'
+                   'int f(S* s) { return s->v; }\n')
+
+    ok = True
+    blob, err = compile_obj(good, work / "good.obj")
+    print("  project header resolves      %s"
+          % ("yes" if blob else "NO -- " + (err or "").splitlines()[0]))
+    ok &= blob is not None
+    blob, err = compile_obj(bad, work / "bad.obj")
+    caught = blob is None and "C2118" in (err or "")
+    print("  wrong offset is a hard error %s" % ("yes" if caught else "NO"))
+    ok &= caught
+    return 0 if ok else 1
+
+
+if __name__ == "__main__":
+    sys.exit(self_test())

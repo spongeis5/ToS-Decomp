@@ -21,13 +21,21 @@ a POOR boundary signal on this image. Scored pairwise against the known
 objects --
 
     rule                          precision   recall
-    gap <= 4                        72.2%       26.1%
-    gap <= 64                       44.2%       47.6%
-    gap <= 4  AND call-related      89.2%        6.2%
+    gap <= 4                        55.1%       47.0%
+    gap <= 64                       23.6%       62.2%
+    gap <= 4  AND call-related      89.1%        6.3%
 
 -- there is no threshold that is both accurate and complete. Requiring the
-call graph to agree lifts precision from 72% to 89%, which is what the default
+call graph to agree lifts precision from 55% to 89%, which is what the default
 uses, but recall falls to 6%.
+
+(An earlier version of this table read 72.2% for the first row. It took the
+function sizes from the inventory, and 88 of the 6,541 matched functions are
+not inventory entries at all -- libmatch scans every aligned position, so it
+matches where no start is recorded. Those fell back to a fabricated 4 bytes,
+which inflates the gap to the next function and manufactures boundaries that
+are not there. Sizes now come from lib_matches.txt, which records the real
+one. The default arm was unaffected; adjacency alone was overstated.)
 
 So **this is a hint generator, not a partition.** A segment of several
 functions that call each other and sit together is good evidence they share a
@@ -65,7 +73,14 @@ DEFAULT_CG = True
 
 
 def known_objects():
-    """address -> "lib!object", for functions matched byte-for-byte."""
+    """address -> ("lib!object", size), for functions matched byte-for-byte.
+
+    The SIZE comes from lib_matches.txt, not from the inventory. 88 of the
+    6,541 matched functions are not inventory entries at all -- libmatch scans
+    every aligned position, so it can match where no start is recorded -- and
+    falling back to a fabricated 4 bytes inflates the gap to the next function
+    and forces boundaries that are not there.
+    """
     out = {}
     if not LIBMATCH.exists():
         return out
@@ -75,7 +90,7 @@ def known_objects():
         f = line.split()
         if len(f) < 5:
             continue
-        out.setdefault(int(f[0], 16), f[2] + "!" + f[3])
+        out.setdefault(int(f[0], 16), (f[2] + "!" + f[3], int(f[1])))
     return out
 
 
@@ -170,9 +185,8 @@ def validate():
     if not owner:
         print("%s missing -- run tools/libmatch.py --all first" % LIBMATCH)
         return 1
-    inv = dict(load_inventory())
-    funcs = sorted((a, inv.get(a, 4)) for a in owner)
-    labels = [owner[a] for a, _s in funcs]
+    funcs = sorted((a, owner[a][1]) for a in owner)
+    labels = [owner[a][0] for a, _s in funcs]
     nobj = len(set(labels))
 
     print("Scoring boundary rules against %d functions whose owning object"
@@ -198,7 +212,7 @@ def validate():
 
     by_obj = defaultdict(list)
     for a, _s in funcs:
-        by_obj[owner[a]].append(a)
+        by_obj[owner[a][0]].append(a)
     truth_pairs = pairs_of(by_obj.values())
 
     edges, rev = call_graph()
@@ -215,7 +229,7 @@ def validate():
         for seg in segs:
             c = defaultdict(int)
             for a, _s in seg:
-                c[owner[a]] += 1
+                c[owner[a][0]] += 1
             for _o, k in c.items():
                 agree += k * (k - 1) // 2
         p = agree / pred_pairs if pred_pairs else 1.0
@@ -256,7 +270,7 @@ def main(argv):
     segs = cluster(inv, T, edges, rev)
 
     def label(seg):
-        objs = set(owner[a] for a, _s in seg if a in owner)
+        objs = set(owner[a][0] for a, _s in seg if a in owner)
         if len(objs) == 1:
             return "lib:" + objs.pop()
         if len(objs) > 1:
@@ -282,7 +296,7 @@ def main(argv):
                      "   " + lab if lab else ""))
             for a, s in hit:
                 mark = " <--" if a == va else ""
-                extra = owner.get(a, "") or paths.get(a, "")
+                extra = (owner[a][0] if a in owner else paths.get(a, ""))
                 print("    %08X  %5d B  %s%s" % (a, s, extra, mark))
             print("")
         return 0

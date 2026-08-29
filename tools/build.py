@@ -45,6 +45,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from peimage import Image, load_inventory
 from libmatch import trim_padding
 import coffreloc
+import xdkcc
 from coffreloc import (functions_with_relocs, type_name, solve_address,
                        PATCH_BITS, WHOLE_WORD, COMPANION, REFHI, REFLO)
 
@@ -57,23 +58,8 @@ FLAGS = ["/c", "/nologo", "/O2", "/Gy", "/GS-", "/fp:fast"]
 
 
 def compile_one(src, tag):
-    WORK.mkdir(parents=True, exist_ok=True)
-    obj = WORK / (tag + ".obj")
-    if obj.exists():
-        obj.unlink()
-    # include/ carries the project's own shared headers (types.h and the
-    # layout assertions); the XDK's include comes after it.
-    env = {"PATH": str((XDK / "bin/win32").resolve()),
-           "INCLUDE": os.pathsep.join([str(Path("include").resolve()),
-                                       str(INCLUDE.resolve())]),
-           "SystemRoot": "C:/Windows", "TEMP": str(WORK.resolve())}
-    r = subprocess.run(
-        [str(CL.resolve())] + FLAGS + ["/Fo" + str(obj.resolve()),
-                                       str(src.resolve())],
-        capture_output=True, text=True, cwd=str(WORK.resolve()), env=env)
-    if r.returncode != 0 or not obj.exists():
-        return None, (r.stdout + r.stderr).strip()
-    return obj.read_bytes(), None
+    """Compile via tools/xdkcc, the one place that knows the invocation."""
+    return xdkcc.compile_obj(src, WORK / (tag + ".obj"), FLAGS, WORK)
 
 
 def read_manifest():
@@ -254,8 +240,11 @@ def main(argv):
                 b = struct.unpack_from(">I", patched, i * 4)[0]
                 if a != b:
                     print("      +%#05x  want %08x  got %08x" % (i * 4, a, b))
-        else:
-            patches.append((target, patched))
+        # Splice UNCONDITIONALLY -- see the note on the hash below. Adding
+        # only the ones already proven equal makes the section hash a
+        # tautology.
+        patches.append((target, patched, ok))
+        if ok:
             for off, tname, sym, addr, why in notes:
                 if addr is not None:
                     resolved.append((target + off, tname, sym, addr, why))
@@ -286,12 +275,17 @@ def main(argv):
         print("  wrong source shape puts them mid-instruction or out of range.")
         print("")
 
-    if failures:
-        print("%d of %d function(s) FAILED. .text not reconstructed."
-              % (failures, len(rows)))
-        return 1
-
-    # Splice into .text and hash the whole section.
+    # NOTE, and it was a real defect: an earlier version appended a function
+    # to `patches` ONLY when it already equalled the image, then spliced those
+    # into a copy of the image and hashed it. Every spliced byte was proven
+    # equal before it went in, so `rebuilt == original` was guaranteed by
+    # construction and the hash could not fail. It printed ".text REPRODUCES
+    # BYTE FOR BYTE" for a check with no power -- the same shape as the
+    # `verify_ghidra.py` mistake this project already paid for.
+    #
+    # Now every compiled function is spliced whether it matched or not, so the
+    # hash actually tests something the per-function loop does not: that the
+    # pieces land at the right offsets and do not overlap each other.
     text = next((s for s in img.sections if s["name"] == ".text"), None)
     if text is None:
         text = next((s for s in img.sections if s["exec"]), None)
@@ -309,14 +303,29 @@ def main(argv):
         return 0
 
     rebuilt = bytearray(original)
+    written = {}
     covered = 0
-    for target, patched in patches:
+    overlaps = 0
+    for target, patched, _ok in patches:
         off = target - base
         if off < 0 or off + len(patched) > len(rebuilt):
             print("%08X falls outside .text" % target)
             return 1
+        for b in range(off, off + len(patched)):
+            if b in written and written[b] != target:
+                overlaps += 1
+                break
+        for b in range(off, off + len(patched)):
+            written[b] = target
         rebuilt[off:off + len(patched)] = patched
         covered += len(patched)
+    covered = len(written)
+
+    if overlaps:
+        print("%d manifest entr(ies) overlap another. Two sources claiming"
+              % overlaps)
+        print("the same bytes is a manifest error, not a match.")
+        return 1
 
     h_orig = hashlib.sha256(original).hexdigest()
     h_new = hashlib.sha256(bytes(rebuilt)).hexdigest()
@@ -325,8 +334,15 @@ def main(argv):
     print("  rebuilt   sha256 %s" % h_new)
     if h_orig != h_new:
         print("")
-        print(".text DOES NOT REPRODUCE.")
+        print(".text DOES NOT REPRODUCE -- %d of %d function(s) differ."
+              % (failures, len(rows)))
         return 1
+    if failures:
+        print("")
+        print("%d function(s) reported a failure but the section still hashes"
+              % failures)
+        print("equal. That is contradictory and means this harness is wrong.")
+        return 2
 
     print("")
     print("VERIFIED: %d of %d .text byte(s) -- %.4f%% -- were produced by"
@@ -334,12 +350,12 @@ def main(argv):
     print("compiling source in this repository, with every relocation resolved")
     print("and NO word excused. The rest was copied from the original.")
     print("")
-    print("The hash therefore proves exactly one thing, and it is worth being")
-    print("precise about which: those %d bytes are byte-identical IN PLACE,"
-          % covered)
-    print("relocations included. It says nothing about the other %d bytes,"
+    print("What the hash does and does not establish. Every compiled function")
+    print("is spliced in whether or not it matched, so a wrong function does")
+    print("change the hash -- and so does a wrong address or an overlap, which")
+    print("the per-function loop cannot see. But the other %d bytes were"
           % (size - covered))
-    print("which were not built.")
+    print("COPIED, not built, so the hash says nothing whatever about them.")
     print("")
     print("This is a SPLICE, not yet a LINK. The undecompiled code is copied")
     print("rather than assembled from objects, so section layout, symbol")

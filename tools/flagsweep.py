@@ -33,6 +33,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from peimage import Image, load_inventory
 from libmatch import coff_functions, trim_padding
 import ppcdis
+import xdkcc
 
 XDK = Path("SDKFiles/xdk/XDK")
 CL = XDK / "bin/win32/cl.exe"
@@ -66,19 +67,11 @@ AXES_FULL = [
 
 def compile_flags(src, flags):
     WORK.mkdir(parents=True, exist_ok=True)
-    obj = WORK / "s.obj"
-    if obj.exists():
-        obj.unlink()
-    env = {"PATH": str((XDK / "bin/win32").resolve()),
-           "INCLUDE": str(INCLUDE.resolve()),
-           "SystemRoot": "C:/Windows", "TEMP": str(WORK.resolve())}
-    cmd = ([str(CL.resolve())] + FIXED + list(flags)
-           + ["/Fo" + str(obj.resolve()), str(src.resolve())])
-    r = subprocess.run(cmd, capture_output=True, text=True,
-                       cwd=str(WORK.resolve()), env=env)
-    if r.returncode != 0 or not obj.exists():
+    blob, _err = xdkcc.compile_obj(src, WORK / "s.obj",
+                                   FIXED + list(flags), WORK)
+    if blob is None:
         return None
-    fns = coff_functions(obj.read_bytes())
+    fns = coff_functions(blob)
     if not fns:
         return None
     _sym, code, mask = max(fns, key=lambda f: len(f[1]))

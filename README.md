@@ -133,9 +133,9 @@ work well:
 
 ```
 rule                          precision   recall
-gap <= 4                        72.2%       26.1%
-gap <= 64                       44.2%       47.6%
-gap <= 4  AND call-related       89.2%       6.2%     <- the default
+gap <= 4                        55.1%       47.0%
+gap <= 64                       23.6%       62.2%
+gap <= 4  AND call-related      89.1%        6.3%     <- the default
 ```
 
 There is no threshold that is both accurate and complete. With `/Gy` every

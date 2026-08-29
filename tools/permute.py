@@ -24,6 +24,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from peimage import Image, load_inventory
 from libmatch import coff_functions, trim_padding
 import ppcdis
+import xdkcc
 
 XDK = Path("SDKFiles/xdk/XDK")
 CL = XDK / "bin/win32/cl.exe"
@@ -35,19 +36,11 @@ FLAGS = ["/c", "/nologo", "/O2", "/Gy", "/GS-", "/fp:fast"]
 def compile_src(text):
     WORK.mkdir(parents=True, exist_ok=True)
     src = WORK / "v.cpp"
-    obj = WORK / "v.obj"
     src.write_text(text)
-    if obj.exists():
-        obj.unlink()
-    env = {"PATH": str((XDK / "bin/win32").resolve()),
-           "INCLUDE": str(INCLUDE.resolve()),
-           "SystemRoot": "C:\\Windows", "TEMP": str(WORK.resolve())}
-    r = subprocess.run([str(CL.resolve())] + FLAGS + ["/Fov.obj", "v.cpp"],
-                       capture_output=True, text=True,
-                       cwd=str(WORK.resolve()), env=env)
-    if r.returncode != 0 or not obj.exists():
-        return None, (r.stdout + r.stderr).strip().splitlines()[:3]
-    fns = coff_functions(obj.read_bytes())
+    blob, err = xdkcc.compile_obj(src, WORK / "v.obj", FLAGS, WORK)
+    if blob is None:
+        return None, (err or "").splitlines()[:3]
+    fns = coff_functions(blob)
     if not fns:
         return None, ["no PowerPC function in the object"]
     sym, code, mask = max(fns, key=lambda f: len(f[1]))
