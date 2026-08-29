@@ -85,7 +85,13 @@ def load_matches():
         if not line or line.startswith("#"):
             continue
         f = line.split()
-        out.append((f[0], f[1], f[2] if len(f) > 2 else None))
+        sym, flags = None, None
+        for extra in f[2:]:
+            if extra.startswith("flags="):
+                flags = extra[len("flags="):]
+            elif extra != "-":
+                sym = extra
+        out.append((f[0], f[1], sym, flags))
     return out
 
 
@@ -127,13 +133,16 @@ def main():
     print("")
     print("MATCHES -- %d function(s)\n" % len(MATCHES))
     ok_n = 0
-    for src, addr, sym in MATCHES:
+    for src, addr, sym, flags in MATCHES:
         args = ["tools/match.py", src, addr] + (["--sym", sym] if sym else [])
+        if flags:
+            args += ["--flags", "/c /nologo " + " ".join(flags.split(","))]
         rc, _out = run(args)
         if rc == 0:
             ok_n += 1
         else:
-            print("  FAIL  %-28s %s %s" % (Path(src).name, addr, sym or ""))
+            print("  FAIL  %-28s %s %s %s"
+                  % (Path(src).name, addr, sym or "", flags or ""))
     print("  %d of %d match" % (ok_n, len(MATCHES)))
     results.append(ok_n == len(MATCHES))
 

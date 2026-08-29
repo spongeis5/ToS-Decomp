@@ -4,8 +4,8 @@ Byte-for-byte matches against the retail image, compiled with the original
 XDK 8276 toolchain (`cl.exe` 15.00.8153), every one at
 `/O2 /Gy /GS- /fp:fast`.
 
-**56 functions, 1332 bytes.** Verify all of them, plus the reconstructing build
-and five negative controls, with one command:
+**64 functions, 1508 bytes.** Verify all of them, plus the reconstructing
+build and five negative controls, with one command:
 
 ```bash
 python tools/verify.py
@@ -15,63 +15,77 @@ Every match is also a row in `src/manifest.txt`, so `tools/build.py` compiles
 it, resolves its relocations against the retail bytes and splices it into
 `.text`. Nothing here is a match on `match.py`'s word-comparison alone.
 
-| address | bytes | callers | source | symbol |
-|---|---|---|---|---|
-| `82807B38` | 20 | 314 | `guard_tailcall.cpp` | - |
-| `82600BD8` | 16 | 136 | `global_field.cpp` | - |
-| `821A4628` | 28 | 108 | `ctor_vt.cpp` | - |
-| `8253FD70` | 28 | 82 | `array_add.cpp` | - |
-| `822D2450` | 24 | 63 | `table_index.cpp` | - |
-| `82540750` | 28 | 49 | `string_utils.cpp` | StrCopy |
-| `82540728` | 36 | 37 | `string_utils.cpp` | StrLen |
-| `82677040` | 20 | 27 | `owner_clear.cpp` | ClearAndHandleOther |
-| `82677028` | 20 | 27 | `owner_clear.cpp` | ClearAndHandle |
-| `821636A8` | 24 | 26 | `chain5.cpp` | - |
-| `826C5E00` | 28 | 19 | `vcall_global_arg.cpp` | - |
-| `826A3350` | 20 | 19 | `null_tailcall.cpp` | - |
-| `82600BB0` | 20 | 19 | `vcall_arg2.cpp` | - |
-| `8224E7C0` | 16 | 17 | `arr_index0.cpp` | - |
-| `821A4FA0` | 16 | 17 | `fwd_global.cpp` | - |
-| `8224E080` | 20 | 16 | `vcall_f8_40.cpp` | - |
-| `822021F8` | 16 | 14 | `stride116.cpp` | - |
-| `826C0FC8` | 24 | 11 | `stride24.cpp` | - |
-| `82639C28` | 16 | 11 | `chain_add48.cpp` | - |
-| `82166FD0` | 16 | 11 | `fwd_vec3.cpp` | - |
-| `822020B0` | 16 | 10 | `chain2_156.cpp` | - |
-| `827245E0` | 32 | 9 | `ring_index2.cpp` | - |
-| `8253FE28` | 28 | 9 | `zero48.cpp` | - |
-| `821A4FB0` | 20 | 9 | `fwd_global_n.cpp` | - |
-| `82603948` | 20 | 8 | `null_call0.cpp` | - |
-| `821A5378` | 20 | 8 | `eq2_208.cpp` | - |
-| `82727258` | 16 | 7 | `stride8.cpp` | - |
-| `82548F10` | 28 | 7 | `zero5_20first.cpp` | - |
-| `82265D30` | 20 | 7 | `set0_255.cpp` | - |
-| `8225FDD8` | 20 | 7 | `zero3.cpp` | - |
-| `82156050` | 16 | 7 | `link_node.cpp` | - |
-| `82727028` | 20 | 6 | `store_sum.cpp` | - |
-| `82697608` | 16 | 6 | `guard_arg3.cpp` | - |
-| `82649240` | 20 | 6 | `zero64_68_0.cpp` | - |
-| `825BD930` | 16 | 6 | `bit_test.cpp` | - |
-| `822D4118` | 32 | 6 | `copy3_72.cpp` | - |
-| `822D40F8` | 32 | 6 | `copy3_68.cpp` | - |
-| `822553C0` | 24 | 6 | `eq1_2264.cpp` | - |
-| `821A93C8` | 24 | 6 | `eq1_144_36.cpp` | - |
-| `821A5490` | 24 | 6 | `cmp_set.cpp` | - |
-| `8219FC90` | 24 | 6 | `eq1_2260.cpp` | - |
-| `8214CC48` | 16 | 6 | `or_flag.cpp` | - |
-| `827C4FB0` | 24 | 5 | `ptr_or_null.cpp` | - |
-| `827A7C98` | 20 | 5 | `store_two.cpp` | - |
-| `8272CB68` | 16 | 5 | `load_global_store.cpp` | - |
-| `827245C0` | 28 | 5 | `ring_index.cpp` | - |
-| `825E41D8` | 16 | 5 | `zero2.cpp` | - |
-| `82543F60` | 24 | 5 | `tail_or_zero.cpp` | - |
-| `822D2528` | 24 | 5 | `table624.cpp` | - |
-| `82250B88` | 24 | 5 | `eq0_stride16.cpp` | - |
-| `8224DF58` | 24 | 5 | `ctor_vt2.cpp` | - |
-| `82202BC8` | 28 | 5 | `store_floats.cpp` | - |
-| `826FE5C8` | 16 | 2 | `set_vtable.cpp` | SetVTableD180 |
-| `826FE5B8` | 16 | 2 | `set_vtable.cpp` | SetVTableD170 |
-| `822607F0` | 120 | 2 | `grid_indices.cpp` | - |
+**The retail build did NOT use one optimisation level everywhere.** 8 of
+these need `/O2 /Os`; the rest need plain `/O2`. See "Flags are a property of
+the translation unit" below -- this was claimed the other way round for a
+while and the claim was wrong.
+
+| address | bytes | callers | source | symbol | flags |
+|---|---|---|---|---|---|
+| `82807B38` | 20 | 314 | `guard_tailcall.cpp` | - | `/O2` |
+| `82600BD8` | 16 | 136 | `global_field.cpp` | - | `/O2` |
+| `821A4628` | 28 | 108 | `ctor_vt.cpp` | - | `/O2` |
+| `8253FD70` | 28 | 82 | `array_add.cpp` | - | `/O2` |
+| `822D2450` | 24 | 63 | `table_index.cpp` | - | `/O2` |
+| `82540750` | 28 | 49 | `string_utils.cpp` | StrCopy | `/O2` |
+| `827C5198` | 20 | 48 | `vcall116.cpp` | - | `/O2 /Os` |
+| `82540728` | 36 | 37 | `string_utils.cpp` | StrLen | `/O2` |
+| `827007E8` | 16 | 32 | `set_vtable_827007E8.cpp` | - | `/O2 /Os` |
+| `82677028` | 20 | 27 | `owner_clear.cpp` | ClearAndHandle | `/O2` |
+| `82677040` | 20 | 27 | `owner_clear.cpp` | ClearAndHandleOther | `/O2` |
+| `821636A8` | 24 | 26 | `chain5.cpp` | - | `/O2` |
+| `826A3350` | 20 | 19 | `null_tailcall.cpp` | - | `/O2` |
+| `82600BB0` | 20 | 19 | `vcall_arg2.cpp` | - | `/O2` |
+| `826C5E00` | 28 | 19 | `vcall_global_arg.cpp` | - | `/O2` |
+| `8224E7C0` | 16 | 17 | `arr_index0.cpp` | - | `/O2` |
+| `821A4FA0` | 16 | 17 | `fwd_global.cpp` | - | `/O2` |
+| `8224E080` | 20 | 16 | `vcall_f8_40.cpp` | - | `/O2` |
+| `828864E0` | 20 | 16 | `vcall_arg_adj.cpp` | - | `/O2 /Os` |
+| `822021F8` | 16 | 14 | `stride116.cpp` | - | `/O2` |
+| `82639C28` | 16 | 11 | `chain_add48.cpp` | - | `/O2` |
+| `826C0FC8` | 24 | 11 | `stride24.cpp` | - | `/O2` |
+| `82166FD0` | 16 | 11 | `fwd_vec3.cpp` | - | `/O2` |
+| `822020B0` | 16 | 10 | `chain2_156.cpp` | - | `/O2` |
+| `821A4FB0` | 20 | 9 | `fwd_global_n.cpp` | - | `/O2` |
+| `827245E0` | 32 | 9 | `ring_index2.cpp` | - | `/O2` |
+| `8253FE28` | 28 | 9 | `zero48.cpp` | - | `/O2` |
+| `821A5378` | 20 | 8 | `eq2_208.cpp` | - | `/O2` |
+| `82603948` | 20 | 8 | `null_call0.cpp` | - | `/O2` |
+| `82727258` | 16 | 7 | `stride8.cpp` | - | `/O2` |
+| `8225FDD8` | 20 | 7 | `zero3.cpp` | - | `/O2` |
+| `82265D30` | 20 | 7 | `set0_255.cpp` | - | `/O2` |
+| `82156050` | 16 | 7 | `link_node.cpp` | - | `/O2` |
+| `82548F10` | 28 | 7 | `zero5_20first.cpp` | - | `/O2` |
+| `822553C0` | 24 | 6 | `eq1_2264.cpp` | - | `/O2` |
+| `821A93C8` | 24 | 6 | `eq1_144_36.cpp` | - | `/O2` |
+| `82649240` | 20 | 6 | `zero64_68_0.cpp` | - | `/O2` |
+| `82727028` | 20 | 6 | `store_sum.cpp` | - | `/O2` |
+| `821A5490` | 24 | 6 | `cmp_set.cpp` | - | `/O2` |
+| `825BD930` | 16 | 6 | `bit_test.cpp` | - | `/O2` |
+| `82697608` | 16 | 6 | `guard_arg3.cpp` | - | `/O2` |
+| `8219FC90` | 24 | 6 | `eq1_2260.cpp` | - | `/O2` |
+| `8214CC48` | 16 | 6 | `or_flag.cpp` | - | `/O2` |
+| `822D4118` | 32 | 6 | `copy3_72.cpp` | - | `/O2` |
+| `822D40F8` | 32 | 6 | `copy3_68.cpp` | - | `/O2` |
+| `828133B8` | 28 | 6 | `two_vtables_b.cpp` | - | `/O2 /Os` |
+| `8288A788` | 28 | 6 | `two_vtables.cpp` | - | `/O2 /Os` |
+| `827C4FB0` | 24 | 5 | `ptr_or_null.cpp` | - | `/O2` |
+| `827A7C98` | 20 | 5 | `store_two.cpp` | - | `/O2` |
+| `8272CB68` | 16 | 5 | `load_global_store.cpp` | - | `/O2` |
+| `825E41D8` | 16 | 5 | `zero2.cpp` | - | `/O2` |
+| `822D2528` | 24 | 5 | `table624.cpp` | - | `/O2` |
+| `82250B88` | 24 | 5 | `eq0_stride16.cpp` | - | `/O2` |
+| `8224DF58` | 24 | 5 | `ctor_vt2.cpp` | - | `/O2` |
+| `82202BC8` | 28 | 5 | `store_floats.cpp` | - | `/O2` |
+| `82543F60` | 24 | 5 | `tail_or_zero.cpp` | - | `/O2` |
+| `827245C0` | 28 | 5 | `ring_index.cpp` | - | `/O2` |
+| `822D0BE8` | 32 | 5 | `deref_or_zero.cpp` | - | `/O2` |
+| `825E3598` | 24 | 5 | `vcall_global_2.cpp` | - | `/O2 /Os` |
+| `825E35C8` | 24 | 5 | `vcall_global_4.cpp` | - | `/O2 /Os` |
+| `827FE808` | 16 | 5 | `and_byte.cpp` | - | `/O2 /Os` |
+| `822607F0` | 120 | 2 | `grid_indices.cpp` | - | `/O2` |
+| `826FE5B8` | 16 | 2 | `set_vtable.cpp` | SetVTableD170 | `/O2` |
+| `826FE5C8` | 16 | 2 | `set_vtable.cpp` | SetVTableD180 | `/O2` |
 
 ---
 
@@ -124,6 +138,50 @@ order, even when it is not address order. `sub_82649240` writes 64, 68, then
 integer store between the fourth and fifth float stores. Each was written in
 the target's own order and matched.
 
+
+### Flags are a property of the translation unit
+
+For a long time this file said every match was found at one uniform
+`/O2 /Gy /GS- /fp:fast`, and offered that uniformity as evidence about how
+the title was built. **That was wrong.** Eight functions listed here as
+stalls were never stalls: they match under `/O2 /Os`, and under `/O1`, and
+not under `/O2`.
+
+The reason it took so long to see is a bad piece of reasoning that is worth
+keeping. `sub_827007E8` was found to match under `/Os` early on, and the idea
+was dismissed because "its two nearest neighbours are the identical idiom and
+use the other register". Those neighbours are **8.5 KB away**. That is not the
+same translation unit and it was never evidence of anything.
+
+The right test is adjacency, because a translation unit is contiguous:
+
+```
+822D40F8  822D4118    /O2 only   /O2 only    AGREE
+82540728  82540750    /O2 only   /O2 only    AGREE
+825E3598  825E35C8    /Os only   /Os only    AGREE     48 bytes apart
+82600BB0  82600BD8    /O2 only   /O2 only    AGREE
+826FE5B8  826FE5C8    /O2 only   /O2 only    AGREE     16 bytes apart
+827245C0  827245E0    /O2 only   /O2 only    AGREE
+
+six informative adjacent pairs, six agreements, no split
+```
+
+Functions that sit next to each other always want the same level, and
+functions far apart need not. So the level is a per-unit property, and
+`src/manifest.txt` now has a `flags=` column to say so.
+
+Thirty of the sixty-four are flag-insensitive and tell us nothing either way;
+they are excluded from that count.
+
+### Translation-unit context does NOT affect codegen
+
+The obvious next worry was that a function's bytes might depend on what else
+is in its file, which would mean matching required reconstructing whole
+translation units. It does not. The same function was compiled six ways --
+alone, with a companion before it, after it, both sides, and with a
+register-hungry function on either side -- and produced **byte-identical code
+every time**. Whatever decides register allocation is inside the function.
+
 ### The member-function lever
 
 `sub_826C0FC8` produced the right six instructions with `r10` and `r11`
@@ -142,27 +200,22 @@ transposed functions and moved none of them.
 
 ## What still resists
 
-Every one of these has the right instructions in the right multiset and
-differs only in a choice made inside the compiler.
+Six remain, down from eleven. Eight of the original list were not stalls at
+all -- they wanted `/Os` -- and one more (`sub_822D0BE8`) came down to `x > 0`
+against `x != 0`, which compile to different branch conditions for an
+unsigned value.
 
-| function | bytes | best | the free choice |
-|---|---|---|---|
-| `82806FD0` | 84 | 11/21 | branch polarity -- `bgtlr` vs `ble-`, a probability decision |
-| `826C1480` | 76 | 13/19 | instruction order -- where one store sits among five loads |
-| `827C5198` | 20 | 3/5 | register assignment -- `r11` reused vs a fresh `r10` |
-| `828864E0` | 20 | 3/5 | the same transposition |
-| `827007E8` | 16 | 1/4 | the same, and its two neighbours use the OTHER register |
-| `8215E5B0` | 28 | 1/7 | register assignment across an argument permutation |
-| `8288A788` | 28 | 2/7 | `addi` results in `r9`/`r8` where the target reuses `r11`/`r10` |
-| `827FE808` | 16 | 1/4 | `andi.` in one instruction vs a zero-extend and a mask in two |
-| `82639C38` | 20 | 1/5 | an extra `mr` to keep the object alive across a float load |
-| `822D0BE8` | 32 | 3/8 | branch polarity, and it survived writing the positive path first |
-| `827618E8` | 136 | partial | loop rotation; the target keeps counts in callee-saved r30/r31 |
+| function | bytes | the free choice |
+|---|---|---|
+| `82806FD0` | 84 | branch polarity -- `bgtlr` vs `ble-`, a probability decision |
+| `826C1480` | 76 | instruction order -- where one store sits among five loads |
+| `8215E5B0` | 28 | register assignment across an argument permutation |
+| `82600AD0` | 28 | a reloaded field the compiler will not keep in a register |
+| `82639C38` | 20 | an extra `mr` to keep the object alive across a float load |
+| `827618E8` | 136 | loop rotation; the target keeps counts in callee-saved r30/r31 |
 
-That is the honest shape of the remaining difficulty: not semantics, not
-struct layout, but the last decision the compiler makes on its own.
-`decomp-permuter`-style automatic source mutation is the tool built for
-exactly this and is the obvious next thing to reach for.
+None of them matches at `/O2`, `/O1` or `/O2 /Os`, so the flag explanation is
+exhausted for these. `tools/permuter.py` has not moved any of them either.
 
 ---
 

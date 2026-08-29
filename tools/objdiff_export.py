@@ -140,8 +140,8 @@ def main(argv):
             if not line or line.startswith("#"):
                 continue
             f = line.split()
-            rows.append((Path(f[0]), int(f[1], 16),
-                         f[2] if len(f) > 2 else None))
+            row, _e = buildmod.parse_manifest_line(line)
+            rows.append(row)
             n_attempts += 1
     img = Image()
     inv = dict(load_inventory())
@@ -150,9 +150,9 @@ def main(argv):
     (OUT / "base").mkdir(parents=True, exist_ok=True)
 
     units, done, failed = [], 0, 0
-    for src, target, want_sym in rows:
+    for src, target, want_sym, unit_flags in rows:
         tag = "%s_%08X" % (src.stem, target)
-        blob, cerr = buildmod.compile_one(src, tag)
+        blob, cerr = buildmod.compile_one(src, tag, unit_flags)
         if blob is None:
             print("  %-28s COMPILE FAILED" % src.name)
             failed += 1

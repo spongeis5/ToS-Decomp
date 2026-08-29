@@ -10,15 +10,7 @@
 # source                        address   symbol
 src/chunked_at.cpp              82806FD0
 src/init12.cpp                  826C1480
-src/vcall116.cpp                827C5198
-src/vcall_arg_adj.cpp           828864E0
-src/set_vtable_827007E8.cpp     827007E8
 src/arg_shuffle.cpp             8215E5B0
-src/two_vtables.cpp             8288A788
-src/two_vtables_b.cpp           828133B8
-src/and_byte.cpp                827FE808
 src/fadd_fwd.cpp                82639C38
 src/list_insert.cpp             82600AD0
-src/vcall_global_4.cpp          825E35C8
-src/vcall_global_2.cpp          825E3598
 src/wstr_compare.cpp            827618E8

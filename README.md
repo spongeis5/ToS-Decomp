@@ -34,10 +34,14 @@ attributed as NOT the game's    8,238     (39.4% of .text BYTES)
 remaining to decompile         22,392     (60.6%)
 call-graph edges               85,314
 vetted match candidates         4,231
-FUNCTIONS MATCHED                  56
+FUNCTIONS MATCHED                  64
 ```
 
-Matches are listed in `MATCHED.md`, all at one uniform `/O2 /Gy /GS- /fp:fast`.
+Matches are listed in `MATCHED.md`. **The retail build did not use one
+optimisation level everywhere** — 8 of the 64 need `/O2 /Os`, the rest plain
+`/O2`, and adjacent functions always agree while distant ones need not. The
+level is a property of the translation unit and `src/manifest.txt` records it
+per unit.
 Most matched on the first attempt, written straight off the disassembly by
 **reading the target's register discipline instead of guessing plausible C** —
 which value it keeps live, and for how long, is the specification.

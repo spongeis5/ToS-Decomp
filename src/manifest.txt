@@ -66,3 +66,11 @@ src/ring_index2.cpp             827245E0
 src/zero48.cpp                  8253FE28
 src/vcall_global_arg.cpp        826C5E00
 src/deref_or_zero.cpp           822D0BE8
+src/vcall_global_2.cpp          825E3598  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/vcall_global_4.cpp          825E35C8  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/set_vtable_827007E8.cpp     827007E8  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/vcall116.cpp                827C5198  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/and_byte.cpp                827FE808  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/two_vtables_b.cpp           828133B8  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/vcall_arg_adj.cpp           828864E0  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/two_vtables.cpp             8288A788  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast

@@ -461,6 +461,70 @@
       }
     },
     {
+      "name": "sub_825E3598 (vcall_global_2)",
+      "target_path": "build/objdiff/target/vcall_global_2_825E3598.o",
+      "base_path": "build/objdiff/base/vcall_global_2_825E3598.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_825E35C8 (vcall_global_4)",
+      "target_path": "build/objdiff/target/vcall_global_4_825E35C8.o",
+      "base_path": "build/objdiff/base/vcall_global_4_825E35C8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827007E8 (set_vtable_827007E8)",
+      "target_path": "build/objdiff/target/set_vtable_827007E8_827007E8.o",
+      "base_path": "build/objdiff/base/set_vtable_827007E8_827007E8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827C5198 (vcall116)",
+      "target_path": "build/objdiff/target/vcall116_827C5198.o",
+      "base_path": "build/objdiff/base/vcall116_827C5198.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_827FE808 (and_byte)",
+      "target_path": "build/objdiff/target/and_byte_827FE808.o",
+      "base_path": "build/objdiff/base/and_byte_827FE808.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_828133B8 (two_vtables_b)",
+      "target_path": "build/objdiff/target/two_vtables_b_828133B8.o",
+      "base_path": "build/objdiff/base/two_vtables_b_828133B8.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_828864E0 (vcall_arg_adj)",
+      "target_path": "build/objdiff/target/vcall_arg_adj_828864E0.o",
+      "base_path": "build/objdiff/base/vcall_arg_adj_828864E0.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
+      "name": "sub_8288A788 (two_vtables)",
+      "target_path": "build/objdiff/target/two_vtables_8288A788.o",
+      "base_path": "build/objdiff/base/two_vtables_8288A788.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
       "name": "sub_82806FD0 (chunked_at)",
       "target_path": "build/objdiff/target/chunked_at_82806FD0.o",
       "base_path": "build/objdiff/base/chunked_at_82806FD0.o",
@@ -477,57 +541,9 @@
       }
     },
     {
-      "name": "sub_827C5198 (vcall116)",
-      "target_path": "build/objdiff/target/vcall116_827C5198.o",
-      "base_path": "build/objdiff/base/vcall116_827C5198.o",
-      "metadata": {
-        "complete": false
-      }
-    },
-    {
-      "name": "sub_828864E0 (vcall_arg_adj)",
-      "target_path": "build/objdiff/target/vcall_arg_adj_828864E0.o",
-      "base_path": "build/objdiff/base/vcall_arg_adj_828864E0.o",
-      "metadata": {
-        "complete": false
-      }
-    },
-    {
-      "name": "sub_827007E8 (set_vtable_827007E8)",
-      "target_path": "build/objdiff/target/set_vtable_827007E8_827007E8.o",
-      "base_path": "build/objdiff/base/set_vtable_827007E8_827007E8.o",
-      "metadata": {
-        "complete": false
-      }
-    },
-    {
       "name": "sub_8215E5B0 (arg_shuffle)",
       "target_path": "build/objdiff/target/arg_shuffle_8215E5B0.o",
       "base_path": "build/objdiff/base/arg_shuffle_8215E5B0.o",
-      "metadata": {
-        "complete": false
-      }
-    },
-    {
-      "name": "sub_8288A788 (two_vtables)",
-      "target_path": "build/objdiff/target/two_vtables_8288A788.o",
-      "base_path": "build/objdiff/base/two_vtables_8288A788.o",
-      "metadata": {
-        "complete": false
-      }
-    },
-    {
-      "name": "sub_828133B8 (two_vtables_b)",
-      "target_path": "build/objdiff/target/two_vtables_b_828133B8.o",
-      "base_path": "build/objdiff/base/two_vtables_b_828133B8.o",
-      "metadata": {
-        "complete": false
-      }
-    },
-    {
-      "name": "sub_827FE808 (and_byte)",
-      "target_path": "build/objdiff/target/and_byte_827FE808.o",
-      "base_path": "build/objdiff/base/and_byte_827FE808.o",
       "metadata": {
         "complete": false
       }
@@ -544,22 +560,6 @@
       "name": "sub_82600AD0 (list_insert)",
       "target_path": "build/objdiff/target/list_insert_82600AD0.o",
       "base_path": "build/objdiff/base/list_insert_82600AD0.o",
-      "metadata": {
-        "complete": false
-      }
-    },
-    {
-      "name": "sub_825E35C8 (vcall_global_4)",
-      "target_path": "build/objdiff/target/vcall_global_4_825E35C8.o",
-      "base_path": "build/objdiff/base/vcall_global_4_825E35C8.o",
-      "metadata": {
-        "complete": false
-      }
-    },
-    {
-      "name": "sub_825E3598 (vcall_global_2)",
-      "target_path": "build/objdiff/target/vcall_global_2_825E3598.o",
-      "base_path": "build/objdiff/base/vcall_global_2_825E3598.o",
       "metadata": {
         "complete": false
       }

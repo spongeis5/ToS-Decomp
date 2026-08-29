@@ -57,31 +57,57 @@ MANIFEST = Path("src/manifest.txt")
 FLAGS = ["/c", "/nologo", "/O2", "/Gy", "/GS-", "/fp:fast"]
 
 
-def compile_one(src, tag):
-    """Compile via tools/xdkcc, the one place that knows the invocation."""
-    return xdkcc.compile_obj(src, WORK / (tag + ".obj"), FLAGS, WORK)
+FIXED = ["/c", "/nologo"]
+
+
+def compile_one(src, tag, flags=None):
+    """Compile via tools/xdkcc, the one place that knows the invocation.
+
+    A manifest `flags=` column lists only the OPTIMISATION flags; /c and
+    /nologo are always prepended. Spelling them out per unit invites a row
+    that forgets /c, which makes cl try to link and fail with a diagnostic
+    about the linker rather than about the flags.
+    """
+    use = FIXED + list(flags) if flags else FLAGS
+    return xdkcc.compile_obj(src, WORK / (tag + ".obj"), use, WORK)
+
+
+def parse_manifest_line(line):
+    """-> (source, address, symbol-or-None, flags) for one manifest row.
+
+    Columns:  source  address  [symbol|-]  [flags=/A,/B,...]
+
+    The FLAGS column exists because the retail build did not use one setting
+    everywhere. Adjacent functions agree on their optimisation level and
+    non-adjacent ones need not: 825E3598 and 825E35C8 sit 48 bytes apart and
+    both need /Os, while 826FE5B8 and 826FE5C8 sit 16 bytes apart and both
+    need /O2. Six informative adjacent pairs, six agreements, no split. So
+    the level is a property of the translation unit, and the manifest has to
+    be able to say so per unit.
+    """
+    parts = line.split()
+    if len(parts) < 2:
+        return None, "bad manifest line: %r" % line
+    src, addr = Path(parts[0]), int(parts[1], 16)
+    sym, flags = None, None
+    for extra in parts[2:]:
+        if extra.startswith("flags="):
+            flags = [f for f in extra[len("flags="):].split(",") if f]
+        elif extra != "-":
+            sym = extra
+    return (src, addr, sym, flags), None
 
 
 def read_manifest():
-    """[(source, address, symbol-or-None)].
-
-    A real translation unit holds many functions, so a line may name which
-    one it means. Without a symbol the object must contain exactly one
-    function -- picking "the largest" silently builds the wrong one as soon
-    as a file grows a second function, so it is refused instead.
-    """
     rows = []
     for line in MANIFEST.read_text().splitlines():
         line = line.strip()
         if not line or line.startswith("#"):
             continue
-        parts = line.split()
-        if len(parts) == 2:
-            rows.append((Path(parts[0]), int(parts[1], 16), None))
-        elif len(parts) == 3:
-            rows.append((Path(parts[0]), int(parts[1], 16), parts[2]))
-        else:
-            return None, "bad manifest line: %r" % line
+        row, err = parse_manifest_line(line)
+        if err:
+            return None, err
+        rows.append(row)
     return rows, None
 
 
@@ -157,9 +183,9 @@ def main(argv):
     failures = 0
     resolved = []
 
-    for src, target, want_sym in rows:
+    for src, target, want_sym, unit_flags in rows:
         tag = "%s_%08X" % (src.stem, target)
-        blob, cerr = compile_one(src, tag)
+        blob, cerr = compile_one(src, tag, unit_flags)
         if blob is None:
             print("  %-26s %08X  COMPILE FAILED" % (src.name, target))
             # cl prints the source filename first, so line 1 is never the
@@ -226,9 +252,11 @@ def main(argv):
         sizetag = ""
         if rec is not None and rec != len(code):
             sizetag = "  [inventory says %d]" % rec
-        print("  %-26s %08X  %3d B  %-2d reloc  %s%s"
+        ftag = "" if not unit_flags else "  [%s]" % " ".join(
+            f for f in unit_flags if f.startswith("/O"))
+        print("  %-26s %08X  %3d B  %-2d reloc  %s%s%s"
               % (src.name, target, len(code), len(relocs),
-                 "OK" if ok else "MISMATCH", sizetag))
+                 "OK" if ok else "MISMATCH", sizetag, ftag))
 
         for p in problems:
             print("      UNHANDLED: %s" % p)
