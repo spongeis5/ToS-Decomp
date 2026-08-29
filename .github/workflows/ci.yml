@@ -105,9 +105,26 @@ jobs:
         if: env.RUN_FULL == 'true'
         run: python tools/verify.py
 
+  # decomp.dev wants an artifact named "<version>_report". This title ships
+  # one executable, so the version is `default` -- the same name
+  # build/default.pe.exe already uses.
+  #
+  # THE REPORT CANNOT BE GENERATED ON A GITHUB-HOSTED RUNNER. Building it
+  # needs the retail image and the XDK's cl.exe, and neither is in this
+  # repository or should be. So there are two paths and the job takes
+  # whichever is available:
+  #
+  #   COMMITTED (no infrastructure). Run `python tools/publish_report.py`
+  #   locally; it writes `report.bin` at the repo root, which is committed.
+  #   The job just re-uploads it. The number is then as fresh as the last
+  #   time someone ran it -- honest, but say so rather than implying CI
+  #   measured it.
+  #
+  #   SELF-HOSTED (fresher, more setup). A runner that holds the image and
+  #   the XDK regenerates it. Set `runs-on` to that runner's label and the
+  #   generate step takes over.
   report:
     runs-on: ubuntu-latest
-    if: false   # enable once a runner holds the image and the XDK
     steps:
       - uses: actions/checkout@v4
 
@@ -115,33 +132,39 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Build the objdiff unit list and coverage objects
+      - name: Regenerate the report, if this runner has the toolchain
+        id: regen
         run: |
           set -o pipefail
-          python tools/coverage.py --write
-          python tools/objdiff_export.py
+          if [ -f build/default.pe.exe ] && [ -d SDKFiles ]; then
+            mkdir -p tools/bin
+            # Fetched, not vendored: 7 MB does not belong in git history.
+            curl -sSfL -o tools/bin/objdiff-cli \
+              https://github.com/encounter/objdiff/releases/latest/download/objdiff-cli-linux-x86_64
+            chmod +x tools/bin/objdiff-cli
+            python tools/coverage.py --write
+            python tools/objdiff_export.py
+            ./tools/bin/objdiff-cli report generate -p . -o report.bin -f proto
+            echo "fresh=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No retail image or XDK on this runner; using the committed"
+            echo "report.bin, which is as fresh as the last local run."
+            echo "fresh=false" >> "$GITHUB_OUTPUT"
+          fi
 
-      # Fetched, not vendored: it is a 7 MB binary and does not belong in
-      # git history. tools/bin/ is gitignored and is a local convenience.
-      - name: Fetch objdiff-cli
+      - name: Fail if there is no report at all
         run: |
           set -o pipefail
-          mkdir -p tools/bin
-          curl -sSfL -o tools/bin/objdiff-cli \
-            https://github.com/encounter/objdiff/releases/latest/download/objdiff-cli-linux-x86_64
-          chmod +x tools/bin/objdiff-cli
-          ./tools/bin/objdiff-cli --version
+          if [ ! -f report.bin ]; then
+            echo "No report.bin. Run 'python tools/publish_report.py' locally"
+            echo "and commit the result, or use a runner that holds the"
+            echo "retail image and the XDK."
+            exit 1
+          fi
+          ls -la report.bin
 
-      - name: Generate the progress report
-        run: |
-          set -o pipefail
-          ./tools/bin/objdiff-cli report generate -p . -o report.json
-
-      # decomp.dev looks for an artifact named "<version>_report". This
-      # title ships one executable, so the version is `default` -- the same
-      # name build/default.pe.exe already uses.
       - name: Upload progress report
         uses: actions/upload-artifact@v4
         with:
           name: default_report
-          path: report.json
+          path: report.bin
