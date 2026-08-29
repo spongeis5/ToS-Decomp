@@ -32,15 +32,19 @@ functions known                25,737     (.pdata 21,238 + Ghidra 4,499)
 .text disassembled             97.3%      (2,060,734 of 2,116,991 words)
 attributed as NOT the game's    7,611     (39.4% of .text)
 remaining to decompile         18,126     (60.6%)
-FUNCTIONS MATCHED                   6
+FUNCTIONS MATCHED                  15
 ```
 
-Matches are listed in `MATCHED.md`, which also carries the selection rule that
-produced five of the six on the first attempt: **prefer functions whose
-instructions each depend on the previous one.** Those have exactly one legal
-ordering, so correct semantics give correct bytes. Functions full of
-independent loads and stores let the compiler choose, and no source shape or
-flag reaches its choice.
+Matches are listed in `MATCHED.md`. Five of the six matched on the first
+attempt, written straight off the disassembly by **reading the target's
+register discipline instead of guessing plausible C** — which value it keeps
+live, and for how long, is the specification.
+
+The four that resist all share one thing: the compiler made a free choice the
+source cannot express — instruction order, branch polarity, or register
+assignment. That is diagnostic after the fact, not predictive; an attempt to
+turn it into a ranking (`tools/serial.py`) was validated against all ten
+outcomes and failed, and says so on every run.
 
 Verify the first match with:
 

@@ -7,63 +7,105 @@ Verify any row with:
 
     python tools/match.py <source> <address>
 
-| address | bytes | callers | source | symbol | compared |
+| address | bytes | callers | source | what it is | compared |
 |---|---|---|---|---|---|
-| `822607F0` | 120 | — | `src/grid_indices.cpp` | `BuildGridStripIndices` | 30/30 |
-| `82807B38` | 20 | **314** | `src/guard_tailcall.cpp` | `ProcessIfReady` | 4/5, 1 relocated |
-| `8253FD70` | 28 | 82 | `src/array_add.cpp` | `ArrayAdd` | 7/7 |
-| `822D2450` | 24 | 59 | `src/table_index.cpp` | `FieldOf` | 4/6, 2 relocated |
-| `82540750` | 28 | 49 | `src/strcopy.cpp` | `StrCopy` | 7/7 |
-| `821636A8` | 24 | 26 | `src/chain5.cpp` | `GetThroughChain` | 6/6 |
+| `82807B38` | 20 | **314** | `guard_tailcall.cpp` | guarded tail call | 4/5, 1 reloc |
+| `82600BD8` | 16 | 135 | `global_field.cpp` | read a global's field | 2/4, 2 reloc ⚠ |
+| `821A4628` | 28 | 108 | `ctor_vt.cpp` | vtable + two zeroed fields | 5/7, 2 reloc |
+| `8253FD70` | 28 | 82 | `array_add.cpp` | guarded accumulate | 7/7 |
+| `822D2450` | 24 | 59 | `table_index.cpp` | field of a global array element | 4/6, 2 reloc |
+| `82540750` | 28 | 49 | `strcopy.cpp` | byte copy to NUL (`strcpy`) | 7/7 |
+| `82540728` | 36 | 37 | `strlen.cpp` | string length (`strlen`) | 9/9 |
+| `821636A8` | 24 | 26 | `chain5.cpp` | five dependent loads | 6/6 |
+| `82677028` | 20 | 25 | `clear_and_call.cpp` | clear a field, tail-call | 4/5, 1 reloc |
+| `82677040` | 20 | 25 | `clear_and_call2.cpp` | the same, field 140 | 4/5, 1 reloc |
+| `826A3350` | 20 | 19 | `null_tailcall.cpp` | load, null-check, tail-call | 4/5, 1 reloc |
+| `82600BB0` | 20 | 19 | `vcall_arg2.cpp` | virtual call on arg 2 | 5/5 |
+| `822607F0` | 120 | 2 | `grid_indices.cpp` | grid strip indices | 30/30 |
+| `826FE5C8` | 16 | 2 | `set_vtable.cpp` | store a fixed address | 2/4, 2 reloc ⚠ |
+| `826FE5B8` | 16 | 2 | `set_vtable.cpp` | the same, other vtable | 2/4, 2 reloc ⚠ |
 
-**6 of 25,737 functions.** All flags `/O2 /Gy /GS- /fp:fast`.
+**15 of 25,737 functions**, every one at `/O2 /Gy /GS- /fp:fast` — a single
+uniform flag set, which is itself evidence about how the title was built.
 
 "compared" states its own denominator: a word the linker patches is masked,
 because an object refers to symbols by placeholder and counting a relocation
 as a mismatch would make a correct function look wrong.
 
+⚠ marks matches where only two words are non-relocated and both are trivial
+(a store and a `blr`). The shape is confirmed; the addresses are not. These
+are the weakest rows here and should not be leaned on.
+
 `python tools/candidates.py` narrows the target set to 2,565 vetted leaves.
+
+## One match that was nearly banked and should not have been
+
+`sub_827007E8` is the same idiom as `826FE5C8`/`826FE5B8` —
+`lis / addi / stw / blr` — and it does **not** match at `/O2`, because the
+target reuses `r11` where we allocate `r10`. Adding `/Os` makes it match.
+
+It was very nearly recorded as a match on that basis. It is not one:
+
+* only **2 of 4 words** are non-relocated, and both are trivial, so `/Os`
+  had to make almost nothing agree;
+* `/Os` breaks 7 of the other matches, so it is not the build's flag set;
+* and decisively, its two nearest neighbours in the image are the *identical
+  idiom* and use `addi r10` — the `/O2` form. Same neighbourhood, both
+  register choices.
+
+So the register choice varies for reasons internal to the compiler, and
+picking a flag that reproduces two trivial words is fitting the flag to the
+answer. **A flag chosen per-function to force a match on few compared words
+is not evidence, and the neighbourhood is the check that catches it.**
 
 ---
 
-## How to choose a target — this is the whole trick
+## What separates the six from the four
 
-Five of the six above matched **on the first attempt**. Two earlier functions
-absorbed eight source shapes, 65 flag combinations and days, and still have
-not matched. The difference is not difficulty. It is a property you can read
-off the disassembly before writing a line of C:
+Five of the six above matched **on the first attempt**, while two earlier
+functions absorbed eight source shapes, 65 flag combinations and days without
+matching. It is worth being precise about why, because the obvious explanation
+is wrong.
 
-> **Does the compiler have freedom to order these instructions?**
+**What the four stalls have in common** is that in each one the compiler made
+a **free choice the source cannot express**:
 
-A function whose instructions each consume the previous one's result has
-exactly one legal ordering, so if the semantics are right the bytes are right.
-A function full of independent loads and stores has many legal orderings, the
-compiler picks one by internal heuristics, and no source shape or flag reaches
-the others.
-
-**Match these first:**
-
-| shape | why |
+| function | the free choice |
 |---|---|
-| pointer chase (`a->b->c->d`) | every load depends on the last — zero freedom |
-| a copy loop | the loop-carried dependency fixes the order |
-| guarded single operation | one path, one operation |
-| index arithmetic into a global | a dependency chain ending in one `add` |
+| `826C1480` | instruction order — where one store sits among five loads |
+| `82806FD0` | branch polarity — `bgtlr` vs `ble-`, a probability decision |
+| `827C5198` | register assignment — `r11` reused vs a fresh `r10` |
+| `8215E5B0` | register assignment — a different permutation, same semantics |
 
-**Leave these alone until the easy population is exhausted:**
+In every one of them the *semantics are already settled* and the instruction
+multiset is right. What differs is a decision made inside the compiler, below
+the level the language reaches.
 
-| shape | why |
-|---|---|
-| multi-field initialisers | N independent stores, N! orderings |
-| argument reshuffles before a tail call | register allocation, not semantics |
-| anything with many independent loads | the scheduler chooses, and you cannot |
+**This is diagnostic, not predictive.** A first attempt to turn it into a
+ranking — "prefer functions whose instructions each depend on the previous
+one", implemented in `tools/serial.py` — was validated against all ten
+outcomes and **failed**:
 
-`sub_821636A8` is the clean demonstration: five dependent `lwz` and a `blr`.
-It was written from the disassembly in about a minute and matched 6/6.
+```
+822607F0   MATCHED        serial 0.03    <- the LOWEST score of the ten
+827C5198   stalled 3/5    serial 0.75    <- the second HIGHEST
+```
 
-The other half of the technique, from §7d: **read the target's register
-discipline out of the disassembly instead of guessing plausible C.** Which
-value it keeps live and for how long IS the specification.
+The metric measures the opposite of what it was meant to. An optimising
+compiler deliberately separates dependent instructions to hide latency, so
+well-scheduled code has low adjacent dependency *by construction*. `serial.py`
+is kept only because `--validate` is the record of that refutation; it prints
+its own verdict on every run so it cannot quietly become a filter.
+
+**What did work, and is the actual technique** (§7d): *read the target's
+register discipline out of the disassembly instead of guessing plausible C.*
+Which value it keeps live, and for how long, IS the specification. All six
+matches were written that way, straight off the listing — `sub_821636A8` is
+the clean demonstration, five dependent `lwz` and a `blr`, written in about a
+minute.
+
+Small helps, but not decisively: the matched ones are 20–120 bytes and
+`827C5198` stalled at 20.
 
 ---
 
