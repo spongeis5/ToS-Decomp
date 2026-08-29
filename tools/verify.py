@@ -105,6 +105,17 @@ def main():
     results.append(check("reconstructing build (.text reproduces)",
                          ["tools/build.py"]))
 
+    # No inventory entry may be a switch case body. Case bodies are labels
+    # inside a function, and one listed as a function is a real defect.
+    rc, out = run(["tools/switches.py"])
+    clean = rc == 0 and "case bodies  %6d" % 0 not in out
+    ok = rc == 0 and "switch case bodies       0" in out.replace("  ", " ")
+    line = [l for l in out.splitlines() if "case bodies" in l]
+    ok = bool(line) and line[0].split()[-1] == "0"
+    print("  %-42s %s" % ("no inventory entry is a switch case body",
+                          "ok" if ok else "FAIL"))
+    results.append(ok)
+
     # A symbol resolving to two addresses verifies byte for byte and could
     # never link. build.py reports it; nothing should be reporting it.
     rc, out = run(["tools/build.py"])

@@ -389,6 +389,7 @@ cl /O2 /W0 /D_CRT_SECURE_NO_WARNINGS /I.. \
 | `segment.py` | probable translation units — scores itself, and mostly fails |
 | `permuter.py` | automatic source mutation; `--selftest` rediscovers a known match |
 | `objdiff_export.py` | synthesize ELF pairs + `objdiff.json` for visual diffing |
+| `switches.py` | decode MSVC switch dispatch; check nothing listed as a function is a case body |
 | `verify.py` | **run everything**, including five negative controls |
 | `flagsweep.py` | sweep compiler flags for one source against one target |
 | `permute.py` | sweep source shapes for one target at fixed flags |
@@ -487,9 +488,18 @@ specification. Writing assignments in the target's own field order took
    open since 2020). Forks exist — pjsoberoi's, and 0dinD's rebase onto Ghidra
    12.0 which also fixes errors in both the SLEIGH and the documentation.
    Untried here.
-4. **MSVC switch tables.** Ghidra's `PowerPCAddressAnalyzer` mishandles MSVC's
-   PowerPC switch pattern. Measured over this image: 57 sites use the reported
-   `lhzx` form, 347 use `lwzx`, 604 `bctr` have no switch shape at all.
+4. ~~**MSVC switch tables.**~~ **DONE — `tools/switches.py`.** Of 14,708
+   `bctr` sites, 104 are switch dispatches and 95 are decoded. Neither form
+   is a table of addresses, which is exactly why Ghidra mishandles them:
+   there is only an offset and a base built from a `lis`/`addi` pair.
+   The byte form (51 sites) jumps to `caseBase + 4 * byteTable[value]`; the
+   halfword form (53) to `caseBase + halfTable[value]`. `caseBase` is the
+   word immediately after the `bctr`.
+
+   The useful result is a negative: of 2,571 recovered case targets, **none
+   is listed as a function**, `.pdata` or discovery. `verify.py` now checks
+   that on every run. It does not explain the 13 functions Ghidra lists and
+   discovery does not — none of those is a case target either.
 5. **Spot-check the weak attributions.** 603 functions are attributed by
    `srcpath`/`havok` alone and none has been confirmed by hand.
 6. **A build system and a progress dashboard.** One `.cpp` at a time does not
