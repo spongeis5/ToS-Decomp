@@ -19,8 +19,14 @@ context its host process established, so c1.dll/c2.dll are fine inside cl.exe
 and pgodb90.dll is fine inside the repaired link.exe. Their missing manifests
 are not the fault to fix.
 
-    python tools/fix_manifests.py          # report what it would do
-    python tools/fix_manifests.py --write  # do it
+    python tools/fix_manifests.py           # report what it would do
+    python tools/fix_manifests.py --write   # do it
+    python tools/fix_manifests.py <dir>...  # other tool directories
+
+With no directory it repairs both toolchains the XDK ships: the default one in
+bin/win32 and the TechPreview Mar09Compiler, whose cl.exe fails SILENTLY --
+it exits non-zero and prints nothing at all, which reads like a broken command
+line rather than a missing activation context.
 """
 
 import sys
@@ -30,7 +36,10 @@ sys.path.insert(0, str(Path(__file__).parent))
 import pemanifest
 
 ROOT = Path(__file__).resolve().parent.parent
-BIN = ROOT / "SDKFiles/xdk/XDK/bin/win32"
+DEFAULT_DIRS = [
+    ROOT / "SDKFiles/xdk/XDK/bin/win32",
+    ROOT / "SDKFiles/xdk/XDK/TechPreview/Mar09Compiler/bin/win32",
+]
 
 # Byte-identical in intent to the link.fix.manifest that repaired link.exe.
 MANIFEST = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -44,14 +53,9 @@ MANIFEST = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 """
 
 
-def main(argv):
-    write = "--write" in argv[1:]
-    if not BIN.is_dir():
-        print("%s does not exist" % BIN)
-        return 1
-
-    broken = []
-    for p in sorted(BIN.iterdir()):
+def broken_in(d):
+    out = []
+    for p in sorted(d.iterdir()):
         if p.suffix.lower() != ".exe":
             continue
         try:
@@ -59,31 +63,42 @@ def main(argv):
         except Exception:
             continue
         if r and r[0] == "BROKEN":
-            broken.append(p)
+            out.append(p)
+    return out
 
-    if not broken:
-        print("no EXE in %s is missing a VC90 activation context." % BIN)
-        return 0
 
-    print("%d EXE(s) will raise R6034 as shipped:" % len(broken))
-    for p in broken:
-        print("   %s" % p.name)
-    print("")
+def main(argv):
+    args = [a for a in argv[1:] if not a.startswith("--")]
+    write = "--write" in argv[1:]
+    dirs = [Path(a) for a in args] if args else DEFAULT_DIRS
 
-    if not write:
-        print("re-run with --write to place an external manifest beside each.")
-        return 0
-
-    for p in broken:
-        side = p.with_name(p.name + ".manifest")
-        if side.exists():
-            print("   %-16s already has %s, left alone" % (p.name, side.name))
+    total = 0
+    for d in dirs:
+        if not d.is_dir():
+            print("%s does not exist, skipped" % d)
             continue
-        side.write_text(MANIFEST)
-        print("   %-16s wrote %s" % (p.name, side.name))
+        broken = broken_in(d)
+        print("%s" % d)
+        if not broken:
+            print("   no EXE here is missing a VC90 activation context.")
+            continue
+        total += len(broken)
+        for p in broken:
+            if not write:
+                print("   would repair %s" % p.name)
+                continue
+            side = p.with_name(p.name + ".manifest")
+            if side.exists():
+                print("   %-16s already has %s, left alone" % (p.name, side.name))
+                continue
+            side.write_text(MANIFEST)
+            print("   %-16s wrote %s" % (p.name, side.name))
+        print("")
 
-    print("")
-    print("Verify with a harmless invocation, e.g.:  dumpbin.exe /?")
+    if not write and total:
+        print("re-run with --write to place an external manifest beside each.")
+    elif write:
+        print("Verify with a harmless invocation, e.g.:  dumpbin.exe /?")
     return 0
 
 

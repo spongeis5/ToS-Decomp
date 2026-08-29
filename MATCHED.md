@@ -7,82 +7,170 @@ Verify any row with:
 
     python tools/match.py <source> <address>
 
-| address | bytes | source | symbol | flags |
-|---|---|---|---|---|
-| `822607F0` | 120 | `src/grid_indices.cpp` | `BuildGridStripIndices` | `/O2 /Gy /GS- /fp:fast` |
+| address | bytes | callers | source | symbol | compared |
+|---|---|---|---|---|---|
+| `822607F0` | 120 | — | `src/grid_indices.cpp` | `BuildGridStripIndices` | 30/30 |
+| `82807B38` | 20 | **314** | `src/guard_tailcall.cpp` | `ProcessIfReady` | 4/5, 1 relocated |
+| `8253FD70` | 28 | 82 | `src/array_add.cpp` | `ArrayAdd` | 7/7 |
+| `822D2450` | 24 | 59 | `src/table_index.cpp` | `FieldOf` | 4/6, 2 relocated |
+| `82540750` | 28 | 49 | `src/strcopy.cpp` | `StrCopy` | 7/7 |
+| `821636A8` | 24 | 26 | `src/chain5.cpp` | `GetThroughChain` | 6/6 |
 
-**1 of 25,737 functions.** `python tools/candidates.py` narrows the target set
-to 2,565 vetted leaves; 2,095 of those are also call-graph leaves with at least
-one caller.
+**6 of 25,737 functions.** All flags `/O2 /Gy /GS- /fp:fast`.
+
+"compared" states its own denominator: a word the linker patches is masked,
+because an object refers to symbols by placeholder and counting a relocation
+as a mismatch would make a correct function look wrong.
+
+`python tools/candidates.py` narrows the target set to 2,565 vetted leaves.
+
+---
+
+## How to choose a target — this is the whole trick
+
+Five of the six above matched **on the first attempt**. Two earlier functions
+absorbed eight source shapes, 65 flag combinations and days, and still have
+not matched. The difference is not difficulty. It is a property you can read
+off the disassembly before writing a line of C:
+
+> **Does the compiler have freedom to order these instructions?**
+
+A function whose instructions each consume the previous one's result has
+exactly one legal ordering, so if the semantics are right the bytes are right.
+A function full of independent loads and stores has many legal orderings, the
+compiler picks one by internal heuristics, and no source shape or flag reaches
+the others.
+
+**Match these first:**
+
+| shape | why |
+|---|---|
+| pointer chase (`a->b->c->d`) | every load depends on the last — zero freedom |
+| a copy loop | the loop-carried dependency fixes the order |
+| guarded single operation | one path, one operation |
+| index arithmetic into a global | a dependency chain ending in one `add` |
+
+**Leave these alone until the easy population is exhausted:**
+
+| shape | why |
+|---|---|
+| multi-field initialisers | N independent stores, N! orderings |
+| argument reshuffles before a tail call | register allocation, not semantics |
+| anything with many independent loads | the scheduler chooses, and you cannot |
+
+`sub_821636A8` is the clean demonstration: five dependent `lwz` and a `blr`.
+It was written from the disassembly in about a minute and matched 6/6.
+
+The other half of the technique, from §7d: **read the target's register
+discipline out of the disassembly instead of guessing plausible C.** Which
+value it keeps live and for how long IS the specification.
+
+---
+
+## Two facts about sizes that cost time
+
+**The recorded size can be SHORT.** `sub_82807B38` is recorded as 16 bytes and
+its code is 20. MSVC appends an unreachable `blr` after a tail call, and a
+body computed from *reachable* code does not count it. `match.py` reported NO
+MATCH for a byte-perfect source.
+
+`match.py` now reconciles this: when our code is longer, it extends the window
+into the image — bounded by the next known function start — and reports the
+reconciliation explicitly. It never extends silently, and only when the extra
+words actually agree.
+
+Censused over the whole inventory:
+
+```
+25,558 functions examined
+11,787 end in an unconditional branch (tail calls)
+   171 are followed immediately by a blr   <- recorded size short by 4 (0.67%)
+ 5,971 are followed by a zero pad word     <- size is right
+```
+
+**A COMDAT is padded**, so trailing nops and zeros are trimmed before
+comparison and what was trimmed is reported.
 
 ---
 
 ## In progress
 
-### `sub_82806FD0` — chunked-container element accessor
+### `sub_827C5198` — virtual call through a member, 20 B, 48 callers
 
-84 bytes, **220 callers**, calls nothing. `src/chunked_at.cpp`.
-
-**Best: 11 of 21 words, at exactly 84 bytes.** The first instruction and the
-last six match. The semantics are settled — the two `rlwinm` decode as
-`(i >> 5) * 4` and `(i & 31) * 16`, so a chunk holds 32 elements of 16 bytes,
-and the bounds test is unsigned with a null return.
-
-**The whole remaining difference is one branch-probability decision:**
+`src/vcall116.cpp`, `src/vcall116_variants.py`. **3 of 5 words.** The entire
+difference is which register holds the vtable slot:
 
 ```
-target:  cmplw cr6,r10,r9 ; bgtlr cr6        RETURN when i > total; body falls through
-ours:    cmplw cr6,r10,r4 ; ble- cr6,body    branch TO body; return-0 falls through
+target:  lwz r11,0(r3) ; lwz r11,64(r11) ; mtctr r11 ; bctr
+ours:    lwz r11,0(r3) ; lwz r10,64(r11) ; mtctr r10 ; bctr
+```
+
+The target reuses `r11`; we allocate a fresh `r10`. Seven source shapes —
+explicit vtable, no local, byte-offset cast, a real C++ class with seventeen
+virtual functions, void return, member function — all give exactly 3/5. This
+is register allocation, not semantics.
+
+### `sub_8215E5B0` — argument reshuffle into a tail call, 28 B, 26 callers
+
+`src/arg_shuffle.cpp`. **1 of 7 words.** The semantics are settled — the moves
+are a permutation, so the call is `Callee(c, a->first, b, 0)` from
+`f(a, b, c)` — and ours computes exactly that with a different register
+assignment. Same class as the above.
+
+### `sub_82806FD0` — chunked-container element accessor, 84 B, 220 callers
+
+`src/chunked_at.cpp`, `src/chunked_at_variants.py`. **11 of 21 words**, at
+exactly 84 bytes. First instruction and last six match. Semantics settled: the
+two `rlwinm` decode as `(i >> 5) * 4` and `(i & 31) * 16`, so a chunk holds 32
+elements of 16 bytes, and the bounds test is unsigned with a null return.
+
+The remaining difference is one branch-probability decision:
+
+```
+target:  cmplw cr6,r10,r9 ; bgtlr cr6        RETURN when i > total
+ours:    cmplw cr6,r10,r4 ; ble- cr6,body    branch TO body
 ```
 
 `ble-` carries the not-taken hint, so this compiler assumed the guard usually
-FAILS while the retail build assumed it usually PASSES. Everything else in the
-diff follows from that: presetting `r3 = 0` for the conditional return is what
-forces `this` into r10 and defers the `self->base` load.
+FAILS while the retail build assumed it usually PASSES.
 
-Tried and rejected, all at exactly 84 bytes:
+Tried and rejected, all at exactly 84 bytes: 8 source shapes (10–11/21), a
+flag sweep of 5 optimisation levels x 13 combinations (11/21 at `/O1`),
+aliasing through one pointer type (10/21).
 
-| approach | best |
-|---|---|
-| 8 source shapes (guard/ternary/single-exit/inverted/signed/char*) | 10-11/21 |
-| flag sweep, 5 optimisation levels x 13 combinations | 11/21 (`/O1`) |
-| aliasing: all reads through one pointer type | 10/21 |
+### `sub_826C1480` — 12-field initialiser, BRANCHLESS, 76 B, 180 callers
 
-**Hypothesis at the time: the retail build used PGO.** Branch probability is
-not reachable from source shape or from any flag tried, and the XDK ships the
-tooling — `pgomgr.exe` and `pgodb90.dll` are present and `link.exe` imports
-`pgodb90.dll`.
-
-**That hypothesis was tested and does not survive**, by the branchless target
-below: a function with no conditional branch cannot be affected by
-branch-probability data, and it stalls at the same wall. Whether the title
-used PGO at all remains NOT_MEASURED — `/LTCG:PGI` fails here with `LNK1123`
-on the `.pgd`, so the product id a PGO build stamps is unknown and the image
-cannot be checked for it. But PGO is no longer needed to explain anything.
-
-### `sub_826C1480` — 12-field initialiser, BRANCHLESS
-
-76 bytes, **180 callers**, calls nothing, **no conditional branch at all**.
-`src/init12.cpp`. Chosen specifically to test whether branch layout is the
-wall.
-
-**Best: 13 of 19 words, at exactly 76 bytes.** Same 19 instructions as the
-target, same store order, differing only in where one store sinks:
+`src/init12.cpp`, `src/init12_variants.py`. **13 of 19 words**, at exactly 76
+bytes, same 19 instructions in the same store order. Chosen specifically to
+test whether branch layout was the wall. It is not.
 
 ```
 target:  ... 5 loads ... ; stw r6,8(r3) ; lwz r6,124(r1) ...
 ours:    stw r6,8(r3) ; ... 5 loads ... ; lwz r6,124(r1) ...
 ```
 
-Writing the assignments in the target's own field order (3,4,5, 2, 0,1,
-6..11 — read straight off the disassembly) took it from 10/19 to 13/19. The
-remaining difference is where the compiler schedules one store against five
-loads. A flag sweep over 5 optimisation levels x 14 combinations gives 13/19
-everywhere.
+The target's rule is visible: **store each register as late as possible,
+immediately before reloading it.** `stw r6` sits directly before `lwz r6`.
+Ours stores early.
 
-**This weakens the PGO hypothesis.** A function with no conditional branch
-cannot be affected by branch-probability data, and it still will not match.
-The wall on both attempts is INSTRUCTION SCHEDULING, not branch layout.
+Writing the assignments in the target's own field order (3,4,5, 2, 0,1,
+6..11 — read straight off the disassembly) took it from 10/19 to 13/19.
+Nothing has moved it since:
+
+| approach | result |
+|---|---|
+| 72 flag combinations including `/Ou` (prescheduling) | 13/19, **all identical** |
+| 11 source shapes | 13/19, all identical |
+| `__restrict`, `__declspec(noalias)`, distinct field types | 13/19 |
+
+**The aliasing hypothesis was tested and refuted.** The target hoists five
+loads *above* a store to memory, which a compiler will only do if it can prove
+they cannot alias — and the loads read the parameter home area in the
+caller's frame, which an `S*` argument could point at. So `__restrict` looked
+like the answer. It changes nothing.
+
+A control confirmed the sweep is real: `/Od` gives 180 bytes and 0/19, so the
+flags do reach the compiler. Every optimising combination converges.
 
 ### LTCG — RESOLVED, and it is not the cause
 
@@ -90,12 +178,11 @@ The wall on both attempts is INSTRUCTION SCHEDULING, not branch layout.
 
 ```
 without /GL :   626 B object, machine 01F2, 1 PowerPC function, 76 code bytes
-with    /GL :  4737 B object, machine 0000, 0 PowerPC functions, 0 code bytes
+with    /GL :  4737 B object, machine 0000, 0 PowerPC functions,  0 code bytes
 ```
 
-**With LTCG the object holds intermediate language and no machine code at
-all** — so if the retail build had used it for the game's own code, per-object
-comparison would be the wrong methodology entirely. It did not:
+If the retail build had used it for the game's own code, per-object comparison
+would be the wrong methodology entirely. It did not:
 
 ```
 of 1,528 objects in the retail image carrying a code-producing stamp,
@@ -103,19 +190,27 @@ of 1,528 objects in the retail image carrying a code-producing stamp,
 ```
 
 Read out of the image's own Rich header, whose product ids were **measured**
-against this XDK rather than looked up — see FINDINGS §7l. Cross-checked from
-an independent direction: all 610 library objects that `libmatch.py` matched
-byte-for-byte carry a plain C/C++/asm stamp, none a `/GL` one.
+against this XDK rather than looked up — FINDINGS §7l. Cross-checked: all 610
+library objects that `libmatch.py` matched byte-for-byte carry a plain
+C/C++/asm stamp, none a `/GL` one.
 
-The decisive point for this file is simpler than the statistics, though.
-`sub_822607F0` sits at an address inside the game's own band and matched 30/30
-words **as a compiled object**. The game's own code demonstrably compiles to
-comparable objects, so nothing about the two stalls below is explained by
-link-time codegen.
+The decisive point is simpler than the statistics. Six functions have now
+matched **as compiled objects**, all of them at addresses inside the game's
+own bands.
 
 What the 54 `/GL` objects are is NOT_MEASURED — either the title's own
 translation units or members of `xact3ltcg.lib`/`x3daudioltcg.lib`, the only
 two LTCG libraries without a matched twin.
+
+### PGO — no longer needed to explain anything
+
+The competing hypothesis was profile-guided optimisation. The branchless
+`sub_826C1480` refutes it as the cause: branch-probability data cannot affect
+a function with no conditional branch, and it still will not match.
+
+Whether the title used PGO at all is NOT_MEASURED. `/LTCG:PGI` fails here with
+`LNK1123: failure during conversion to COFF` on the `.pgd`, so the product id
+a PGO build stamps is unknown and the image cannot be checked for it.
 
 ### `sub_827618E8` — counted wide-string compare
 

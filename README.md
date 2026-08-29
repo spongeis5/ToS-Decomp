@@ -32,10 +32,17 @@ functions known                25,737     (.pdata 21,238 + Ghidra 4,499)
 .text disassembled             97.3%      (2,060,734 of 2,116,991 words)
 attributed as NOT the game's    7,611     (39.4% of .text)
 remaining to decompile         18,126     (60.6%)
-FUNCTIONS MATCHED                   1
+FUNCTIONS MATCHED                   6
 ```
 
-The one match is `sub_822607F0` — see `MATCHED.md`. Verify it with:
+Matches are listed in `MATCHED.md`, which also carries the selection rule that
+produced five of the six on the first attempt: **prefer functions whose
+instructions each depend on the previous one.** Those have exactly one legal
+ordering, so correct semantics give correct bytes. Functions full of
+independent loads and stores let the compiler choose, and no source shape or
+flag reaches its choice.
+
+Verify the first match with:
 
 ```bash
 python tools/match.py src/grid_indices.cpp 822607F0
@@ -204,6 +211,8 @@ cl /O2 /W0 /D_CRT_SECURE_NO_WARNINGS /I.. \
 | `xref.py` | find references to an address (`lis`+`addi`/`ori` pairs) |
 | `attribute.py` | merge every signal into one scope picture |
 | `candidates.py` | vetted match targets: leaf, unattributed, outside XDK, sound |
+| `flagsweep.py` | sweep compiler flags for one source against one target |
+| `permute.py` | sweep source shapes for one target at fixed flags |
 | `vmx128_*.py` | four independent VMX128 validations — see `VMX128.md` |
 | `rich.py` | decode a PE's Rich header — the linker's census of contributing tools |
 | `rich_calibrate.py` | **measure** what each product id means, by building known flag sets |
@@ -264,18 +273,20 @@ byte-for-byte into the image carries a plain C/C++/asm stamp
 (`tools/compid.py --join`). The library-variant question is answered with it:
 the retail build linked the **non-LTCG** variants.
 
-So the three stalled matches are not stalled by LTCG, and the wall is still
-**instruction scheduling**:
+So the stalled matches are not stalled by LTCG. Six functions have since
+matched as compiled objects, all at addresses in the game's own bands. What
+the two long-running stalls come down to is **instruction scheduling** and
+**register allocation** — compiler-internal choices in functions that have
+more than one legal ordering:
 
 ```
-822607F0  120 B   MATCHED 30/30   <- in the game's own band, so game code
-822607F0                             demonstrably compiles to matchable objects
 82806FD0   84 B   11/21   8 source shapes, 65 flag combinations
-826C1480   76 B   13/19   branchless, so NOT a branch-layout problem
-827618E8  136 B   partial
+826C1480   76 B   13/19   branchless; 11 shapes x 72 flags, all identical
+827C5198   20 B    3/5    register allocation only, 7 shapes
+8215E5B0   28 B    1/7    register allocation only
 ```
 
-**FIRST: match a second function.** `python tools/candidates.py` gives 2,565
+**FIRST: keep matching.** `python tools/candidates.py` gives 2,565
 vetted targets — leaf, unattributed, outside the XDK bands, at least 16 bytes,
 ending in a real terminator. `tools/permute.py` scores several source shapes
 against one target in a single command.

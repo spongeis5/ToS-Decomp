@@ -88,6 +88,7 @@ def main(argv):
         print("  is missing or stale, run tools/inventory.py.")
         return 1
     tsize = sizes[target]
+    recorded = tsize
     tbytes = img.read(target, tsize)
 
     work = Path("build/match")
@@ -109,11 +110,46 @@ def main(argv):
     sym, code, mask = max(fns, key=lambda f: len(f[1]))
     code, mask = trim_padding(code, mask)
 
+    # The recorded size can be SHORT. Ghidra computes a function body from
+    # reachable code, so a trailing instruction after an unconditional branch
+    # -- the dead `blr` MSVC appends to a tail call -- is not counted. That
+    # made sub_82807B38 read as 16 bytes when its code is 20, and a correct
+    # source was reported NO MATCH.
+    #
+    # So when our code is longer, extend the window into the image and say so.
+    # Bounded by the next known function start, and only reported as a
+    # reconciliation once the extra words actually agree -- never silently.
+    extended = None
+    if len(code) > tsize:
+        later = sorted(a for a in sizes if a > target)
+        limit = (later[0] - target) if later else len(code)
+        if len(code) <= limit:
+            grown = img.read(target, len(code))
+            if grown is not None and len(grown) == len(code):
+                tail_ok = all(
+                    struct.unpack_from(">I", grown, i * 4)[0]
+                    == struct.unpack_from(">I", code, i * 4)[0]
+                    for i in range(tsize // 4, len(code) // 4))
+                if tail_ok:
+                    extended = len(code)
+                    tbytes, tsize = grown, len(code)
+
     print()
-    print("target  %08X  %d byte(s)" % (target, tsize))
+    print("target  %08X  %d byte(s)" % (target, recorded))
     print("ours    %-40s %d byte(s)%s"
           % (sym[:40], len(code),
-             "" if len(code) == tsize else "   <-- SIZE DIFFERS"))
+             "" if len(code) == recorded else "   <-- SIZE DIFFERS"))
+    if extended:
+        print()
+        print("SIZE RECONCILED: the inventory records %d byte(s); our code is %d."
+              % (recorded, extended))
+        print("  The image's own bytes through %08X agree, so the recorded size"
+              % (target + extended - 4))
+        print("  is short by %d. A function ending in a tail call has an"
+              % (extended - recorded))
+        print("  unreachable trailing instruction that a reachability-based")
+        print("  body computation does not count. Comparing %d bytes."
+              % extended)
     print()
 
     n = min(len(code), tsize) // 4
