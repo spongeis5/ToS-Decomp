@@ -172,7 +172,7 @@ this early, but they should be treated as provisional. Real names exist for
 part of the image (RTTI, profiler scopes, assert strings) and are not yet
 applied to matched code.
 
-**5. Progress is counted in functions, not bytes.** 15 of 30,984 says little;
+**5. Progress is counted in functions, not bytes.** 64 of 30,630 says little;
 byte coverage against the 60.6% that is actually the game's is the number that
 matters. `tools/build.py` now reports byte coverage of `.text`, but there is
 still no dashboard tracking it over time.
@@ -434,6 +434,21 @@ false `+0` twice here.
 silently. `.claude/hooks/` now blocks it; `SHELL-TRAPS.md` explains why
 counting backslashes carefully is not a workable defence.
 
+**A plausible sentence is not a measurement.** `sub_827007E8` matched under
+`/Os` and the idea was dropped because "its two nearest neighbours are the
+identical idiom and use the other register". They are 8.5 KB away. That is
+not a neighbourhood, it was never evidence, and the real test -- do ADJACENT
+functions agree? -- took one afternoon and produced six pairs out of six.
+Eight matches were sitting behind that sentence.
+
+**A check that cannot fail is worse than no check.** The `.text` hash was
+computed over a splice that only ever contained bytes already proven equal,
+so `rebuilt == original` was true by construction. It printed "REPRODUCES
+BYTE FOR BYTE" for a test with no power -- the same shape as the
+`verify_ghidra.py` mistake already recorded here. `tools/verify.py` now runs
+five negative controls, each corrupting one fact and requiring the build to
+fail.
+
 **State the denominator.** Not "24 draws" but "24 draws of 59 walked". Every
 count here names its population, and a bounded search reports when its bound
 was reached rather than presenting the bound as an answer.
@@ -442,44 +457,82 @@ was reached rather than presenting the bound as an answer.
 
 ## Where to pick up
 
-**The LTCG question is settled — see §7l.** It was the top priority because it
-decided whether object-level matching could work at all. It can:
+**Run this first. If it passes, everything below is true.**
 
-```
-of 1,528 objects in the retail image carrying a code-producing stamp,
-1,474 (96.5%) were compiled WITHOUT /GL.  54 were not.  No C TU used /GL.
+```bash
+python tools/verify.py
 ```
 
-Measured by calibrating the Rich header's product ids against this XDK
-(`tools/rich_calibrate.py`) rather than looking them up, and cross-checked
-from the other direction — every one of the 610 library objects that matched
-byte-for-byte into the image carries a plain C/C++/asm stamp
-(`tools/compid.py --join`). The library-variant question is answered with it:
-the retail build linked the **non-LTCG** variants.
+12 checks: five tools, 64 of 64 matches, and five negative controls that each
+corrupt one fact and require the build to fail. A failing negative control is
+the serious kind -- it means a check reports success without being able to
+detect the failure it exists to detect.
 
-So the stalled matches are not stalled by LTCG. Six functions have since
-matched as compiled objects, all at addresses in the game's own bands. What
-the two long-running stalls come down to is **instruction scheduling** and
-**register allocation** — compiler-internal choices in functions that have
-more than one legal ordering:
+### The fastest way to add matches
+
+It is a batch process, and it runs at roughly 70% first-attempt success:
+
+1. `python tools/candidates.py` -- 4,231 vetted targets.
+2. Dump forty of them with their disassembly, ranked by caller count.
+3. Write sources for the twenty that read clearly. Do not guess plausible C:
+   **read the register discipline off the listing.** Which value the function
+   keeps live, and for how long, IS the specification.
+4. Compile all twenty at once and score them.
+5. Add the matches to `src/manifest.txt`; put the near-misses in
+   `src/attempts.txt` so objdiff shows them.
+
+`MATCHED.md` carries the idiom table -- the branchless `x == 1`, the `i * 24`
+built as `(i + i*2) * 8`, the biased pointer before an update-form access, and
+the rest. Recognising those is most of the work.
+
+**Three things that are source shape and not compiler flags:** branch polarity
+(write the fall-through path FIRST), store order (the emitted order is the
+source order even when it is not address order), and `x > 0` versus `x != 0`
+for an unsigned value, which compile to different branch conditions.
+
+### The flag column
+
+The retail build did NOT use one optimisation level everywhere. Eight of the
+64 need `/O2 /Os`; the rest need `/O2`. Adjacent functions always agree and
+distant ones need not, so the level is a per-translation-unit property --
+`src/manifest.txt` records it per unit with `flags=`. See §7m; this was
+claimed the other way round for a long time and the claim was wrong.
+
+**If a function has the right instructions but the wrong registers, try the
+other level before anything else.** That was worth eight matches.
+
+### Looking around visually
+
+```bash
+python tools/objdiff_export.py     # then open the folder in objdiff
+```
+
+Verified against objdiff-cli 3.8.0. It will not decode VMX128, so the
+engine's vector maths will not render; `tools/disasm.py` is the reader that
+knows it.
+
+### What still resists, and it is a short list now
+
+Six functions, down from eleven. Each has the right instructions in the right
+multiset and differs only in a decision made inside the compiler. None
+matches at `/O2`, `/O1` or `/O2 /Os`, so the flag explanation is exhausted,
+and `tools/permuter.py` has not moved any of them.
 
 ```
-82806FD0   84 B   11/21   8 source shapes, 65 flag combinations
-826C1480   76 B   13/19   branchless; 11 shapes x 72 flags, all identical
-827C5198   20 B    3/5    register allocation only, 7 shapes
-8215E5B0   28 B    1/7    register allocation only
+82806FD0   84 B   branch polarity -- bgtlr vs ble-, a probability decision
+826C1480   76 B   instruction order -- one store among five loads
+8215E5B0   28 B   register assignment across an argument permutation
+82600AD0   28 B   a reloaded field the compiler will not keep in a register
+82639C38   20 B   an extra mr to keep the object alive across a float load
+827618E8  136 B   loop rotation; counts kept in callee-saved r30/r31
 ```
 
-**FIRST: keep matching.** `python tools/candidates.py` gives 2,565
-vetted targets — leaf, unattributed, outside the XDK bands, at least 16 bytes,
-ending in a real terminator. `tools/permute.py` scores several source shapes
-against one target in a single command.
-
-The technique that worked on the one match is in `FINDINGS.md` §7d: **read the
-target's register discipline out of the disassembly instead of guessing
-plausible C.** Which value it keeps live and for how long IS the
-specification. Writing assignments in the target's own field order took
-`826C1480` from 10/19 to 13/19.
+Two things are now known about these that were not before. Translation-unit
+context does NOT affect codegen -- the same function compiled six ways with
+different company gives byte-identical output (§7m) -- so reconstructing whole
+files would not help. And the permuter's seven mutations do not reach register
+allocation, so **the next mutation to write is one that changes register
+PRESSURE**, not statement order.
 
 **Larger, in rough order of value:**
 
@@ -488,10 +541,10 @@ specification. Writing assignments in the target's own field order took
    `libmatch.py` eat it directly. The SDK has not turned up; RTTI identifies it
    without one, which is enough to exclude it from scope but not to link it.
 2. **Scaleform GFx 3.x and FMOD Ex** for Xbox 360 — same idea.
-3. **VMX128 in Ghidra.** Our tools decode it; Ghidra does not (issue #2094,
-   open since 2020). Forks exist — pjsoberoi's, and 0dinD's rebase onto Ghidra
-   12.0 which also fixes errors in both the SLEIGH and the documentation.
-   Untried here.
+3. ~~**VMX128 in Ghidra.**~~ **MOOT.** Nothing in the pipeline uses Ghidra
+   any more (`tools/discover.py` replaced it — see "Ghidra, measured and
+   replaced"). The one place VMX128 still cannot be read is **objdiff**,
+   whose PowerPC backend is 750CL-flavoured; `tools/disasm.py` reads it.
 4. ~~**MSVC switch tables.**~~ **DONE — `tools/switches.py`.** Of 14,708
    `bctr` sites, 104 are switch dispatches and 95 are decoded. Neither form
    is a table of addresses, which is exactly why Ghidra mishandles them:
@@ -504,10 +557,20 @@ specification. Writing assignments in the target's own field order took
    is listed as a function**, `.pdata` or discovery. `verify.py` now checks
    that on every run. It does not explain the 13 functions Ghidra lists and
    discovery does not — none of those is a case target either.
-5. **Spot-check the weak attributions.** 603 functions are attributed by
-   `srcpath`/`havok` alone and none has been confirmed by hand.
-6. **A build system and a progress dashboard.** One `.cpp` at a time does not
-   scale, and objdiff-style percentage tracking is how these projects survive.
+5. **Spot-check the weak attributions.** 604 functions are attributed by
+   `srcpath`/`havok` alone — a reference the function *makes*, not a byte
+   match — and none has been confirmed by hand. They are deliberately not
+   merged with the 6,453 `lib` matches.
+6. ~~**A build system and a progress dashboard.**~~ **PARTLY DONE.**
+   `tools/build.py` is the build and `tools/objdiff_export.py` gives the
+   dashboard. What is still missing is the LINK: undecompiled code is copied
+   from the original rather than assembled from objects, so section layout,
+   symbol ordering and inter-object padding remain unverified. Finishing that
+   is the largest remaining structural task.
+7. **A register-pressure mutation for `tools/permuter.py`.** Its seven
+   mutations do not reach register allocation, which is what all six
+   remaining stalls come down to.
+8. **CI.** Nothing runs `tools/verify.py` on commit; it is run by hand.
 
 **Known open, small:**
 

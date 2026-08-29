@@ -304,6 +304,197 @@ the arms sum to 21,238 exactly.
 
 ---
 
+## 7m. Flags are a property of the TRANSLATION UNIT, not of the build
+
+*measured 2026-08-28*
+
+For most of this project's life `MATCHED.md` said every match was found at one
+uniform `/O2 /Gy /GS- /fp:fast`, and offered that uniformity as evidence about
+how the title was built. **It is wrong.** Eight functions recorded as stalls
+were never stalls: they match at `/O2 /Os`, and at `/O1`, and not at `/O2`.
+
+### The reasoning that hid it
+
+`sub_827007E8` was found to match under `/Os` early, and the idea was
+dismissed on this basis:
+
+> its two nearest neighbours are the *identical idiom* and use `addi r10` â€”
+> the `/O2` form. Same neighbourhood, both register choices.
+
+Those neighbours are **8,736 bytes away**. That is not a neighbourhood and it
+is not the same translation unit. A plausible sentence was allowed to stand in
+for a measurement, and the measurement was cheap.
+
+### The test that settles it
+
+A translation unit is contiguous in the linked image, so if the optimisation
+level is a per-unit property then ADJACENT functions must agree:
+
+```
+addr A     addr B      A          B          verdict
+822D40F8   822D4118    /O2 only   /O2 only   AGREE
+82540728   82540750    /O2 only   /O2 only   AGREE
+825E3598   825E35C8    /Os only   /Os only   AGREE    48 bytes apart
+82600BB0   82600BD8    /O2 only   /O2 only   AGREE
+826FE5B8   826FE5C8    /O2 only   /O2 only   AGREE    16 bytes apart
+827245C0   827245E0    /O2 only   /O2 only   AGREE
+
+six informative adjacent pairs, six agreements, no split
+```
+
+Thirty of the sixty-four matched functions are flag-insensitive â€” they give
+identical bytes at every level â€” and are excluded from that count, because a
+pair that agrees for free is not evidence.
+
+`src/manifest.txt` therefore carries a `flags=` column, and `build.py`,
+`verify.py` and `objdiff_export.py` honour it. Only the optimisation flags go
+in the column: `/c` and `/nologo` are prepended, because a row that forgets
+`/c` makes `cl` try to LINK and report a diagnostic about the linker rather
+than about the flags.
+
+### And the reassuring half: TU context does NOT affect codegen
+
+The obvious next worry is worse than the first: if a function's bytes depend
+on what else is in its file, matching would require reconstructing whole
+translation units before anything could be verified.
+
+It does not. The same function was compiled six ways â€” alone; with a
+companion after it; with a companion before it; with companions on both
+sides; with a register-hungry seven-argument function before it; and with
+that function after it â€” and produced **byte-identical code every time**.
+
+```
+alone                                  3d600000 394b0000 91430000 4e800020
+one companion AFTER it                 3d600000 394b0000 91430000 4e800020
+one companion BEFORE it                3d600000 394b0000 91430000 4e800020
+companions both sides                  3d600000 394b0000 91430000 4e800020
+a register-hungry function before it   3d600000 394b0000 91430000 4e800020
+a register-hungry function after it    3d600000 394b0000 91430000 4e800020
+```
+
+Whatever decides register allocation is **inside the function**. That is why
+the six remaining stalls cannot be explained by TU reconstruction, and it is
+also why per-function matching is a sound unit of work.
+
+---
+
+## 7n. MSVC switch dispatch, and why Ghidra cannot follow it
+
+*measured 2026-08-28*
+
+Of 14,708 `bctr`/`bctrl` sites in `.text`, **104 are switch dispatches** and 95
+are decoded. The rest are virtual calls. Two forms, and **neither is a table
+of addresses** â€” which is exactly what Ghidra's `PowerPCAddressAnalyzer` looks
+for, and why it mishandles them. There is no address anywhere: only an offset,
+and a base built from a `lis`/`addi` pair.
+
+**Byte form, 51 sites** â€” `caseBase + 4 * byteTable[value]`:
+
+```
+cmplwi rV, N                   the bound: N+1 cases
+bgt-   default
+lis    r12, hi(byteTable)      byteTable is in .rdata
+addi   r12, r12, lo(byteTable)
+lbzx   r0, r12, rV
+rlwinm r0, r0, 2, 0, 29        * 4, so the byte is a WORD index
+lis    r12, hi(caseBase)       caseBase is the word AFTER the bctr
+addi   r12, r12, lo(caseBase)
+add    r12, r12, r0
+mtctr  r12 ; bctr
+```
+
+**Halfword form, 53 sites** â€” `caseBase + halfTable[value]`, for switches
+whose bodies span more than 1 KB:
+
+```
+rlwinm r0, rV, 1, 0, 30        * 2 to index halfwords, so the LOAD's index
+lhzx   r0, r12, r0             register is NOT the switch value
+...                            no post-load scale: the halfword IS the offset
+```
+
+### Three bugs, each caught by a validation signal
+
+**Reading a fixed 256 bytes of table invented case targets**, which showed up
+as 7 collisions with `.pdata` function starts. `.pdata` is the compiler's own
+table, so a collision there cannot be a discovery â€” it can only be the
+extraction over-generating. The bound is the `cmplwi rV,N` before the guard.
+
+**The bound compares the switch VALUE**, and in the halfword form the load's
+index register is that value already scaled by two. Keying the search on the
+load's register found nothing at all, 104 of 104.
+
+**`rlwinm` is M-form**: its destination is `rA` and its source is `rS`, the
+opposite way round from the D-form loads sitting beside it in the same
+dispatch. Reading it as a load left all 53 halfword dispatches unbounded even
+after the previous fix.
+
+### The result is a negative, and that is the useful part
+
+Case bodies are labels inside a function, not functions, and nothing reaches
+them by `bl` or `b`, so `discover.py` cannot see them and correctly does not
+list them. The question worth asking is the reverse â€” is anything ALREADY
+listed as a function really a case body? Over 2,571 recovered targets the
+answer is **none**, from `.pdata` or from discovery. `verify.py` checks it on
+every run.
+
+It does **not** explain the 13 functions Ghidra lists and discovery does not:
+none of them is a case target. That remains open.
+
+*(An earlier run reported 3 discovery entries sitting on case targets. They
+were artifacts of the unbounded extraction and are gone; the claim was
+premature and is not kept.)*
+
+---
+
+## 7o. Tooling added: objdiff, a permuter, and one runner
+
+*2026-08-28*
+
+**`tools/objdiff_export.py`** synthesizes what objdiff needs and this project
+does not have. objdiff diffs two OBJECT FILES per unit; our target is a linked
+image and our base is a COFF object, so both sides are emitted as PowerPC ELF
+relocatables plus `objdiff.json`. **Verified end to end against objdiff-cli
+3.8.0** rather than assumed: it reads them, decodes PowerPC, and reports 64
+complete units.
+
+The export includes the functions that do NOT match, from `src/attempts.txt`.
+A unit list where every row reads 100% shows nothing. The base has its
+relocations pre-resolved, as `build.py` does, or every `bl` would read as a
+difference in a function that verifies perfectly.
+
+The CLI found a defect immediately: the target object was being built at OUR
+code's length, so where ours is the wrong size (`827FE808` compiled to 20
+bytes against a 16-byte target) four bytes of the NEXT function were spliced
+into the target and shown as a difference that is not there.
+
+objdiff **cannot decode VMX128**. None of the matched functions contain any â€”
+0 of 325 instructions, checked â€” but the engine's vector maths will not
+render.
+
+**`tools/permuter.py`** mutates a source in ways that cannot change what it
+computes, compiles each with the real XDK compiler, and scores it. It
+validates against a known answer: `sub_826C0FC8` is 2/6 as a free function and
+6/6 as a member, and `--selftest` requires it to rediscover that. Three
+defects, all found by validating rather than by running it:
+
+* substituting a parameter name across raw text rewrote `the target's own` in
+  a COMMENT to `the target'this own`;
+* converting `sub_826C1480` to a member silently SHADOWED the member `f[12]`
+  with its parameter `int f`;
+* the scorer counted relocated words as mismatches, so a 4-of-6 function
+  scored 1 of 6 and the hill-climb was guided mostly by noise.
+
+**It has not cracked a single stall**, and that is the honest result. The
+remaining six are register assignment, instruction order and branch
+probability, and none of its seven mutations reaches register allocation.
+
+**`tools/verify.py`** runs everything, including five negative controls, and
+reads `src/manifest.txt` rather than keeping its own copy of the list â€” a
+second copy is the drift that let three compile harnesses fall out of step
+with `build.py`.
+
+---
+
 ## 7l. LTCG SETTLED — the Rich header is a census, and it can be calibrated
 
 *measured 2026-08-28*
