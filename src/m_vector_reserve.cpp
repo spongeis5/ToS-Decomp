@@ -44,7 +44,7 @@
 //      stw     r9,8(r31)
 //
 // WRITTEN TO SETTLE A QUESTION as much as to match, AND IT SETTLED IT.
-// VectorGrow below is one word short on the operand order of
+// VectorGrow below was one word short on the operand order of
 // `mullw r5,<count>,<elemSize>`, and nine source shapes could not move it.
 // Here the identical multiply, with NO earlier read of `count` anywhere in
 // the function, comes out right first time.
@@ -54,8 +54,10 @@
 // the CSE representative, and the operand whose "source read comes later"
 // then looks like elemSize rather than count. Reserve has one read and gets
 // it right. That is the mechanism behind the `add`-operand-order lever, seen
-// from the other side -- and it is not something the source can undo, which
-// is why Grow stays at 31 of 38.
+// from the other side.
+//
+// IT IS SOMETHING THE SOURCE CAN UNDO, and this file used to say it was not.
+// See the note on VectorGrow at the bottom.
 //
 // Both are written against ONE shared __forceinline implementation, which is
 // how the original almost certainly reads: they are adjacent in the image
@@ -105,7 +107,51 @@ void VectorReserve(ReserveVector* v, s32 newCap, int elemSize)
 // Reserve, which MSVC inlines -- and the definition has to come FIRST for
 // that to happen: declared-but-not-yet-defined it emits a real `bl` and an
 // eight-word body.
+//
+// MATCHED, 32 of 32 words. THE ANSWER: A NAMED CONST-QUALIFIED VIEW BREAKS
+// THE CSE TIE, and that is what decides the mullw's operand order.
+//
+// The two reads of `count` -- the doubling's and the memcpy's -- are the
+// same expression, so MSVC value-numbers them together even though it has
+// to RELOAD the field after BinAlloc (the call may write memory). The
+// reload is emitted either way; what the shared value number changes is the
+// operand's position in the DAG, which is the doubling's, ahead of where
+// `elemSize` is defined. `mullw` then gets elemSize in rA.
+//
+// Reading the doubling's count through a separate const-qualified pointer
+// makes it a different value number, so the memcpy's read is its own
+// definition, later than elemSize's, and lands in rA. It is exactly the
+// "spell the two reads differently" lever from sub_821FF908, reached from a
+// COMMUTATIVE MULTIPLY instead of from a reload -- and, unlike that one, the
+// difference costs no instruction at all: the const view compiles away and
+// only the operand order moves.
+//
+// WHAT COUNTS AS DIFFERENT ENOUGH, measured over sixteen shapes:
+//
+//   works   const ReserveVector* c = v;          <- used here
+//   works   const ReserveVector& c = *v;
+//   works   const MemVector* c = this;   (member form)
+//   works   a base-class pointer, a different struct type at the same
+//           offset, a union view, an s32* view -- all through a NAMED LOCAL
+//   fails   ((CountView*)v)->count spelled inline at both reads
+//   fails   an inlined const accessor, getSize() const or GetCount(const*)
+//   fails   volatile on the read, two aliasing pointer parameters, a
+//           differently typed local for the SECOND read instead of the first
+//
+// So the local has to be NAMED. An inline cast and an inlined const getter
+// are both folded back to the same value number before the multiply is
+// ordered, which is why the natural spellings of "read it constly" do
+// nothing and the ugly one works.
+//
+// Ruled out first, all still `mullw r5,r30,r11`: source operand order of the
+// multiply itself (`elemSize * v->count` is byte-identical, confirming
+// MATCHED.md's note that mullw is not readable); reading elemSize into a
+// local first; swapping the impl's parameter order so elemSize is read
+// first; the comma operator; `n + n` and `n << 1` for the doubling; writing
+// Grow's body out instead of calling the shared impl; and the member-
+// function form. Fifteen shapes over three probe files.
 void VectorGrow(ReserveVector* v, int elemSize)
 {
-    ReserveImpl(v, v->count ? v->count * 2 : 1, elemSize);
+    const ReserveVector* c = v;
+    ReserveImpl(v, c->count ? c->count * 2 : 1, elemSize);
 }

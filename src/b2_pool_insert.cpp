@@ -28,10 +28,38 @@
 // 128 -- but r6 IS read, so the function takes four arguments and the third
 // is unused. Dropping it would put the out pointer in r5.
 //
-// MEASUREMENT (see src/attempts.txt): the stores at 468 and 492 are emitted
-// AFTER their successors at 472 and 496, both times the operand that came
-// from a `lis`. Written here in ascending field order on the reading that
-// this is scheduling, not source order.
+// NEAR MISS, and the whole of it is ONE EXTRA LIVE VALUE. Ours is 240 bytes
+// against 228 -- three words: `std r31`, and an `ld r31` on each of the two
+// return paths -- and because the spill displaces everything, 0 of 57 words
+// line up. The instruction SEQUENCE is otherwise identical, slot for slot.
+//
+// The initialisation block needs six constants live at once (0, 64,
+// 0x00400000, 128, 0x00800000, 1024) plus e, out, `at` and one scratch. That
+// is ten values against nine volatile registers. The retail build fits by
+// materialising its SIXTH constant after `stw r4,4(r11)` has killed the `at`
+// parameter, into the register `at` vacated:
+//
+//   li r5,128 ; stb r9,16(r11) ; li r3,1024 ; ... ; stw r4,4(r11)
+//   lis r4,128                          <- 0x00800000, into the dead r4
+//
+// We materialise ours four slots earlier, while r4 is still live, so it goes
+// to r31 and pays a frame.
+//
+// What was measured:
+//  * store order. Written ASCENDING, the constants come out
+//    0x400000, 64, 0x800000, 128 -- the first two in the wrong registers.
+//    Written with 472 before 468 and 496 before 492, as the image emits them,
+//    the first FOUR constants land in the target's own registers
+//    (r10, r8, r7, r5). That is why the two pairs are written descending here.
+//  * which constant is fifth follows source DEF ORDER: moving
+//    `f214 = 1024` to just before `f1EC` puts `li r3,1024` in the target's
+//    slot exactly -- but then the 532 store is emitted there too, in the
+//    middle of the block, and the image has it last. MSVC does not sink it.
+//    So the retail 5th/6th choice is NOT def order; it is an allocator
+//    decision the source cannot reach from either ordering.
+//  * member function instead of free: 240 bytes, same spill.
+//  * tools/flagsweep.py, 72 combinations including /Ou prescheduling: every
+//    one spills. Best 0 of 57 words, 236 B at /O2 /Os.
 
 struct Entry552
 {

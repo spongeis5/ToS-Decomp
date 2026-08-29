@@ -53,3 +53,5 @@ src/t4_span_dispatch.cpp         82772F08
 src/u5_ctor_str.cpp              827007F8
 src/u6_table_agrees.cpp          8215BD60
 src/u7_clamp_advance.cpp         821FC4D8
+src/b2_pool_insert.cpp          825A3528
+src/b3_hash_remove.cpp          826377B0  RemoveAt

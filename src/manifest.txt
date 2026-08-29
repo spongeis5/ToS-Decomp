@@ -950,3 +950,11 @@ src/c7_ready_flag.cpp           821A5328
 src/c8_bits_16_19.cpp           8224DBB0  IsAvailable
 src/b1_extent_bits.cpp          82831A48
 src/d4_handler_or_default.cpp    827103D8  -  flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/d1_vcall_global_6.cpp        825E35E0  -  flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/d2_link_front_flag.cpp       827FEE48  -  flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/a1_grid_range16.cpp          821581C0
+src/a2_grid_range15.cpp          825FB3E0
+src/a5_quat_mul_norm.cpp         82155580
+src/b4_warp_point.cpp           82858720  WarpPoint     flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/a4_bitread24.cpp             8259C6F0
+src/a3_bitread32.cpp             825BFFF0

@@ -6,6 +6,12 @@
 //   ... 8 lfs, 4 fmuls, 8 fmadds/fmsubs, 4 fnmsubs, 4 stfs ...
 //   b 0x82155080
 //
+// THE FOUR RESULTS HAVE TO BE LOCALS. `out` may alias `a` or `b`, so
+// assigning straight through the pointer makes MSVC finish one component,
+// store it, and RELOAD every input before the next -- 2 of 31 words, with
+// the loads scattered through the arithmetic. Computing four floats first
+// and storing them afterwards is what puts all eight `lfs` in front.
+//
 // Every component of both inputs is loaded before any store, and the four
 // dependency chains are interleaved one instruction apiece in the order
 // x, w, y, z -- at the seeds, at both fma stages and at the stores (0, 12,
@@ -40,9 +46,14 @@ float QuatNormalize(Quat* out, const Quat* in);
 
 float QuatMulNormalize(Quat* out, const Quat* a, const Quat* b)
 {
-    out->x = a->y * b->z + a->x * b->w + a->w * b->x - a->z * b->y;
-    out->w = a->w * b->w - a->x * b->x - a->y * b->y - a->z * b->z;
-    out->y = a->z * b->x + a->y * b->w + a->w * b->y - a->x * b->z;
-    out->z = a->x * b->y + a->z * b->w + a->w * b->z - a->y * b->x;
+    float x = a->y * b->z + a->x * b->w + a->w * b->x - a->z * b->y;
+    float w = a->w * b->w - a->x * b->x - a->y * b->y - a->z * b->z;
+    float y = a->z * b->x + a->y * b->w + a->w * b->y - a->x * b->z;
+    float z = a->x * b->y + a->z * b->w + a->w * b->z - a->y * b->x;
+
+    out->x = x;
+    out->w = w;
+    out->y = y;
+    out->z = z;
     return QuatNormalize(out, out);
 }

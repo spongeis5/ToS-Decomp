@@ -46,13 +46,30 @@
 // means equal, and MSVC emits `ble-` reusing cr6 where `==` emits a fresh
 // `beq-`. One word, and the source really does say `<=`.
 //
-// NOT MATCHED -- 7 of 11 compared, but EVERY INSTRUCTION IS CORRECT and the
-// size is exact at 76 bytes. The only differences are the two branch
-// DESTINATIONS: the target places `return 0` before the out-of-line left
-// block and this places it after. Five loop shapes were tried -- while with
-// else, for(;;) with the null test at the top, `continue` in either arm, and
-// the null test hoisted ahead of a do/while -- all seven of eleven with the
-// same two offsets, and /O2 /Os is five. It is a block-placement choice.
+// MATCHED, 11 of 11 words.
+//
+// THE ANSWER: THE LOOP EXIT TEST IS WRITTEN IN EVERY ARM, NOT AS THE LOOP
+// CONDITION. This file used to say the layout was unreachable -- 7 of 11,
+// every instruction correct, the size exact, and only two branch
+// DESTINATIONS wrong, because `return 0` came after the out-of-line left
+// block instead of before it. Five loop shapes gave the same two offsets.
+//
+// What none of them changed is where the JOIN sits. Written as
+// `while (n != 0) { ... }` the loop's latch is a block of its own, so MSVC
+// emits `b join` at the bottom of the right arm, lays the left arm down
+// next, then the join, then the shared `return 0` -- and the zero return
+// ends up last. Written with `if (n == 0) return 0;` at the END OF EACH ARM
+// and no loop condition at all, MSVC merges the two tests into one latch,
+// merges all three `return 0`s into one block, and plants that block
+// IMMEDIATELY AFTER the latch, which pushes the left arm past it. The right
+// arm then falls straight into the latch and its `b join` disappears -- the
+// same 19 instructions in the target's order.
+//
+// So: WHEN A LOOP'S EXIT TEST IS EMITTED AS THE FALL-THROUGH OF ONE ARM
+// WITH THE OTHER ARM OUT OF LINE BEHIND THE EXIT BLOCK, the source tested
+// the exit condition inside the arms rather than in the loop header. The
+// tell is that the exit block sits BETWEEN the latch and the out-of-line
+// arm; a loop-condition spelling always puts the arm first.
 //
 // The recorded size is 44, not 76: 8217E834 is listed as a function start
 // and control falls into it from the `rlwinm` above. The join of the two
@@ -82,18 +99,24 @@ int NodeValue(TreeNode* n);
 int LookupKey(u64 key)
 {
     TreeNode* n = g_keyTree_82A38CDC.root;
-    while (n != 0)
+    if (n == 0)
+        return 0;
+
+    for (;;)
     {
         if (key >= n->key)
         {
             if (key <= n->key)
                 return NodeValue(n);
             n = (TreeNode*)((u32)n->right & ~3u);
+            if (n == 0)
+                return 0;
         }
         else
         {
             n = n->left;
+            if (n == 0)
+                return 0;
         }
     }
-    return 0;
 }

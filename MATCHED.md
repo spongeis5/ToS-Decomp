@@ -11,7 +11,7 @@ the inventory is wrong in both directions, short where a tail call's dead
 `blr` was not counted and long where one `.pdata` row covers several
 frameless bodies.
 
-**940 functions, 20016 bytes.** Verify all of them, plus the reconstructing
+**948 functions, 21268 bytes.** Verify all of them, plus the reconstructing
 build and six negative controls, with one command:
 
 ```bash
@@ -22,7 +22,7 @@ Every match is also a row in `src/manifest.txt`, so `tools/build.py` compiles
 it, resolves its relocations against the retail bytes and splices it into
 `.text`. Nothing here is a match on `match.py`'s word-comparison alone.
 
-SPLIT: 232 hand-written, 13904 bytes; 708 generated, 6112 bytes.
+SPLIT: 240 hand-written, 15156 bytes; 708 generated, 6112 bytes.
 <!-- the line above is regenerated; edit tools/matched_table.py, not this -->
 
 The two halves are not comparable and the count should never be quoted
@@ -31,10 +31,13 @@ at a time, and each one taught something. The generated ones are
 single-expression accessors and constant returns that `tools/gen_typeids.py`
 and `tools/gen_accessors.py` wrote from each function's own encoding: real
 matches, compiled and compared exactly like the others, needed for a link,
-and worth having because each pins a field offset -- but 708 of them say far
-less about how much of this game has been read than 229 does.
+and worth having because each pins a field offset -- but the generated half
+says far less about how much of this game has been read than the hand-written
+half does, however much larger it gets. (The counts live in the SPLIT line
+above, which is regenerated; repeating them here is how a document comes to
+contradict itself two commits later.)
 
-**The retail build did NOT use one optimisation level everywhere.** 38 of
+**The retail build did NOT use one optimisation level everywhere.** 41 of
 these need `/O2 /Os`; the rest need plain `/O2`. See "Flags are a property of
 the translation unit" below -- this was claimed the other way round for a
 while and the claim was wrong.
@@ -122,6 +125,7 @@ while and the claim was wrong.
 | `827841D8` | 84 | 16 | `m_release.cpp` | Release | `/O2 /Os` |
 | `828864E0` | 20 | 16 | `vcall_arg_adj.cpp` | - | `/O2 /Os` |
 | `822E2048` | 28 | 15 | `g_fwd_6args.cpp` | - | `/O2` |
+| `825BFFF0` | 236 | 15 | `a3_bitread32.cpp` | - | `/O2` |
 | `82703E28` | 124 | 15 | `h_blk_ctor.cpp` | BlkOwnerConstruct | `/O2 /Os` |
 | `821FF908` | 168 | 14 | `e_can_use.cpp` | - | `/O2` |
 | `822021F8` | 16 | 14 | `stride116.cpp` | - | `/O2` |
@@ -208,6 +212,8 @@ while and the claim was wrong.
 | `82724620` | 64 | 7 | `r8_next_used.cpp` | - | `/O2` |
 | `82727258` | 16 | 7 | `stride8.cpp` | - | `/O2` |
 | `8214CC48` | 16 | 6 | `or_flag.cpp` | - | `/O2` |
+| `82155580` | 124 | 6 | `a5_quat_mul_norm.cpp` | - | `/O2` |
+| `821581C0` | 180 | 6 | `a1_grid_range16.cpp` | - | `/O2` |
 | `8216CDA0` | 40 | 6 | `m_flag_dispatch.cpp` | - | `/O2` |
 | `8219FC90` | 24 | 6 | `eq1_2260.cpp` | - | `/O2` |
 | `821A5490` | 24 | 6 | `cmp_set.cpp` | - | `/O2` |
@@ -223,8 +229,10 @@ while and the claim was wrong.
 | `822D40F8` | 32 | 6 | `copy3_68.cpp` | - | `/O2` |
 | `822D4118` | 32 | 6 | `copy3_72.cpp` | - | `/O2` |
 | `82543F60` | 24 | 6 | `tail_or_zero.cpp` | - | `/O2` |
+| `8259C6F0` | 132 | 6 | `a4_bitread24.cpp` | - | `/O2` |
 | `825BD930` | 16 | 6 | `bit_test.cpp` | - | `/O2` |
 | `825BE440` | 68 | 6 | `u3_init_zero.cpp` | - | `/O2` |
+| `825FB3E0` | 180 | 6 | `a2_grid_range15.cpp` | - | `/O2` |
 | `826043B0` | 60 | 6 | `t8_current_notify.cpp` | NotifyIfCurrent | `/O2` |
 | `82649240` | 20 | 6 | `zero64_68_0.cpp` | - | `/O2` |
 | `82697608` | 16 | 6 | `guard_arg3.cpp` | - | `/O2` |
@@ -235,6 +243,7 @@ while and the claim was wrong.
 | `827827B8` | 40 | 6 | `m_release.cpp` | AddRef | `/O2` |
 | `828133B8` | 28 | 6 | `two_vtables_b.cpp` | - | `/O2 /Os` |
 | `82831A48` | 196 | 6 | `b1_extent_bits.cpp` | - | `/O2` |
+| `82858720` | 316 | 6 | `b4_warp_point.cpp` | WarpPoint | `/O2 /Os` |
 | `8288A788` | 28 | 6 | `two_vtables.cpp` | - | `/O2 /Os` |
 | `8214C778` | 16 | 5 | `b5_set_field36.cpp` | - | `/O2` |
 | `8214C788` | 20 | 5 | `b8_set_pair_2c28.cpp` | - | `/O2` |
@@ -253,6 +262,7 @@ while and the claim was wrong.
 | `8252F5D8` | 56 | 5 | `d7_block_info.cpp` | - | `/O2` |
 | `825E3598` | 24 | 5 | `vcall_global_2.cpp` | - | `/O2 /Os` |
 | `825E35C8` | 24 | 5 | `vcall_global_4.cpp` | - | `/O2 /Os` |
+| `825E35E0` | 40 | 5 | `d1_vcall_global_6.cpp` | - | `/O2 /Os` |
 | `825E41D8` | 16 | 5 | `zero2.cpp` | - | `/O2` |
 | `825FA780` | 20 | 5 | `c1_socket_wrap.cpp` | - | `/O2` |
 | `826009D8` | 48 | 5 | `d3_pool_pop_free.cpp` | - | `/O2` |
@@ -265,6 +275,7 @@ while and the claim was wrong.
 | `82784DE0` | 68 | 5 | `d8_record_clear.cpp` | - | `/O2` |
 | `827C4FB0` | 24 | 5 | `ptr_or_null.cpp` | - | `/O2` |
 | `827FE808` | 16 | 5 | `and_byte.cpp` | - | `/O2 /Os` |
+| `827FEE48` | 44 | 5 | `d2_link_front_flag.cpp` | - | `/O2 /Os` |
 | `822D2528` | 24 | 4 | `table624.cpp` | - | `/O2` |
 | `827A7C98` | 20 | 4 | `store_two.cpp` | - | `/O2` |
 | `82216918` | 304 | 2 | `m_line_of_sight.cpp` | TtCheckLineOfSight | `/O2` |
@@ -350,6 +361,71 @@ What the bytes do NOT decide is how the accessor is spelled: a mask, a
 shift-and-mask, and a one-bit bitfield all compile identically. So a match
 of this shape asserts a `bool` return; it asserts no bitfield layout, and a
 source that claims one is claiming more than was measured.
+
+**Naming a value in a local can move the CONDITION REGISTER FIELD.** From
+`sub_825E35E0`. Reading a global three times -- writing `g_singleton` out at
+each use -- gives 8 of 8; hoisting it into `GT6* g = g_singleton;` first
+gives 6 of 8, and the difference is not a register but which CR field the
+compare lands in, `cr6` against `cr0`.
+
+The flag axis cannot reach this: all 72 combinations `flagsweep.py` tries
+score 6 of 8, and the two levels fail in DIFFERENT places -- `/O2` gets
+`cr6` right but gives the vtable slot a fresh r10, `/Os` reuses r11 and
+moves the compare to `cr0`. Sixteen source shapes were measured; only
+un-naming the global reaches 8 of 8.
+
+This is the same lever as `a_vcall4_or_neg1` with a different symptom.
+There, repeating the read produced a pointless `mr`; here the global's value
+already arrives in r3, so there is no `mr` to produce and the pressure comes
+out in the CR field instead. **A difference in CR field is therefore worth
+treating as a naming question, not a comparison question.**
+
+**Taking a member's ADDRESS stops MSVC hoisting a later load across the
+store.** From `sub_827FEE48`. Two constant offsets off one base provably
+cannot alias, so MSVC freely moves a load of `o->flags` above a store to
+`o->head`, and every ordinary spelling sits at 9 of 11 with exactly that
+transposition. 28 of the 72 flag combinations reproduce the same 9 of 11,
+`/Ou` included, so again this is not the level.
+
+Four spellings reach 11 of 11 and they are all one change -- introduce a
+pointer TO the member and store through it:
+
+    LNode** pp = &o->head;  *pp = n;      // or the local declared up front,
+                                          // or an LNode*& reference,
+                                          // or a static helper taking LNode**
+
+Nine other axes were ruled out and are worth not re-trying: `volatile`
+flags, signed flags, member vs free function, an inlined helper on either
+half, a nested sub-struct, `1 << 10` spelled out, and a named flags local.
+All nine stay at 9 of 11.
+
+**A constant folded into an index is NOT evidence that the constant was in
+the source.** When a member array's stride is applied by a shift or `mulli`,
+MSVC folds the array's BYTE OFFSET into the index instead of adding it to
+the base afterwards. `sub_821A6B38` and `sub_82858720` show it
+independently: arrays at byte offsets 332 and 144 compile to `(i + 83) * 4`
+and `(t + 6) * 24`. So an `addi` of 83 before a scale does not mean anyone
+wrote 83 -- it means the array starts at 332 and the elements are 4 bytes.
+Reading it the other way invents a constant and then looks for somewhere to
+put it.
+
+**`lwzx` operand order is not uniform WITHIN one retail function**, so
+"pick the right source convention" cannot always work. `sub_826377B0` sits
+at 69 of 74 with every instruction and every register correct; the five
+differences are all the rA/rB order of an indexed address, which addresses
+the same location either way. The reason it cannot be fixed is that retail
+itself is inconsistent: `slots[i].key` is base-first at the loop peel
+(`82637824`) and index-first at the loop bottom (`826378C0`). No single
+spelling in one translation unit produces both.
+
+Six shapes were measured and the SAME five words differ in every one:
+pointer arithmetic (67 of 74), declaration order (69), the two guards as one
+`&&` (69), `while` plus `goto` (69), and an inlined `At()` accessor used
+partially and then everywhere (69). A free function scores 67 with all seven
+inverted; the member form flips exactly two into agreement, which is the
+best available. `flagsweep.py`'s 72 combinations top out at 69 on plain
+`/O2`. This is the counter-example to the operand-order lever, and it means
+a residue of two to five indexed-address words is sometimes the floor.
 
 ### Levers, measured this session
 

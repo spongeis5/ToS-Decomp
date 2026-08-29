@@ -1,5 +1,5 @@
 // sub_82806FD0 -- element accessor for a chunked (deque-like) container.
-// 84 bytes, 220 callers, calls nothing.
+// 84 bytes, 220 callers, calls nothing.  /O2 /Os.
 //
 // Read from the disassembly:
 //   r3 = this, r4 = the index argument.
@@ -11,10 +11,44 @@
 //   rlwinm r10,r10,4,23,27 =  (i & 31) * 16    offset within the chunk
 //   so a chunk holds 32 elements of 16 bytes.
 //   The bounds test is UNSIGNED (cmplw) and returns 0 via bgtlr, with r3
-//   zeroed early -- the compiler hoists the default return value above the
-//   branch.
+//   zeroed early.
 //
-// First attempt.
+// MATCHED, 21 of 21 words.
+//
+// THE ANSWER: THE ZERO IS A PHI, NOT AN EARLY RETURN. This function was one
+// of the six in MATCHED.md's "What still resists", listed as "branch
+// polarity -- bgtlr vs ble-, a probability decision". It is not a
+// probability decision and it is not polarity.
+//
+//      if (i > total) return none;          li r3,0 in its own block after
+//      return chunk + off;                  a forward `ble-`; 10 of 21
+//
+//      void* r = 0;                         li r3,0 THIRD, above the guard,
+//      if (i <= total) r = chunk + off;     and the guard becomes `bgtlr`;
+//      return r;                            21 of 21
+//
+// Written as an early return, the zero belongs to one path and MSVC gives
+// it a block of its own at the bottom. Written as an accumulator that one
+// path overwrites, the zero is the merge value: it has to exist before the
+// branch, so it is materialised in the third instruction, and the guard
+// then needs no block at all because r3 is already correct -- a conditional
+// return.
+//
+// Everything else in this function follows from that one `li r3,0`. It
+// clobbers r3 while `this` is still needed, which is where `mr r10,r3`
+// comes from, and the copy in turn defers `lwz r10,32(r10)` -- the
+// self->base load -- past three map loads it would otherwise precede. Eight
+// of the eleven wrong words were downstream of the zero's position, not
+// independent problems.
+//
+// So: A DEFAULT RETURN VALUE MATERIALISED ABOVE A GUARD MEANS A SINGLE
+// RETURN THROUGH AN ACCUMULATOR. Declaring the zero in a local and
+// returning it early is NOT the same thing and does not do it -- the
+// distinction is whether both paths reach one `return`.
+//
+// The ternary form is a third shape and also wrong: it keeps the fast path
+// as the fall-through with the zero out of line (`bgt-` forward), 84 bytes
+// and the branch inverted.
 
 struct Map
 {
@@ -36,17 +70,12 @@ struct Chunked
 
 void* ChunkedAt(Chunked* self, unsigned k)
 {
-    // The null is written as an explicit value so the compiler materialises
-    // it BEFORE the guard: the target does `li r3,0` as its second
-    // instruction, which is what forces `this` into r10 and defers the
-    // base load, and which lets the guard become a conditional return
-    // (bgtlr) instead of a forward branch to an epilogue.
-    void* none = 0;
+    void* r = 0;
     Map* m = self->map;
     unsigned total = ((unsigned)(m->nchunks - 1) << 5)
                    + (unsigned)((m->p08 - m->p0C) >> 4);
     unsigned i = self->base - k;
-    if (i > total)
-        return none;
-    return m->chunks[i >> 5] + (i & 31) * 16;
+    if (i <= total)
+        r = m->chunks[i >> 5] + (i & 31) * 16;
+    return r;
 }

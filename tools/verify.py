@@ -157,6 +157,13 @@ def main():
     # 3 of them must MISS the cache.
     results.append(check("compile memo, 7 cases (3 must miss the cache)",
                          ["tools/test_xdkcc_cache.py"]))
+    # permute.py ranks source shapes, so a scorer that counts relocated words
+    # as mismatches does not merely under-report -- it recommends the wrong
+    # direction, preferring shapes with fewer relocations to shapes with
+    # better code, and makes an exact match unreportable for any function
+    # that calls anything.
+    results.append(check("permuter scorer skips relocated words, 6 cases",
+                         ["tools/test_permute.py"]))
     # vtables.py reconstructs 2151 vtables from pointer runs and code
     # references. rtti.py knows 311 of them by walking MSVC's own structures,
     # which is a completely independent route, so agreement between the two

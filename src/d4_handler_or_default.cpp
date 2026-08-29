@@ -30,6 +30,12 @@
 // named-local spelling (compare src/a_vcall4_or_neg1.cpp, where repeating the
 // member expression forces a scratch register and a copy back into r3).
 //
+// NEEDS /O2 /Os. At plain /O2 the instructions and their order are already
+// right and exactly two words differ: the vtable slot lands in a FRESH r9
+// where retail reuses r11 -- the register-coalescing signature MATCHED.md
+// records. r11 is the register argument 2 was saved in, and it is dead by
+// then, so /Os writes the slot back into it.
+//
 // One word is relocated (the `b` to 826A9870), so 12 of 13 are compared.
 
 #include "types.h"

@@ -11,9 +11,40 @@
 //   rlwinm r7,r6,3 ; rlwinm r11,r11,3 ; add r7,r7,r10
 //   li r3,-1 ; cmpw cr6,r7,r11 ; bgt- 825C00B4       -> -1, but still advance
 //
-// The `li r3,-1` sits AFTER the first branch, on the path where the first
-// test was true, which is the `&&` shape: the second test is only reached
-// when the first passed, and the failure value is materialised there.
+// THE FAILURE VALUE IS SET ON ONE PATH ONLY, and no `if`/`else` spelling of
+// this reaches that. Four shapes were measured against the 236-byte target:
+//
+//   if (A && B) v = -1; else { read }        240 B,  9 of 59  -- MSVC inverts
+//   if (!A || !B) { read } else v = -1;      240 B, 25 of 59     the second
+//                                                                test to
+//                                                                `ble-` into
+//                                                                the read and
+//                                                                needs a `b`
+//                                                                to the tail
+//   u32 v = -1; if (!A || !B) { read }       236 B, 25 of 59  -- right length,
+//                                                                but the `li`
+//                                                                is HOISTED
+//                                                                into the
+//                                                                entry block,
+//                                                                which costs
+//                                                                r3 as the
+//                                                                scratch for
+//                                                                pos+4 and
+//                                                                renames every
+//                                                                register
+//                                                                after it
+//   the goto form below                      236 B, 57 of 57
+//
+// The tell is that `li r3,-1` sits in the SECOND block, between that block's
+// last operand and its compare. An initialiser before the `if` is live across
+// the first branch, so MSVC sinks it only as far as the entry block; the
+// target's value is dead unless the first test already failed. Writing the
+// first guard as a jump INTO the read leaves the assignment where the image
+// has it, and with r3 free at `addi r3,r6,4` the whole allocation falls out:
+// `s` to r9, the end position to r10, the accumulator to r11.
+//
+// The member-function lever does not apply here -- `Read(int)` on BitReader
+// compiles to the same 25 of 59.  Nor does `/O2 /Os`, which is 23 of 59.
 //
 // The read is a four-deep nest, each level guarded by the running end
 // position against 8/16/24/32 -- `ble-` jumping forward to the shared
@@ -64,16 +95,19 @@ u32 BitReaderRead(BitReader* s, int n)
     int pos = s->pos;
     int bit = s->bit;
     int limit = s->limit;
-    u32 mask = kBitMask[n];
     int end = bit + n;
+    u32 mask = kBitMask[n];
     u32 v;
     int adv;
 
-    if (pos + 4 >= limit && pos * 8 + end > limit * 8)
-    {
-        v = 0xFFFFFFFFu;
-    }
-    else
+    if (pos + 4 < limit)
+        goto read;
+
+    v = 0xFFFFFFFFu;
+    if (pos * 8 + end > limit * 8)
+        goto update;
+
+read:
     {
         const u8* p = s->ptr;
         u32 acc = p[0] >> (u8)bit;
@@ -99,6 +133,7 @@ u32 BitReaderRead(BitReader* s, int n)
         v = acc & mask;
     }
 
+update:
     adv = end / 8;
     s->bit = end & 7;
     s->ptr += adv;
