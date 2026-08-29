@@ -614,6 +614,49 @@ counts, returned 6/8, 6/8, 8/8 and 8/8. Three things make it work:
 load, `||` versus a sequence of `if`s, `lwzx` operand order, the
 `__declspec(thread)` tell. Each was the whole difference on some function.
 
+### Climbing: leaf, branch, bough
+
+Matching leaves scattered across the image proves the toolchain works. It
+does not build anything. Going UP from a matched function produces a
+CONNECTED SUBTREE, and a connected subtree is the first thing that could ever
+be linked as a unit.
+
+```bash
+python tools/climb.py              # which caller to match next, ranked
+python tools/climb.py 82667EE0     # one function's callers and callees
+```
+
+The ranking answers one question: **how much of this caller do we already
+know?** A function whose callees are all matched, or all attributed to a
+library and so out of scope, can be written with every name already decided.
+One whose callees are unknown needs them invented, and every invented name is
+a guess a later match may contradict.
+
+The first climb went:
+
+```
+BinAlloc / BinFree        8262F5D0, 8262F658   leaves, 206 and 420 callers
+  -> VectorReserve        82667E58             MATCHED, 132 callers
+  -> VectorGrow           82667EE0             31 of 38, 180 callers
+LookupKey                 8217E808             7 of 11, 116 callers
+  -> k_flag_vcall         8261B2F8             already a leaf
+```
+
+**Climbing corrects the leaves.** `VectorGrow`'s call sites pass a THIRD
+argument to `BinAlloc` and a FOURTH to `BinFree` -- a literal 24 that neither
+reads. `m_bin_free.cpp` had declared them without it, and that was invisible
+from below: an unused trailing parameter changes nothing in the callee and
+everything in the caller, which has to set the register. Both leaves still
+match with it added. **A leaf's signature is only tested by its callers.**
+
+**And it answers questions a single function cannot.** `VectorGrow` was one
+word short on the operand order of a `mullw`, and nine source shapes could
+not move it. Its sibling `VectorReserve` contains the identical multiply with
+no earlier read of the same field -- and comes out right first time. So the
+displacement is caused by the earlier read making the first occurrence the
+CSE representative. That is the mechanism behind the `add`-operand-order
+lever, and it took two related functions to see.
+
 ### The flag column
 
 The retail build did NOT use one optimisation level everywhere. Eight of the

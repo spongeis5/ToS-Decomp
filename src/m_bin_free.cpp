@@ -99,7 +99,7 @@ ASSERT_OFFSET(BinnedAllocator, largeClass, 0x128);
 void SpillBin(BinnedAllocator* a, int idx, FreeBlock* p);
 FreeBlock* RefillBin(BinnedAllocator* a, int idx);
 
-void BinFree(BinnedAllocator* a, FreeBlock* p, int size)
+void BinFree(BinnedAllocator* a, FreeBlock* p, int size, int tag)
 {
     if (p == 0)
         return;
@@ -162,7 +162,7 @@ void BinFree(BinnedAllocator* a, FreeBlock* p, int size)
 // The `beq-` jumps AWAY to the refill, so the POP is the fall-through and
 // has to be written first -- the guard is `if (head != 0)`, not
 // `if (head == 0) return Refill(...)`.
-FreeBlock* BinAlloc(BinnedAllocator* a, int size)
+FreeBlock* BinAlloc(BinnedAllocator* a, int size, int tag)
 {
     if (size <= 8192)
     {

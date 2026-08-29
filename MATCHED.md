@@ -11,7 +11,7 @@ the inventory is wrong in both directions, short where a tail call's dead
 `blr` was not counted and long where one `.pdata` row covers several
 frameless bodies.
 
-**178 functions, 9640 bytes.** Verify all of them, plus the reconstructing
+**179 functions, 9776 bytes.** Verify all of them, plus the reconstructing
 build and five negative controls, with one command:
 
 ```bash
@@ -39,6 +39,7 @@ while and the claim was wrong.
 | `8262F5D0` | 136 | 206 | `m_bin_free.cpp` | BinAlloc | `/O2` |
 | `8215A420` | 64 | 147 | `c_hash_upper.cpp` | - | `/O2` |
 | `82600BD8` | 16 | 135 | `global_field.cpp` | - | `/O2` |
+| `82667E58` | 136 | 132 | `m_vector_reserve.cpp` | VectorReserve | `/O2` |
 | `82806D08` | 20 | 132 | `a_report_badthis.cpp` | - | `/O2` |
 | `821A4628` | 28 | 108 | `ctor_vt.cpp` | - | `/O2` |
 | `82663370` | 60 | 105 | `b_release_ref.cpp` | - | `/O2 /Os` |

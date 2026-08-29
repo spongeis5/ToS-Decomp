@@ -188,3 +188,4 @@ src/j_normalize_or_default.cpp  82161630  NormalizeOrDefault
 src/j_reset_state.cpp           8214CCB8
 src/j_scale_pair.cpp            82167FE0
 src/j_reset_range.cpp           82799B98  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/m_vector_reserve.cpp        82667E58  VectorReserve

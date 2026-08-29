@@ -1437,6 +1437,14 @@
       }
     },
     {
+      "name": "sub_82667E58 (m_vector_reserve)",
+      "target_path": "build/objdiff/target/m_vector_reserve_82667E58.o",
+      "base_path": "build/objdiff/base/m_vector_reserve_82667E58.o",
+      "metadata": {
+        "complete": true
+      }
+    },
+    {
       "name": "sub_82806FD0 (chunked_at)",
       "target_path": "build/objdiff/target/chunked_at_82806FD0.o",
       "base_path": "build/objdiff/base/chunked_at_82806FD0.o",
@@ -1576,6 +1584,22 @@
       "name": "sub_82202B50 (j_init_defaults)",
       "target_path": "build/objdiff/target/j_init_defaults_82202B50.o",
       "base_path": "build/objdiff/base/j_init_defaults_82202B50.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_82667EE0 (m_vector_reserve)",
+      "target_path": "build/objdiff/target/m_vector_reserve_82667EE0.o",
+      "base_path": "build/objdiff/base/m_vector_reserve_82667EE0.o",
+      "metadata": {
+        "complete": false
+      }
+    },
+    {
+      "name": "sub_8217E808 (m_tree_lookup)",
+      "target_path": "build/objdiff/target/m_tree_lookup_8217E808.o",
+      "base_path": "build/objdiff/base/m_tree_lookup_8217E808.o",
       "metadata": {
         "complete": false
       }
