@@ -253,6 +253,27 @@ def main(argv):
           % (len(matched), len(near), len(noaddr), len(broken)))
     print("  of %d unrecorded source(s)" % len(todo))
 
+    # A near-miss that actually MATCHES is the failure this catches, and it
+    # is quiet in both directions: attempts.txt understates how much is done,
+    # and someone can spend a session on a function that came out days ago.
+    # Seven were sitting like that -- solved by an agent, never promoted --
+    # and what surfaced them was a human noticing green rows in objdiff.
+    # That is not a detection mechanism.
+    if "--check" in argv:
+        if matched:
+            print("")
+            print("FAIL: %d row(s) in attempts.txt MATCH and should have been"
+                  % len(matched))
+            print("promoted to the manifest:")
+            for p, t, tag, _n, _c in matched:
+                print("    %-32s %08X  %s" % (p.name, t, tag))
+            print("")
+            print("Run:  python tools/sweep.py --attempts --write")
+            return 1
+        print("")
+        print("no row in attempts.txt secretly matches.")
+        return 0
+
     if "--write" not in argv:
         print("")
         print("nothing written; pass --write to record these")

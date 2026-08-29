@@ -209,6 +209,13 @@ def main():
     # mutations FIRE and that what they emit is valid C++.
     results.append(check("permuter mutations fire and compile, 6 cases",
                          ["tools/test_mutations.py"]))
+    # A near-miss that actually matches is quiet in both directions:
+    # attempts.txt understates progress, and someone can spend a session on a
+    # function that came out days ago. Seven were sitting like that, solved by
+    # an agent and never promoted, and what surfaced them was a person
+    # noticing green rows in objdiff. That is not a detection mechanism.
+    results.append(check("no near-miss secretly matches",
+                         ["tools/sweep.py", "--attempts", "--check"]))
     results.append(check("MATCHED.md table matches the manifest",
                          ["tools/matched_table.py", "--check"]))
     results.append(check("backslash-heredoc hook, 7 cases",

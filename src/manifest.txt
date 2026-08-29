@@ -1203,3 +1203,10 @@ src/l43_store_quad.cpp           82698E08  SetRow
 src/l46_count_list.cpp           825476F8
 src/l48_fill_neg1.cpp            827249B8
 src/l47_index_of.cpp             82265EC0
+src/arg_shuffle.cpp              8215E5B0
+src/g1_ctor_two_vt.cpp           82784F90  ConstructItem          flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/m_copy_adjust.cpp            821A5270
+src/m_ctor_94.cpp                825FE880
+src/s5_kind_adjust_call.cpp      8224BCA0
+src/t3_init_defaults.cpp         825E0118  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/u5_ctor_str.cpp              827007F8  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast

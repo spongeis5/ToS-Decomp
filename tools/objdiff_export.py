@@ -240,11 +240,32 @@ def main(argv):
             elf32_be_ppc_object(tbytes, sym))
         (OUT / "base" / (unit + ".o")).write_bytes(
             elf32_be_ppc_object(patched, sym))
+        # CATEGORIES, so objdiff's own progress bar tells the truth.
+        #
+        # A single percentage over every unit is dominated by the 818
+        # generated stubs -- one expression each, written by script from
+        # their own encodings -- and reads as far more of this game being
+        # understood than is the case. objdiff groups and reports progress
+        # per category, so the hand-written half gets its own number there
+        # exactly as it does in MATCHED.md.
+        #
+        # `source_path` makes each unit click through to its .cpp, which is
+        # the thing you want the moment a diff shows you something.
+        gen = src.name.startswith(("vt_typeid_", "vt_const_", "vt_acc_"))
+        cat = "generated" if gen else ("nearmiss" if patched != tbytes
+                                       else "handwritten")
         units.append({
             "name": "%s (%s)" % (sym, src.stem),
             "target_path": "build/objdiff/target/%s.o" % unit,
             "base_path": "build/objdiff/base/%s.o" % unit,
-            "metadata": {"complete": patched == tbytes},
+            "metadata": {
+                "complete": patched == tbytes,
+                "source_path": str(src).replace("\\", "/"),
+                "progress_categories": [cat],
+                # Generated units are not worth a human's attention in a
+                # visual diff; objdiff can fold them away.
+                "auto_generated": gen,
+            },
         })
         done += 1
 
@@ -254,7 +275,15 @@ def main(argv):
         "custom_args": ["tools/objdiff_export.py"],
         "build_target": False,
         "build_base": False,
-        "watch_patterns": ["src/*.cpp", "include/*.h", "src/manifest.txt"],
+        # attempts.txt too: a near-miss being edited is exactly when a
+        # rebuild is wanted, and it was not in the watch list.
+        "watch_patterns": ["src/*.cpp", "include/*.h", "src/manifest.txt",
+                           "src/attempts.txt"],
+        "progress_categories": [
+            {"id": "handwritten", "name": "Hand-written from disassembly"},
+            {"id": "generated", "name": "Generated from encodings"},
+            {"id": "nearmiss", "name": "Near-miss"},
+        ],
         "units": units,
     }
     CONFIG.write_text(json.dumps(cfg, indent=2) + "\n")

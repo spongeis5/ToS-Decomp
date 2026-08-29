@@ -11,7 +11,7 @@ the inventory is wrong in both directions, short where a tail call's dead
 `blr` was not counted and long where one `.pdata` row covers several
 frameless bodies.
 
-**1193 functions, 33496 bytes.** Verify all of them, plus the reconstructing
+**1200 functions, 34096 bytes.** Verify all of them, plus the reconstructing
 build and six negative controls, with one command:
 
 ```bash
@@ -22,7 +22,7 @@ Every match is also a row in `src/manifest.txt`, so `tools/build.py` compiles
 it, resolves its relocations against the retail bytes and splices it into
 `.text`. Nothing here is a match on `match.py`'s word-comparison alone.
 
-SPLIT: 375 hand-written, 25304 bytes; 818 generated, 8192 bytes.
+SPLIT: 382 hand-written, 25904 bytes; 818 generated, 8192 bytes.
 <!-- the line above is regenerated; edit tools/matched_table.py, not this -->
 
 The two halves are not comparable and the count should never be quoted
@@ -37,7 +37,7 @@ half does, however much larger it gets. (The counts live in the SPLIT line
 above, which is regenerated; repeating them here is how a document comes to
 contradict itself two commits later.)
 
-**The retail build did NOT use one optimisation level everywhere.** 114 of
+**The retail build did NOT use one optimisation level everywhere.** 117 of
 these need `/O2 /Os`; the rest need plain `/O2`. See "Flags are a property of
 the translation unit" below -- this was claimed the other way round for a
 while and the claim was wrong.
@@ -94,9 +94,11 @@ while and the claim was wrong.
 | `821559D8` | 140 | 27 | `f_name_lookup.cpp` | - | `/O2` |
 | `8261B2F8` | 52 | 27 | `d_flag_vcall.cpp` | - | `/O2` |
 | `826C6C60` | 112 | 27 | `f_vec_compact.cpp` | - | `/O2` |
+| `8215E5B0` | 28 | 26 | `arg_shuffle.cpp` | - | `/O2` |
 | `821636A8` | 24 | 26 | `chain5.cpp` | - | `/O2` |
 | `822481B0` | 40 | 25 | `m_flag_guard.cpp` | - | `/O2` |
 | `82254A88` | 84 | 25 | `f_find_state.cpp` | - | `/O2` |
+| `825FE880` | 48 | 25 | `m_ctor_94.cpp` | - | `/O2` |
 | `82665388` | 8 | 25 | `a_fwd24.cpp` | - | `/O2` |
 | `82666360` | 12 | 25 | `a_fwd24_self.cpp` | - | `/O2` |
 | `82677028` | 20 | 25 | `owner_clear.cpp` | ClearAndHandle | `/O2` |
@@ -168,6 +170,7 @@ while and the claim was wrong.
 | `827DAC60` | 76 | 11 | `k_find_pair.cpp` | - | `/O2 /Os` |
 | `82166FD0` | 16 | 10 | `fwd_vec3.cpp` | - | `/O2` |
 | `82167FE0` | 212 | 10 | `j_scale_pair.cpp` | - | `/O2` |
+| `821A5270` | 48 | 10 | `m_copy_adjust.cpp` | - | `/O2` |
 | `822020B0` | 16 | 10 | `chain2_156.cpp` | - | `/O2` |
 | `822165C0` | 128 | 10 | `p2_kind_pos.cpp` | - | `/O2` |
 | `822547C8` | 624 | 10 | `k8_apply_state.cpp` | - | `/O2` |
@@ -211,10 +214,12 @@ while and the claim was wrong.
 | `821BCA48` | 44 | 7 | `m_ctor_7zero.cpp` | - | `/O2` |
 | `821C77A8` | 28 | 7 | `m_enqueue12.cpp` | Enqueue | `/O2` |
 | `821FAE48` | 48 | 7 | `r4_init_const.cpp` | - | `/O2` |
+| `8224BCA0` | 88 | 7 | `s5_kind_adjust_call.cpp` | - | `/O2` |
 | `82265D30` | 20 | 7 | `set0_255.cpp` | - | `/O2` |
 | `82540798` | 56 | 7 | `r6_strcat.cpp` | - | `/O2` |
 | `82548F10` | 28 | 7 | `zero5_20first.cpp` | - | `/O2` |
 | `825492F8` | 100 | 7 | `t1_slot_attach.cpp` | - | `/O2` |
+| `825E0118` | 172 | 7 | `t3_init_defaults.cpp` | - | `/O2 /Os` |
 | `826378D8` | 56 | 7 | `r7_table_reset.cpp` | - | `/O2` |
 | `82724620` | 64 | 7 | `r8_next_used.cpp` | - | `/O2` |
 | `82727258` | 16 | 7 | `stride8.cpp` | - | `/O2` |
@@ -245,6 +250,7 @@ while and the claim was wrong.
 | `82697608` | 16 | 6 | `guard_arg3.cpp` | - | `/O2` |
 | `826A46C0` | 60 | 6 | `u1_share_tagged2.cpp` | - | `/O2 /Os` |
 | `826C1260` | 48 | 6 | `t6_last_flag.cpp` | - | `/O2` |
+| `827007F8` | 76 | 6 | `u5_ctor_str.cpp` | - | `/O2 /Os` |
 | `82727028` | 20 | 6 | `store_sum.cpp` | - | `/O2` |
 | `8276DDC0` | 112 | 6 | `u8_cursor_skip12.cpp` | - | `/O2 /Os` |
 | `827827B8` | 40 | 6 | `m_release.cpp` | AddRef | `/O2` |
@@ -296,6 +302,7 @@ while and the claim was wrong.
 | `82761AF8` | 36 | 5 | `c5_flag_pair.cpp` | MarkDirty8 | `/O2 /Os` |
 | `82772FC0` | 152 | 5 | `g6_cursor_step.cpp` | CursorStep | `/O2 /Os` |
 | `82784DE0` | 68 | 5 | `d8_record_clear.cpp` | - | `/O2` |
+| `82784F90` | 140 | 5 | `g1_ctor_two_vt.cpp` | ConstructItem | `/O2 /Os` |
 | `82790710` | 260 | 5 | `h7_read_varint.cpp` | ?ReadVarint@@YAIPAUVarintCtx@@IPAI@Z | `/O2 /Os` |
 | `827C4FB0` | 24 | 5 | `ptr_or_null.cpp` | - | `/O2` |
 | `827FE808` | 16 | 5 | `and_byte.cpp` | - | `/O2 /Os` |
