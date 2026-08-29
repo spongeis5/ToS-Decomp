@@ -1,30 +1,26 @@
-// sub_827C5198 -- virtual call through a member object, 20 bytes, 48 callers.
-//
-//      lwz     r3,116(r3)      r3 = this->member
-//      lwz     r11,0(r3)       vtable
-//      lwz     r11,64(r11)     slot 64/4 = 16
-//      mtctr   r11
-//      bctr                    tail call, so the result is returned directly
-//
-// Written with an explicit vtable rather than C++ `virtual`, because the slot
-// index has to come out as exactly 16 and a real class would need seventeen
-// declared virtual functions to get there. What is being matched is the
-// generated code, and this generates it.
-//
-// Fully dependent: every instruction consumes the previous one's result.
+#include "types.h"
 
-struct Target;
-struct VTable { void* (*slot[17])(Target*); };
-struct Target { VTable* vt; };
+// sub_827C5198 -- virtual call through a member object. 20 B, 48 callers.
+//   lwz r3,116(r3) ; lwz r11,0(r3) ; lwz r11,64(r11) ; mtctr r11 ; bctr
+//
+// Seven free-function shapes all gave 3 of 5, with the vtable slot in r10
+// where the target reuses r11. The member form is what fixed the same
+// transposition in sub_826C0FC8.
+struct Target116;
+struct VT116 { void* (*slot[17])(Target116*); };
+struct Target116 { VT116* vt; };
+ASSERT_OFFSET(Target116, vt, 0x00);
 
-struct Owner
+struct Owner116
 {
-    char    pad00[116];
-    Target* member;             // +0x74
+    char unk0000[0x74];
+    Target116* member;
+    void* Call();
 };
+ASSERT_OFFSET(Owner116, member, 0x74);
 
-void* CallSlot16(Owner* o)
+void* Owner116::Call()
 {
-    Target* t = o->member;
+    Target116* t = member;
     return t->vt->slot[16](t);
 }

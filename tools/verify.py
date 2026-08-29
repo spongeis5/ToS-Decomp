@@ -72,23 +72,24 @@ def negative(label, path, old, new, expect_substr=None, also=None):
     return ok
 
 
-MATCHES = [
-    ("src/grid_indices.cpp", "822607F0", None),
-    ("src/guard_tailcall.cpp", "82807B38", None),
-    ("src/array_add.cpp", "8253FD70", None),
-    ("src/table_index.cpp", "822D2450", None),
-    ("src/chain5.cpp", "821636A8", None),
-    ("src/null_tailcall.cpp", "826A3350", None),
-    ("src/vcall_arg2.cpp", "82600BB0", None),
-    ("src/global_field.cpp", "82600BD8", None),
-    ("src/ctor_vt.cpp", "821A4628", None),
-    ("src/set_vtable.cpp", "826FE5B8", "SetVTableD170"),
-    ("src/set_vtable.cpp", "826FE5C8", "SetVTableD180"),
-    ("src/string_utils.cpp", "82540728", "StrLen"),
-    ("src/string_utils.cpp", "82540750", "StrCopy"),
-    ("src/owner_clear.cpp", "82677028", "ClearAndHandle"),
-    ("src/owner_clear.cpp", "82677040", "ClearAndHandleOther"),
-]
+def load_matches():
+    """Read the build manifest rather than keeping a second copy of it.
+
+    verify.py used to carry its own hardcoded list, which is the same drift
+    that let three compile harnesses fall out of step with build.py. One
+    source of truth.
+    """
+    out = []
+    for line in (ROOT / "src/manifest.txt").read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        f = line.split()
+        out.append((f[0], f[1], f[2] if len(f) > 2 else None))
+    return out
+
+
+MATCHES = load_matches()
 
 
 def main():

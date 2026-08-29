@@ -56,6 +56,18 @@ def classify(img, va, size):
     return calls, floats, vmx, term
 
 
+# BINK is RAD's prebuilt video codec. It is executable but it is NOT .text,
+# so tools/build.py cannot splice a match there, and it is middleware that
+# this project has no reason to decompile. sub_82917B88 matched byte for byte
+# and then failed the build with "falls outside .text", which is how it was
+# noticed.
+BINK_RANGE = (0x82913600, 0x82923098)
+
+
+def in_bink(va):
+    return BINK_RANGE[0] <= va < BINK_RANGE[1]
+
+
 def main(argv):
     img = Image()
     funcs = load_inventory()
@@ -83,7 +95,8 @@ def main(argv):
     # and are simply XDK functions that failed to byte-match. Filter them here
     # rather than leaving it to whoever reads the output.
     unattributed = [a for a, _ in funcs
-                    if attrib.get(a) == "UNKNOWN" and not in_xdk(a)]
+                    if attrib.get(a) == "UNKNOWN" and not in_xdk(a)
+                    and not in_bink(a)]
     inside = sum(1 for a, _ in funcs
                  if attrib.get(a) == "UNKNOWN" and in_xdk(a))
     print("%d function(s) total; %d unattributed, of which %d lie inside a known"

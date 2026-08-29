@@ -33,8 +33,8 @@ functions known                30,630     (.pdata 21,238 + discovery 9,392)
 attributed as NOT the game's    8,238     (39.4% of .text BYTES)
 remaining to decompile         22,392     (60.6%)
 call-graph edges               85,314
-vetted match candidates         4,247
-FUNCTIONS MATCHED                  15
+vetted match candidates         4,231
+FUNCTIONS MATCHED                  55
 ```
 
 Matches are listed in `MATCHED.md`, all at one uniform `/O2 /Gy /GS- /fp:fast`.
