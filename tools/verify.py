@@ -228,6 +228,13 @@ def main():
                          ["tools/test_privacy.py"]))
     results.append(check("privacy guard fires, 6 cases (4 plants)",
                          ["tools/test_privacy_guard.py"]))
+    # The README's front page said 181 functions and 10,280 bytes when the
+    # truth was 1,200 and 34,096 -- wrong by six times, in the first block a
+    # visitor reads, and stale in five other places. MATCHED.md's table is
+    # generated for exactly this reason and did not rot; the README's
+    # numbers were hand-maintained and did.
+    results.append(check("README figures match the repository",
+                         ["tools/readme_stats.py", "--check"]))
     results.append(check("MATCHED.md table matches the manifest",
                          ["tools/matched_table.py", "--check"]))
     results.append(check("backslash-heredoc hook, 7 cases",
