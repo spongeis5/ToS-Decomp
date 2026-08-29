@@ -108,17 +108,51 @@ inter-object padding are still unverified. Only 436 of 8,467,964 `.text` bytes
 (0.0051%) are actually built. The real link — every function as an object,
 ordered by a linker script — is still ahead.
 
-**2. There is no shared type system.** Each source file invents its own
-`struct` with `char pad00[132]` filler. `src/clear_and_call.cpp` and
-`src/vcall116.cpp` may well describe the same class and have no idea. Real
-projects build one header set and grow it, so a field learned in one function
-is available to the next. Ours is 15 disconnected islands.
+**2. The type system is started, not finished.** `include/types.h` now
+carries the primitives and, more usefully, **compile-time layout assertions**:
 
-**3. The binary is not split into translation units.** Matching is happening
-at whatever address looked tractable, not file by file. The image gives real
-evidence for TU boundaries — `.pdata` ordering, COMDAT grouping, the 188
-recovered source paths, and the Rich header's count of ~1,449 non-`/GL`
-objects — and none of it is being used to segment the work.
+```c
+ASSERT_OFFSET(Owner, flag8C, 0x8C);
+ASSERT_SIZE(Entry, 1856);          // the stride `mulli r11,r3,1856` states
+```
+
+A wrong field offset is now `error C2118: negative subscript` before anything
+is compared, instead of surfacing later as a one-word diff that reads like a
+scheduling problem. Every offset the 15 matched functions established is
+asserted, and three negative controls confirm a corrupted one fails the build.
+
+What is *not* done: only one type identity across files is actually supported
+by evidence (`src/owner_clear.cpp`), so most structs are still per-file. That
+is honest rather than lazy — see gap 3 for why merging them speculatively
+would be worse than leaving them apart.
+
+**3. TU splitting was attempted and the result is mostly NEGATIVE.**
+`tools/segment.py` groups functions by adjacency and scores itself against
+6,541 functions whose true object file is known by byte match. It does not
+work well:
+
+```
+rule                          precision   recall
+gap <= 4                        72.2%       26.1%
+gap <= 64                       44.2%       47.6%
+gap <= 4  AND call-related       89.2%       6.2%     <- the default
+```
+
+There is no threshold that is both accurate and complete. With `/Gy` every
+function is its own COMDAT and the linker interleaves and folds them freely —
+90 known objects have functions more than 4 KB apart, and 8 pairs overlap in
+address order.
+
+So segmentation is a **hint generator, not a partition**: a segment is decent
+evidence that its functions share a TU, and the absence of one is no evidence
+at all. That is exactly why gap 2 stops where it does — a wrong merge invents
+a false type identity that compiles fine and is very hard to notice, while a
+wrong split only costs duplicated effort.
+
+The two merges that *were* made rest on direct evidence, not the clustering:
+`StrLen`/`StrCopy` sit 4 bytes apart and share 12 callers;
+`ClearAndHandle`/`ClearAndHandleOther` sit 4 bytes apart, read the same field
+of the same argument, and write neighbouring fields.
 
 **4. Names are invented, not recovered.** `ProcessIfReady`, `ArrayAdd`,
 `GetThroughChain` are descriptions, not the title's symbols. That is normal
@@ -331,6 +365,10 @@ cl /O2 /W0 /D_CRT_SECURE_NO_WARNINGS /I.. \
 | `xref.py` | find references to an address (`lis`+`addi`/`ori` pairs) |
 | `attribute.py` | merge every signal into one scope picture |
 | `candidates.py` | vetted match targets: leaf, unattributed, outside XDK, sound |
+| `build.py` | **the reconstructing build**: compile, resolve relocations, hash `.text` |
+| `coffreloc.py` | COFF functions with their relocation records |
+| `discover.py` | function starts and the call graph, from the image alone |
+| `segment.py` | probable translation units — scores itself, and mostly fails |
 | `flagsweep.py` | sweep compiler flags for one source against one target |
 | `permute.py` | sweep source shapes for one target at fixed flags |
 | `vmx128_*.py` | four independent VMX128 validations — see `VMX128.md` |

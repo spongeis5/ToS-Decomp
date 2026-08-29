@@ -12,11 +12,19 @@
 // Both previous stalls (82806FD0, 826C1480) were functions with independent
 // loads and stores the scheduler could permute; this one has none.
 
-struct E { char pad00[24]; void* v; };          // +0x18
-struct D { char pad00[4];  E*    e; };          // +0x04
-struct C { char pad00[12]; D*    d; };          // +0x0C
-struct B { char pad00[76]; C*    c; };          // +0x4C
-struct A { char pad00[56]; B*    b; };          // +0x38
+#include "types.h"
+
+struct E { /* 0x18 */ char unk0000[0x18]; void* v; };
+struct D { /* 0x04 */ char unk0000[0x04]; E*    e; };
+struct C { /* 0x0C */ char unk0000[0x0C]; D*    d; };
+struct B { /* 0x4C */ char unk0000[0x4C]; C*    c; };
+struct A { /* 0x38 */ char unk0000[0x38]; B*    b; };
+
+ASSERT_OFFSET(E, v, 0x18);
+ASSERT_OFFSET(D, e, 0x04);
+ASSERT_OFFSET(C, d, 0x0C);
+ASSERT_OFFSET(B, c, 0x4C);
+ASSERT_OFFSET(A, b, 0x38);
 
 void* GetThroughChain(A* a)
 {

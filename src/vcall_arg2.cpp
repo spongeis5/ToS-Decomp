@@ -11,9 +11,13 @@
 // rather than reusing r11 -- so that choice is context-dependent, not a
 // fixed habit, which is worth knowing given 827C5198 stalls on exactly it.
 
+#include "types.h"
+
 struct Target;
 struct VTable { void* (*slot[2])(Target*); };
-struct Target { VTable* vt; };
+struct Target { /* 0x00 */ VTable* vt; };
+
+ASSERT_OFFSET(Target, vt, 0x00);
 
 void* CallOnSecond(void*, Target* t)
 {

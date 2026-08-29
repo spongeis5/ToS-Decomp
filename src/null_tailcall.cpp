@@ -9,7 +9,11 @@
 // is about to be passed. Ends in an unconditional branch, so the recorded
 // size may be short by the unreachable trailing blr -- match.py reconciles.
 
-struct Holder { void* obj; };
+#include "types.h"
+
+struct Holder { /* 0x00 */ void* obj; };
+
+ASSERT_OFFSET(Holder, obj, 0x00);
 
 void Use(void*);
 

@@ -1,20 +1,26 @@
-# The build manifest: every source file, and the address its function occupies
-# in the retail image. tools/build.py compiles each one, resolves its
-# relocations against the image, and reconstructs .text -- the whole thing must
-# come out byte-identical to the original.
+# The build manifest. tools/build.py compiles each source, resolves its
+# relocations against the image, and reconstructs .text -- which must come out
+# byte-identical.
 #
-# source                        address
+# Columns:  source  address  [symbol]
+#
+# The symbol column picks one function out of a translation unit that holds
+# several. Without it the object must contain exactly one function; build.py
+# refuses to guess, because picking "the largest" silently builds the wrong
+# one the moment a file grows a second function.
+#
+# source                        address   symbol
+src/string_utils.cpp            82540728  StrLen
+src/string_utils.cpp            82540750  StrCopy
+src/owner_clear.cpp             82677028  ClearAndHandle
+src/owner_clear.cpp             82677040  ClearAndHandleOther
 src/grid_indices.cpp            822607F0
 src/guard_tailcall.cpp          82807B38
 src/array_add.cpp               8253FD70
 src/table_index.cpp             822D2450
-src/strcopy.cpp                 82540750
-src/strlen.cpp                  82540728
 src/chain5.cpp                  821636A8
 src/null_tailcall.cpp           826A3350
 src/vcall_arg2.cpp              82600BB0
-src/clear_and_call.cpp          82677028
-src/clear_and_call2.cpp         82677040
 src/global_field.cpp            82600BD8
 src/ctor_vt.cpp                 821A4628
 src/set_vtable.cpp              826FE5C8

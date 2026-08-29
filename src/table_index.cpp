@@ -20,12 +20,18 @@
 //
 // The lis and the first addi are relocated, so 4 of 6 words are compared.
 
+#include "types.h"
+
 struct Entry
 {
-    char pad0000[1248];
-    int  field;                 // +0x4E0
-    char pad04E4[1856 - 1248 - 4];
+    /* 0x0000 */ char unk0000[0x4E0];
+    /* 0x04E0 */ s32  field;
+    /* 0x04E4 */ char unk04E4[1856 - 0x4E0 - 4];
 };
+
+ASSERT_OFFSET(Entry, field, 0x4E0);
+// The stride is not a guess: `mulli r11,r3,1856` in the target states it.
+ASSERT_SIZE(Entry, 1856);
 
 extern Entry g_table[];
 

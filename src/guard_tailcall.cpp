@@ -13,10 +13,14 @@
 // The branch target is a relocation, so that word is masked and 3 of 4 are
 // actually compared.
 
+#include "types.h"
+
 struct Node
 {
-    unsigned char state;
+    /* 0x00 */ u8 state;
 };
+
+ASSERT_OFFSET(Node, state, 0x00);
 
 void Process(Node*);
 

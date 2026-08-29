@@ -35,6 +35,7 @@ Exit status is 0 only when .text is reproduced byte for byte.
 """
 
 import hashlib
+import os
 import struct
 import subprocess
 import sys
@@ -60,8 +61,11 @@ def compile_one(src, tag):
     obj = WORK / (tag + ".obj")
     if obj.exists():
         obj.unlink()
+    # include/ carries the project's own shared headers (types.h and the
+    # layout assertions); the XDK's include comes after it.
     env = {"PATH": str((XDK / "bin/win32").resolve()),
-           "INCLUDE": str(INCLUDE.resolve()),
+           "INCLUDE": os.pathsep.join([str(Path("include").resolve()),
+                                       str(INCLUDE.resolve())]),
            "SystemRoot": "C:/Windows", "TEMP": str(WORK.resolve())}
     r = subprocess.run(
         [str(CL.resolve())] + FLAGS + ["/Fo" + str(obj.resolve()),
@@ -73,15 +77,25 @@ def compile_one(src, tag):
 
 
 def read_manifest():
+    """[(source, address, symbol-or-None)].
+
+    A real translation unit holds many functions, so a line may name which
+    one it means. Without a symbol the object must contain exactly one
+    function -- picking "the largest" silently builds the wrong one as soon
+    as a file grows a second function, so it is refused instead.
+    """
     rows = []
     for line in MANIFEST.read_text().splitlines():
         line = line.strip()
         if not line or line.startswith("#"):
             continue
         parts = line.split()
-        if len(parts) != 2:
+        if len(parts) == 2:
+            rows.append((Path(parts[0]), int(parts[1], 16), None))
+        elif len(parts) == 3:
+            rows.append((Path(parts[0]), int(parts[1], 16), parts[2]))
+        else:
             return None, "bad manifest line: %r" % line
-        rows.append((Path(parts[0]), int(parts[1], 16)))
     return rows, None
 
 
@@ -157,12 +171,19 @@ def main(argv):
     failures = 0
     resolved = []
 
-    for src, target in rows:
+    for src, target, want_sym in rows:
         tag = "%s_%08X" % (src.stem, target)
         blob, cerr = compile_one(src, tag)
         if blob is None:
             print("  %-26s %08X  COMPILE FAILED" % (src.name, target))
-            print("      %s" % (cerr.splitlines()[0] if cerr else "?"))
+            # cl prints the source filename first, so line 1 is never the
+            # diagnostic. Showing only line 1 hid a working ASSERT_OFFSET
+            # behind "chain5.cpp" and made a compile-time catch look like a
+            # byte mismatch.
+            lines = [l for l in (cerr or "").splitlines()
+                     if "error" in l.lower() or "warning" in l.lower()]
+            for l in (lines or (cerr or "(no output)").splitlines())[:6]:
+                print("      %s" % l.strip())
             failures += 1
             continue
 
@@ -172,8 +193,37 @@ def main(argv):
                   % (src.name, target))
             failures += 1
             continue
-        name, code, relocs = max(fns, key=lambda f: len(f[1]))
-        code, _m = trim_padding(code, b"\x01" * len(code))
+        if want_sym:
+            # Anchor on the mangled form first: MSVC emits `?Name@@YA...`, so
+            # "?Name@@" pins the whole name. A plain substring would make
+            # `ClearAndHandle` also match `ClearAndHandleOther`.
+            picked = [f for f in fns if ("?" + want_sym + "@@") in f[0]]
+            if not picked:
+                picked = [f for f in fns if f[0] == want_sym]
+            if not picked:
+                picked = [f for f in fns if want_sym in f[0]]
+            if len(picked) != 1:
+                print("  %-26s %08X  symbol %r matches %d function(s); the"
+                      % (src.name, target, want_sym, len(picked)))
+                print("      manifest needs one that is unique. Present:")
+                for n, c, _r in fns:
+                    print("        %-56s %d B" % (n[:56], len(c)))
+                failures += 1
+                continue
+            name, code, relocs = picked[0]
+        elif len(fns) != 1:
+            # Picking "the largest" silently builds the wrong function the
+            # moment a translation unit grows a second one. Refuse instead.
+            print("  %-26s %08X  %d functions in the object and the manifest"
+                  % (src.name, target, len(fns)))
+            print("      line names none. Add a symbol column to choose:")
+            for n, c, _r in fns:
+                print("        %-56s %d B" % (n[:56], len(c)))
+            failures += 1
+            continue
+        else:
+            name, code, relocs = fns[0]
+        code, _m = trim_padding(code, bytes([1]) * len(code))
         relocs = [r for r in relocs if r.off < len(code)]
 
         tbytes = img.read(target, len(code))

@@ -9,11 +9,15 @@
 // the source reads a member of a global rather than through a pointer.
 // 2 of 4 words are relocated.
 
+#include "types.h"
+
 struct Global
 {
-    char pad0000[152];
-    int  field;                 // +0x98
+    /* 0x00 */ char unk0000[0x98];
+    /* 0x98 */ s32  field;
 };
+
+ASSERT_OFFSET(Global, field, 0x98);
 
 extern Global g_object;
 

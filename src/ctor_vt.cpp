@@ -15,16 +15,22 @@
 // This one has independent stores, so it is the shape that has resisted
 // before; attempted anyway because 108 callers is worth one try.
 
+#include "types.h"
+
 struct VTable;
 extern const VTable kVTable;
 
 struct Object
 {
-    const VTable* vt;           // +0x00
-    int           pad04;        // +0x04
-    int           a;            // +0x08
-    int           b;            // +0x0C
+    /* 0x00 */ const VTable* vt;
+    /* 0x04 */ s32           unk04;
+    /* 0x08 */ s32           a;
+    /* 0x0C */ s32           b;
 };
+
+ASSERT_OFFSET(Object, vt, 0x00);
+ASSERT_OFFSET(Object, a,  0x08);
+ASSERT_OFFSET(Object, b,  0x0C);
 
 void Construct(Object* o)
 {
