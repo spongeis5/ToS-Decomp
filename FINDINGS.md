@@ -497,6 +497,40 @@ spanning more would still be **copying** the filler, so what it adds is that
 the layout and the relocations become the linker's work rather than ours --
 not that more of the program has been recovered.
 
+### And the next step is NOT 26 bigger runs -- measured
+
+The obvious extension is to widen each blocked run until it contains what it
+calls. Resolving all 79 references the 26 blocked runs need, out of the retail
+bytes, says not to bother:
+
+```
+where the needed symbols live         .text, a function start        39
+(76 of 79 resolved; 3 could not be     .data                          20
+ solved from the retail word alone)    .rdata                         14
+                                       .text, NOT a function start     3
+
+span that would have to be laid out    smallest                      44 B
+per blocked run, lowest thing it       median                   4.10 MB
+needs to highest                       largest                 10.13 MB
+                                       under 64 KB              4 of 26
+```
+
+The median blocked run would have to lay out **4.1 MB** to reach what it
+calls, and the largest 10.13 MB -- more than `.text` itself, because a third
+of the references are to `.data` and `.rdata`, which sit after it. Twenty-two
+of twenty-six are not local problems at all.
+
+So the step after this one is **one link of the whole image**, with `.text`,
+`.rdata` and `.data` all placed and everything undecompiled going in as
+filler COMDATs carrying the retail bytes -- not twenty-six wider runs. That is
+a different size of job, and it is worth knowing before starting the small
+version of it.
+
+**Two loose ends worth a look first.** Three references land in `.text` at
+something that is not a function start -- either a jump table, an in-section
+constant, or an inventory gap. And three could not be solved from the retail
+word at all. Neither is explained.
+
 ---
 
 ## 7x. build.py can check that one retail function has ONE name

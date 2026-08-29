@@ -1021,22 +1021,36 @@ in particular has not once survived contact with a new lever.
    section, not a stub (gap 1). This is now the largest remaining structural
    task.
 
-   **The route to it is measured, not speculative**, and every piece exists:
+   **Do NOT do it by widening the 26 runs.** That was the obvious plan and
+   the measurement kills it. Resolving all 79 symbols those runs need, out of
+   the retail bytes: 39 are `.text` function starts, 20 are in `.data`, 14 in
+   `.rdata`, 3 land in `.text` at something that is not a function start, and
+   3 could not be solved at all. The span each run would have to lay out to
+   reach what it calls has a **median of 4.10 MB** and a largest of 10.13 MB —
+   more than `.text` itself, because a third of the references are to data
+   sections that sit after it. Only 4 of 26 are under 64 KB.
 
-   * a callee must be *placed*, so the retail bytes of everything not yet
-     decompiled go in as sized `.text` COMDATs with a symbol at each known
-     function start — `coffwrite.padding` already takes a `fill`, and
-     `coffwrite.absolutes` already writes symbol-only objects;
-   * `/ORDER:@` then lays the whole section out, which `link.py` does today
-     for a run and would do for the section unchanged;
-   * placement arithmetic is solved — base 64K down, pad the remainder.
+   **So it is one link of the whole image, with `.text`, `.rdata` and `.data`
+   all placed.** Every piece exists:
 
-   The honesty caveat carries over exactly: those filler bytes would still be
+   * everything undecompiled goes in as filler COMDATs carrying the retail
+     bytes, with a symbol at each known function start —
+     `coffwrite.padding` already takes a `fill`, and `coffwrite.absolutes`
+     already writes symbol-only objects;
+   * `/ORDER:@` lays the section out, which `link.py` does today for a run
+     and would do for the section unchanged;
+   * the placement arithmetic is solved — base 64K down, pad the remainder.
+
+   The honesty caveat carries over exactly: those filler bytes are still
    **copied**, so what such a link adds is that the LAYOUT and every
    RELOCATION become the linker's work rather than ours — not that any more of
    the program has been recovered. The first thing it would catch is a call
    whose REL24 the linker computes differently from `build.py`'s hand-solved
    one, which nothing checks today.
+
+   **Two loose ends to look at first**, both cheap and neither explained: the
+   3 references landing in `.text` at a non-function-start, and the 3 that
+   could not be solved from the retail word.
 7. **A register-pressure mutation for `tools/permuter.py`.** Its seven
    mutations do not reach register allocation, which is what all six
    remaining stalls come down to.
