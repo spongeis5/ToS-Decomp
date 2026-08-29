@@ -13,43 +13,88 @@
 //
 // Do not hand-edit: regenerate.
 
-u32 Acc_826D8E30(void* p) { return *(u32*)((char*)p + 520); }
-void Acc_826DD3F0() { }
-void Acc_826DD430() { }
-void Acc_826E6E28() { }
-void Acc_826EA370(void* p, u8 v) { *(u8*)((char*)p + 7715) = v; }
-void Acc_826EC0D0() { }
-void Acc_826ED6A8() { }
-u32 Acc_826FAA38(void* p) { return *(u32*)((char*)p + 8); }
-u32 Acc_826FAEB0(void* p) { return *(u32*)((char*)p + 8); }
-u32 Acc_826FAEB8(void* p) { return *(u32*)((char*)p + 12); }
-u32 Acc_826FAFB0(void* p) { return *(u32*)((char*)p + 12); }
-u32 Acc_826FB468(void* p) { return *(u32*)((char*)p + 36); }
-void Acc_826FC918() { }
-void Acc_826FC960() { }
-void Acc_826FC968() { }
-void Acc_826FC970() { }
-void Acc_826FC978() { }
-void Acc_826FC980() { }
-void Acc_826FC988() { }
-void Acc_826FC990() { }
-void Acc_826FC998() { }
-void Acc_826FC9A0() { }
-void Acc_826FC9A8() { }
-void Acc_826FC9B0() { }
-void Acc_826FC9B8() { }
-void Acc_826FC9C0() { }
-void Acc_826FC9C8() { }
-void Acc_826FC9D0() { }
-void Acc_826FC9D8() { }
-void Acc_826FC9E0() { }
-void Acc_826FC9E8() { }
-void Acc_826FC9F0() { }
-void Acc_826FC9F8() { }
-void Acc_826FCA00() { }
-void Acc_826FCA08() { }
-void Acc_826FCA10() { }
-void Acc_826FCA18() { }
-void Acc_826FCA20() { }
-void Acc_826FCA28() { }
-void Acc_826FCA30() { }
+struct VObj;
+typedef void (*VFn)(VObj*);
+struct VTbl { VFn slot[256]; };
+struct VObj { VTbl* vt; };
+
+void Acc_826904A8() { }
+void Acc_82690698() { }
+void Acc_82690748() { }
+void Acc_826908D8() { }
+void Acc_826909B0() { }
+void Acc_82690BC0() { }
+void Acc_826911B8() { }
+void Acc_826911C0() { }
+void Acc_826911C8() { }
+float Acc_82691B68(void* p) { return *(float*)((char*)p + 20); }
+u32 Acc_826969B0(void* p) { return *(u32*)((char*)p + 4); }
+void Acc_82696A48(void* p)
+{
+    VObj* q = *(VObj**)((char*)p + 24);
+    q->vt->slot[11](q);
+}
+void* Acc_82696AD0(void* p) { return (char*)p + 20; }
+u32 Acc_8269E830(void* p) { return *(u32*)((char*)p + 20); }
+void Acc_8269F328(void* p)
+{
+    VObj* q = *(VObj**)((char*)p + 8);
+    q->vt->slot[4](q);
+}
+void Acc_826A04A0(void* p)
+{
+    VObj* q = *(VObj**)((char*)p + 52);
+    q->vt->slot[7](q);
+}
+float Acc_826A1030(void* p) { return *(float*)((char*)p + 24); }
+float Acc_826A1060(void* p) { return *(float*)((char*)p + 20); }
+void Acc_826A4F20(void* p)
+{
+    VObj* q = *(VObj**)((char*)p + 12);
+    q->vt->slot[0](q);
+}
+void Acc_826A4F38(void* p)
+{
+    VObj* q = *(VObj**)((char*)p + 12);
+    q->vt->slot[1](q);
+}
+void Acc_826A4F50(void* p)
+{
+    VObj* q = *(VObj**)((char*)p + 12);
+    q->vt->slot[3](q);
+}
+void Acc_826A4F68(void* p)
+{
+    VObj* q = *(VObj**)((char*)p + 12);
+    q->vt->slot[2](q);
+}
+void Acc_826A4F80(void* p)
+{
+    VObj* q = *(VObj**)((char*)p + 12);
+    q->vt->slot[6](q);
+}
+void Acc_826A4F98(void* p)
+{
+    VObj* q = *(VObj**)((char*)p + 12);
+    q->vt->slot[7](q);
+}
+void Acc_826A4FB0(void* p)
+{
+    VObj* q = *(VObj**)((char*)p + 12);
+    q->vt->slot[4](q);
+}
+u32 Acc_826A5EC8(void* p) { return *(u32*)((char*)p + 3464); }
+u32 Acc_826A5ED0(void* p) { return *(u32*)((char*)p + 3468); }
+u32 Acc_826AA260(void* p) { return *(u32*)((char*)p + 76); }
+void* Acc_826AA288(void* p) { return (char*)p + 80; }
+void* Acc_826AFFE0(void* p) { return (char*)p + 48; }
+u32 Acc_826B0328(void* p) { return *(u32*)((char*)p + 20); }
+u32 Acc_826BA290(void* p) { return *(u32*)((char*)p + 304); }
+void Acc_826BB590(void* p, u32 v) { *(u32*)((char*)p + 16) = v; }
+u32 Acc_826BB818(void* p) { return *(u32*)((char*)p + 48); }
+u32 Acc_826C0CC8(void* p) { return *(u32*)((char*)p + 0); }
+u32 Acc_826C0CD0(void* p) { return *(u32*)((char*)p + 4); }
+u32 Acc_826C0DA8(void* p) { return *(u32*)((char*)p + 12); }
+u32 Acc_826C0F20(void* p) { return *(u32*)((char*)p + 20); }
+u32 Acc_826C0FC0(void* p) { return *(u32*)((char*)p + 28); }
+u32 Acc_826C1250(void* p) { return *(u32*)((char*)p + 8); }

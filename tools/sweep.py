@@ -243,8 +243,14 @@ def main(argv):
         print("nothing written; pass --write to record these")
         return 0
 
+    # In --attempts mode a solved function is in attempts.txt BY DEFINITION,
+    # so checking both files made every promotion look like a duplicate of
+    # its own near-miss row and silently skipped all six. The claim to guard
+    # against is two different sources for one address in the MANIFEST; the
+    # attempts row is the thing being replaced.
+    sources = (MANIFEST,) if "--attempts" in argv else (MANIFEST, ATTEMPTS)
     already = set()
-    for pth in (MANIFEST, ATTEMPTS):
+    for pth in sources:
         if pth.exists():
             for line in pth.read_text().splitlines():
                 line = line.split("#")[0].strip()
@@ -272,12 +278,17 @@ def main(argv):
             rows.append("%-32s %08X  %s" % ("src/" + p.name, t, sym))
         else:
             rows.append("%-32s %08X" % ("src/" + p.name, t))
-    for p, t, _s, _c, _ok, _tag in near:
-        if t in already:
-            dup.append((p, t))
-            continue
-        already.add(t)
-        arows.append("%-32s %08X" % ("src/" + p.name, t))
+    # In --attempts mode every near-miss examined came FROM attempts.txt, so
+    # writing them back appends a second copy of each. `already` cannot catch
+    # that here, because it is deliberately built from the manifest alone so
+    # that promotions are not mistaken for duplicates.
+    if "--attempts" not in argv:
+        for p, t, _s, _c, _ok, _tag in near:
+            if t in already:
+                dup.append((p, t))
+                continue
+            already.add(t)
+            arows.append("%-32s %08X" % ("src/" + p.name, t))
 
     if dup:
         print("")
@@ -285,6 +296,29 @@ def main(argv):
               % len(dup))
         for p, t in dup:
             print("    %-32s %08X" % (p.name, t))
+
+    # A promotion is a MOVE, not a copy. Without this the six solved
+    # functions sat in manifest.txt and attempts.txt at once, and
+    # attempts.txt then overstated what still resists -- the one number that
+    # document exists to report.
+    if "--attempts" in argv and rows:
+        solved = set(t for _p, t, _tag, _n, _c in matched)
+        keep, cut = [], 0
+        for line in ATTEMPTS.read_text(encoding="utf-8").splitlines(True):
+            f = line.split("#")[0].split()
+            drop = False
+            if len(f) >= 2:
+                try:
+                    drop = int(f[1], 16) in solved
+                except ValueError:
+                    drop = False
+            if drop:
+                cut += 1
+            else:
+                keep.append(line)
+        ATTEMPTS.write_text("".join(keep), encoding="utf-8")
+        print("")
+        print("promoted %d row(s) out of attempts.txt" % cut)
 
     if rows:
         with MANIFEST.open("a", encoding="utf-8") as f:

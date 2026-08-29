@@ -106,6 +106,29 @@
 // So this is the same class as the six entries in MATCHED.md's "What still
 // resists": one operand-selection decision, reachable from neither source
 // order nor flags.
+//
+// STILL 33 of 35 words. Thirteen more shapes, and one of them was the best
+// idea available -- THE NAMED CONST VIEW that solved sub_82667EE0's
+// commutative-operand order by breaking the CSE tie between two reads of
+// the same field (see src/m_vector_reserve.cpp). It does nothing here, in
+// any of five placements: a `const Arena*` driving the size check, driving
+// the whole body, driving only the tail's base read, only the tail's cursor
+// read, or only the swap's base read. All five are byte-identical to the
+// baseline.
+//
+// That is worth recording as a LIMIT ON THAT LEVER: it breaks the tie for a
+// field reached through a POINTER PARAMETER, where the const view gives
+// MSVC a second symbol to hang a value number on. These fields are reached
+// through a `lis`/`addi` of a fixed global address, and a const view of a
+// global is the same address expression -- there is nothing for the value
+// numbering to tell apart. That is the same reason the declaration-order
+// lever does not reach it, stated one level lower.
+//
+// Also ruled out, all byte-identical: the tail addition written
+// `cursor + base` instead of `base + cursor`; `&g_arena.base[cursor]`;
+// declaring base and other as u32 fields holding pointers so the addition
+// is a pure integer add, written both ways; the cursor advance written
+// `need + cursor`; and the swap stores written in the other order.
 
 #include "types.h"
 

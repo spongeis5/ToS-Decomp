@@ -8,15 +8,12 @@
 # tools/objdiff_export.py reads both files and marks these `complete: false`.
 #
 # source                        address   symbol
-src/chunked_at.cpp              82806FD0
 src/init12.cpp                  826C1480
 src/arg_shuffle.cpp             8215E5B0
 src/fadd_fwd.cpp                82639C38
-src/list_insert.cpp             82600AD0
 src/wstr_compare.cpp            827618E8
 src/m_ctor_94.cpp               825FE880
 src/b_strcmp.cpp                826973C8
-src/b_bounds_at.cpp             8215ED28
 # src/g_memcmp_n.cpp targets 82697748, which the inventory does NOT list as a
 # function start: the 68-byte row at 82697740 is three 8-byte thunks followed
 # by a 60-byte counted byte compare, and only the first thunk is known. So it
@@ -37,13 +34,10 @@ src/k_kind_weight.cpp           827261D8
 src/h_arena_twin.cpp            82606FD8
 src/j_quat_to_mtx.cpp           82154ED8
 src/j_init_defaults.cpp         82202B50
-src/m_vector_reserve.cpp        82667EE0  VectorGrow
-src/m_tree_lookup.cpp           8217E808
 src/m_audio_ctor.cpp            82583290
 src/g_memset_thunk.cpp           82697740
 src/p4_index_span.cpp            8277AA88
 src/q1_list_push_front.cpp       82155968
-src/q5_kind_in_set.cpp           821F5EE0
 src/q8_find_tag.cpp              826CEA98
 src/r2_obj_ctor.cpp              82700DF8
 src/s5_cursor_next_block.cpp     82780C20
@@ -55,3 +49,9 @@ src/u6_table_agrees.cpp          8215BD60
 src/u7_clamp_advance.cpp         821FC4D8
 src/b2_pool_insert.cpp          825A3528
 src/b3_hash_remove.cpp          826377B0  RemoveAt
+src/a6_obj_ctor.cpp             82700B30  ??0Obj@@QAA@PAXH@Z
+src/g1_ctor_two_vt.cpp           82784F90
+src/g4_pair_related.cpp          82673EC8
+src/g5_chunked_bit.cpp           8216C240
+src/g8_accumulate_stats.cpp      82673020
+src/g3_float_to_int.cpp          826306F8

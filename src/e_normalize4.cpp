@@ -69,6 +69,26 @@
 // and a struct declared as `f32 v[4]`. So the open question is one operand
 // slot on one multiply, and it is a codegen choice this file cannot reach
 // from the shape of the arithmetic.
+//
+// STILL 45 of 47 non-relocated words. Eight more shapes, none better than the
+// 46 of 47 the array staging already gives:
+//
+//   * FOUR DIVISIONS instead of a reciprocal multiply. MSVC /fp:fast really
+//     does fold them to one `fdivs f12,f1,f0` and four `fmuls` -- the same
+//     nineteen instructions -- so the division spelling is NOT
+//     distinguishable from the reciprocal one here. It moves a DIFFERENT
+//     multiply: x flips to (inv, x) and w stays wrong, 44 of 47. Worth
+//     knowing that the transformation happens at all.
+//   * a second named copy of `inv` used for the last two components
+//   * `1.0f / len` written out again at the last two components
+//   * results staged through a float[4] instead of the components
+//   * a const view of the input for the last two components
+//   * float-array views of both quaternions, `d[i] = s[i] * inv`
+//   * array staging for w and x only -- 46 of 47, the same as staging all
+//     four, so the staging that fixes w is not doing anything for y or z
+//
+// Nothing addressed at the ARITHMETIC moves the y multiply; what moved w was
+// staging, and staging y the same way does not move y.
 
 struct Quat { f32 x; f32 y; f32 z; f32 w; };
 ASSERT_OFFSET(Quat, z, 0x08);

@@ -44,6 +44,39 @@
 // (src/set_vtable_827007E8.cpp, /O2 /Os) -- 16 bytes earlier, storing a vtable
 // 12 bytes away in the same table. That is a genuine adjacency, unlike the
 // 8.5 KB "neighbours" MATCHED.md records as a bad inference.
+//
+// AND THE FLAG IS CONFIRMED, WHICH THIS FILE DID NOT SAY. At /O2 the body is
+// 72 bytes and has NO `rotlwi r11,r11,0` at all -- the 32-to-64 zero
+// extension that is the strlen-intrinsic tell simply is not emitted -- so
+// the size is one word short and nine of eighteen words are wrong. At
+// /O2 /Os it is 76 bytes, the rotlwi is there, and 13 of 17 words are right.
+// Measure this one at /Os or the diff is describing a different function.
+//
+// WHAT IS LEFT at /Os is the POSITION OF ONE STORE and nothing else:
+//
+//      target  lis, stw r4,4, li r11,0, addi r10, stb r11,8, cmplwi,
+//              stw r10,0, stw r5,12, beq-
+//      ours    lis, stw r4,4, li r11,0, stw r5,12, addi r10, stb r11,8,
+//              cmplwi, stw r10,0, beq-
+//
+// `stw r5,12(r3)` -- the text store -- is issued four slots early, into the
+// gap between `li r11,0` and the `addi` that finishes the vtable address.
+// The target fills that slot with the addi itself and puts the text store
+// last, after the vtable store.
+//
+// STORE ORDER IS NOT SOURCE ORDER HERE AT ALL. All 24 permutations of the
+// four stores were compiled at /Os and they produce exactly TWO schedules --
+// the one above whenever `owner` is written before `text`, and the same
+// thing with those two swapped otherwise. The other two stores never move.
+// Eight structural shapes give the same: the length as an if/else, as a
+// zero-initialised accumulator declared first and declared last, computed
+// before the stores, the text stored from a local copy of `s`, the vtable
+// address named in a local, and a real C++ constructor with the vptr
+// emitted by the compiler.
+//
+// So the four stores are scheduled by cost and readiness, and the source's
+// order only decides the tie between the two whose values are already in
+// registers on entry.
 
 extern "C" size_t strlen(const char*);
 #pragma intrinsic(strlen)

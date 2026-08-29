@@ -143,11 +143,21 @@ def main(argv):
     skip = 0
     max_bytes = None
     no_vmx = "--no-vmx" in argv
+    # `consumed` is why this is not a plain loop. The value after `--skip` is
+    # a bare digit, so the next iteration also matched the positional-count
+    # branch: `batch.py 32 --skip 8` set skip to 8 AND silently reset count
+    # from 32 to 8, and asked for 32 candidates you got 8 with no complaint.
+    # An option's argument belongs to that option and to nothing else.
+    consumed = set()
     for i, a in enumerate(argv[1:], 1):
+        if i in consumed:
+            continue
         if a == "--skip":
             skip = int(argv[i + 1])
+            consumed.add(i + 1)
         elif a == "--max-bytes":
             max_bytes = int(argv[i + 1])
+            consumed.add(i + 1)
         elif not a.startswith("--") and a.isdigit():
             count = int(a)
 

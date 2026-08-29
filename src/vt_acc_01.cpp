@@ -13,6 +13,11 @@
 //
 // Do not hand-edit: regenerate.
 
+struct VObj;
+typedef void (*VFn)(VObj*);
+struct VTbl { VFn slot[256]; };
+struct VObj { VTbl* vt; };
+
 u32 Acc_82102D60(void* p) { return *(u32*)((char*)p + 11884); }
 u32 Acc_82102E08(void* p) { return *(u32*)((char*)p + 11888); }
 u8 Acc_82103000(void* p) { return *(u8*)((char*)p + 10499); }
@@ -44,12 +49,16 @@ void Acc_82103E98(void* p, u32 v) { *(u32*)((char*)p + 13596) = v; }
 u32 Acc_82103EA0(void* p) { return *(u32*)((char*)p + 13596); }
 void Acc_82109530(int unused0, int unused1, int unused2, void* p, int unused4, int unused5, u32 v) { *(u32*)((char*)p + 0) = v; }
 void Acc_821346A0(u32 v, void* p) { *(u32*)((char*)p + 0) = v; }
+void Acc_8214C890(VObj* p) { p->vt->slot[23](p); }
 float Acc_8214CF30(void* p) { return *(float*)((char*)p + 8); }
+void Acc_8214D228(void* p)
+{
+    VObj* q = *(VObj**)((char*)p + 332);
+    q->vt->slot[15](q);
+}
 u32 Acc_8214FD98(void* p) { return *(u32*)((char*)p + 108); }
 void Acc_8214FDA0(void* p, u32 v) { *(u32*)((char*)p + 108) = v; }
 void* Acc_821501C0(int unused0, void* p) { return (char*)p + 232; }
 void* Acc_821501F0(int unused0, void* p) { return (char*)p + 1416; }
 void* Acc_821501F8(int unused0, void* p) { return (char*)p + 152; }
 u32 Acc_82150200(int unused0, void* p) { return *(u32*)((char*)p + 92); }
-u8 Acc_82151400(void* p) { return *(u8*)((char*)p + 4); }
-u32 Acc_821516C0(void* p) { return *(u32*)((char*)p + 72); }

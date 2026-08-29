@@ -45,6 +45,33 @@
 //   EmitSpanB (`bool bad` named first)     : see probe
 //   EmitSpanC (`u32 pos` named first)      : 168 B, the pos load hoisted to
 //                                            the second instruction, 2 of 42
+//
+// STILL 9 of 11 at /O2 /Os, 176 bytes against 180.
+//
+// THE NAMED-CONST-VIEW LEVER WAS THE RIGHT IDEA AND IT OVERSHOOTS. The
+// target reloads `l->index` at 82772F3C with nothing stored in between,
+// which is the signature that says the two reads were spelled differently
+// (MATCHED.md, sub_821FF908), and a named `const Layout*` is now known to
+// break exactly that tie (src/m_vector_reserve.cpp). Four placements were
+// tried and none is closer:
+//
+//   * `const Layout* c = l;` driving the whole guard, written inline
+//     instead of through the helper: 160 bytes. It does force the reload,
+//     but it also destroys the MATERIALISED BOOL -- the guard stops
+//     building 0/1 and branches straight out, so `li 0 / li 1 / clrlwi.`
+//     disappear and with them four of the words that were already right.
+//   * the same with only the index read viewed constly: 160 bytes, same.
+//   * the const view INSIDE the helper: byte-identical to the baseline,
+//     which is the "an inlined const accessor is folded" half of the lever.
+//   * the const view on the BODY's index read instead of the guard's: also
+//     byte-identical.
+//
+// So the reload is reachable but not while keeping the bool, and the bool is
+// what makes the rest of the function right. What the target actually needs
+// is for the bool to land in r11 -- the register holding the index -- which
+// is what forces the reload there; ours lands in r10 and leaves the index
+// live. That is a register-assignment choice, not a CSE one, and the const
+// view reaches the CSE only.
 
 struct Run
 {

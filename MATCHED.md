@@ -11,7 +11,7 @@ the inventory is wrong in both directions, short where a tail call's dead
 `blr` was not counted and long where one `.pdata` row covers several
 frameless bodies.
 
-**948 functions, 21268 bytes.** Verify all of them, plus the reconstructing
+**1083 functions, 26540 bytes.** Verify all of them, plus the reconstructing
 build and six negative controls, with one command:
 
 ```bash
@@ -22,7 +22,7 @@ Every match is also a row in `src/manifest.txt`, so `tools/build.py` compiles
 it, resolves its relocations against the retail bytes and splices it into
 `.text`. Nothing here is a match on `match.py`'s word-comparison alone.
 
-SPLIT: 240 hand-written, 15156 bytes; 708 generated, 6112 bytes.
+SPLIT: 265 hand-written, 18348 bytes; 818 generated, 8192 bytes.
 <!-- the line above is regenerated; edit tools/matched_table.py, not this -->
 
 The two halves are not comparable and the count should never be quoted
@@ -37,7 +37,7 @@ half does, however much larger it gets. (The counts live in the SPLIT line
 above, which is regenerated; repeating them here is how a document comes to
 contradict itself two commits later.)
 
-**The retail build did NOT use one optimisation level everywhere.** 41 of
+**The retail build did NOT use one optimisation level everywhere.** 101 of
 these need `/O2 /Os`; the rest need plain `/O2`. See "Flags are a property of
 the translation unit" below -- this was claimed the other way round for a
 while and the claim was wrong.
@@ -51,11 +51,14 @@ while and the claim was wrong.
 | `82805D20` | 108 | 276 | `m_node_destroy.cpp` | - | `/O2` |
 | `82602EA0` | 104 | 240 | `m_track_or_add.cpp` | - | `/O2` |
 | `82603108` | 64 | 237 | `c_release_guarded.cpp` | - | `/O2` |
+| `82806FD0` | 84 | 220 | `chunked_at.cpp` | - | `/O2 /Os` |
 | `8262F5D0` | 136 | 206 | `m_bin_free.cpp` | BinAlloc | `/O2` |
+| `82667EE0` | 152 | 180 | `m_vector_reserve.cpp` | VectorGrow | `/O2` |
 | `8215A420` | 64 | 147 | `c_hash_upper.cpp` | - | `/O2` |
 | `82600BD8` | 16 | 135 | `global_field.cpp` | - | `/O2` |
 | `82667E58` | 136 | 132 | `m_vector_reserve.cpp` | VectorReserve | `/O2` |
 | `82806D08` | 20 | 132 | `a_report_badthis.cpp` | - | `/O2` |
+| `8217E808` | 76 | 116 | `m_tree_lookup.cpp` | - | `/O2` |
 | `821A4628` | 28 | 108 | `ctor_vt.cpp` | - | `/O2` |
 | `82663370` | 60 | 105 | `b_release_ref.cpp` | - | `/O2 /Os` |
 | `82160880` | 36 | 100 | `a_copy_fields.cpp` | - | `/O2` |
@@ -77,6 +80,7 @@ while and the claim was wrong.
 | `82540728` | 36 | 37 | `string_utils.cpp` | StrLen | `/O2` |
 | `8262FB50` | 48 | 37 | `b_free_sentinel.cpp` | - | `/O2` |
 | `82637590` | 56 | 37 | `b_free_items.cpp` | - | `/O2` |
+| `8215ED28` | 48 | 36 | `b_bounds_at.cpp` | - | `/O2` |
 | `8214D640` | 176 | 35 | `d_normalize_to.cpp` | NormalizeTo | `/O2` |
 | `82151C50` | 48 | 35 | `d_wrap_2pi.cpp` | - | `/O2` |
 | `82154A68` | 124 | 34 | `d_mtx_translate_row.cpp` | - | `/O2` |
@@ -181,6 +185,7 @@ while and the claim was wrong.
 | `8214CCB8` | 84 | 8 | `j_reset_state.cpp` | - | `/O2` |
 | `8215C9C0` | 96 | 8 | `q6_slot_update.cpp` | - | `/O2` |
 | `821EE668` | 24 | 8 | `m_fwd_ctx.cpp` | - | `/O2` |
+| `821F5EE0` | 88 | 8 | `q5_kind_in_set.cpp` | IsActiveKind | `/O2` |
 | `8225B450` | 44 | 8 | `m_state_2to4.cpp` | - | `/O2` |
 | `82265D88` | 40 | 8 | `m_ready_not255.cpp` | - | `/O2` |
 | `825BD9B0` | 48 | 8 | `m_read_le32.cpp` | - | `/O2` |
@@ -249,8 +254,11 @@ while and the claim was wrong.
 | `8214C788` | 20 | 5 | `b8_set_pair_2c28.cpp` | - | `/O2` |
 | `8215D038` | 32 | 5 | `c3_path_join.cpp` | - | `/O2` |
 | `8215F268` | 28 | 5 | `c2_fwd_callback.cpp` | - | `/O2` |
+| `8216E778` | 116 | 5 | `f5_relocate_chains.cpp` | - | `/O2` |
+| `8219E748` | 144 | 5 | `g2_ctor_three_vec.cpp` | - | `/O2` |
 | `821A5328` | 40 | 5 | `c7_ready_flag.cpp` | - | `/O2` |
 | `821A6B38` | 16 | 5 | `b6_slot_at83.cpp` | - | `/O2` |
+| `821F6C40` | 156 | 5 | `g7_release_slot.cpp` | ReleaseSlot | `/O2` |
 | `82202BC8` | 28 | 5 | `store_floats.cpp` | - | `/O2` |
 | `8224DBB0` | 40 | 5 | `c8_bits_16_19.cpp` | IsAvailable | `/O2` |
 | `8224DF58` | 24 | 5 | `ctor_vt2.cpp` | - | `/O2` |
@@ -258,25 +266,42 @@ while and the claim was wrong.
 | `8225F168` | 56 | 5 | `d5_kind_notify.cpp` | - | `/O2` |
 | `8225FAC0` | 56 | 5 | `d6_job_ready.cpp` | - | `/O2` |
 | `822D0BE8` | 32 | 5 | `deref_or_zero.cpp` | - | `/O2` |
+| `822DA8B0` | 284 | 5 | `h4_state_copy.cpp` | - | `/O2` |
+| `822DD9F8` | 228 | 5 | `h6_find_entry.cpp` | - | `/O2` |
 | `8252D9A0` | 36 | 5 | `c4_fwd_global6.cpp` | - | `/O2` |
 | `8252F5D8` | 56 | 5 | `d7_block_info.cpp` | - | `/O2` |
+| `8253F5D8` | 192 | 5 | `h5_dsp_ctor.cpp` | ??0DspModule@@QAA@XZ | `/O2` |
+| `825478F8` | 116 | 5 | `f6_list_find_key.cpp` | - | `/O2` |
+| `8259C778` | 104 | 5 | `f1_bitread16.cpp` | - | `/O2` |
+| `825A36C0` | 128 | 5 | `f7_rate_from_scale.cpp` | - | `/O2` |
 | `825E3598` | 24 | 5 | `vcall_global_2.cpp` | - | `/O2 /Os` |
 | `825E35C8` | 24 | 5 | `vcall_global_4.cpp` | - | `/O2 /Os` |
 | `825E35E0` | 40 | 5 | `d1_vcall_global_6.cpp` | - | `/O2 /Os` |
 | `825E41D8` | 16 | 5 | `zero2.cpp` | - | `/O2` |
 | `825FA780` | 20 | 5 | `c1_socket_wrap.cpp` | - | `/O2` |
+| `825FAB10` | 136 | 5 | `f8_slot_index.cpp` | SlotIndex | `/O2` |
+| `825FAC00` | 112 | 5 | `f3_pack_three_fields.cpp` | SlotSet | `/O2` |
 | `826009D8` | 48 | 5 | `d3_pool_pop_free.cpp` | - | `/O2` |
+| `82698EE8` | 104 | 5 | `f2_pair_lookup.cpp` | - | `/O2` |
 | `826C1470` | 8 | 5 | `b7_inner_at40.cpp` | - | `/O2` |
 | `827103D8` | 52 | 5 | `d4_handler_or_default.cpp` | - | `/O2 /Os` |
 | `827245C0` | 28 | 5 | `ring_index.cpp` | - | `/O2` |
 | `8272CB68` | 16 | 5 | `load_global_store.cpp` | - | `/O2` |
 | `82761AD0` | 36 | 5 | `c5_flag_pair.cpp` | MarkDirty2 | `/O2 /Os` |
 | `82761AF8` | 36 | 5 | `c5_flag_pair.cpp` | MarkDirty8 | `/O2 /Os` |
+| `82772FC0` | 152 | 5 | `g6_cursor_step.cpp` | CursorStep | `/O2 /Os` |
 | `82784DE0` | 68 | 5 | `d8_record_clear.cpp` | - | `/O2` |
+| `82790710` | 260 | 5 | `h7_read_varint.cpp` | ?ReadVarint@@YAIPAUVarintCtx@@IPAI@Z | `/O2 /Os` |
 | `827C4FB0` | 24 | 5 | `ptr_or_null.cpp` | - | `/O2` |
 | `827FE808` | 16 | 5 | `and_byte.cpp` | - | `/O2 /Os` |
 | `827FEE48` | 44 | 5 | `d2_link_front_flag.cpp` | - | `/O2 /Os` |
+| `8280D210` | 112 | 5 | `f4_skip_free_slots.cpp` | - | `/O2 /Os` |
+| `82836078` | 324 | 5 | `h8_rotate_triples.cpp` | - | `/O2` |
+| `821838E8` | 16 | 4 | `h3_fwd_global_arg.cpp` | - | `/O2` |
+| `8219B9A0` | 16 | 4 | `h2_fwd_two_fields.cpp` | - | `/O2` |
+| `82203890` | 16 | 4 | `h1_inner_bit0.cpp` | - | `/O2` |
 | `822D2528` | 24 | 4 | `table624.cpp` | - | `/O2` |
+| `82600AD0` | 28 | 4 | `list_insert.cpp` | - | `/O2` |
 | `827A7C98` | 20 | 4 | `store_two.cpp` | - | `/O2` |
 | `82216918` | 304 | 2 | `m_line_of_sight.cpp` | TtCheckLineOfSight | `/O2` |
 | `822607F0` | 120 | 2 | `grid_indices.cpp` | - | `/O2` |
@@ -284,7 +309,7 @@ while and the claim was wrong.
 | `826FE5B8` | 16 | 2 | `set_vtable.cpp` | SetVTableD170 | `/O2` |
 | `826FE5C8` | 16 | 2 | `set_vtable.cpp` | SetVTableD180 | `/O2` |
 | `8289FA50` | 268 | 1 | `m_mixer_clear.cpp` | - | `/O2` |
-| *(708 generated)* | 6112 | - | `vt_typeid_*`, `vt_const_*`, `vt_acc_*` | one expression each | `/O2` |
+| *(818 generated)* | 8192 | - | `vt_typeid_*`, `vt_const_*`, `vt_acc_*` | one expression each | `/O2` |
 ---
 
 ## How these were found
@@ -764,6 +789,226 @@ gap while a `lis`/`addi` is in flight. `sub_825FE880` is the same and is
 still unmatched because of it -- its vtable store will not move to the front
 in any source order tried, including a real C++ constructor.
 
+### Levers that cracked a recorded stall
+
+Six functions in `src/attempts.txt` came out after being written down as
+stalls, and three of them had a MECHANISM recorded saying why they could
+not. Those three are the reason this section exists: the measurement was
+right every time and the conclusion drawn from it was wrong every time, in
+the same direction -- an observation about why the compiler did something
+became a claim that nothing could be done about it.
+
+**A NAMED const-qualified local view breaks a CSE tie.** `sub_82667EE0`
+(`VectorGrow`) was one word short on `mullw`'s operand order, which is
+decided by which read of `v->count` becomes the CSE representative. Writing
+
+    const ReserveVector* c = v;
+
+and reading the second occurrence through `c` gives 32 of 32. The local must
+be **named**: an inline cast and an inlined `const` accessor are both folded
+back to the same value number and change nothing. A `const&`, a base-class
+pointer, a different struct at the same offset, a union view and an `s32*`
+view all work as well.
+
+Its LIMIT, measured on the arena twins `sub_82606EC8`/`sub_82606FD8`, which
+it does NOT crack: the view has to name a field reached through a pointer
+parameter. It cannot touch a global's `lis`/`addi` address expression --
+which is the same reason declaration order cannot reach those two either.
+
+**A load's position relative to a store it might alias is SOURCE ORDER.**
+MSVC will not hoist such a load, so the order is readable straight off the
+listing. `sub_82600AD0` (`list_insert`) needs
+
+    node->next = head->next;      // the load happens here
+    node->prev = head;
+
+and the stores then come out in the OPPOSITE order from the source, because
+the `prev` store is the one instruction available to cover the load's
+latency. This is the third exception to "store order is source order", and
+it is the useful one, because it says when to expect the rule to invert.
+`sub_8259C6F0` is the same lever from the other side: it writes a bit
+position back AFTER three `lbz`s, and putting the store first shifts the
+whole schedule (7 of 32 against 33 of 33).
+
+Its limit, from `sub_826C1480`: incoming STACK-PARAMETER loads are not
+pinned this way, so no source read order reaches them.
+
+**A default return materialised ABOVE a guard is a single return through a
+zero-initialised accumulator, not an early return.** `sub_82806FD0` was
+recorded as a branch-probability call, `bgtlr` against `ble-`. It is not.
+
+    void* r = 0;
+    if (i <= total) r = ...;
+    return r;
+
+An early `return 0;` puts `li r3,0` in the entry block, which clobbers r3 as
+the scratch for the address arithmetic, forces an `mr` and defers the base
+load: eight of the eleven wrong words were downstream of that one
+instruction. 21 of 21 at `/O2 /Os`.
+
+`sub_825BFFF0` is the converse and shows the shape does not always go that
+way: there an initialiser before the `if` is the right length but MSVC
+hoists `li r3,-1` into the entry block and renames every register after it
+(25 of 59), while writing the first guard as a jump INTO the read leaves the
+assignment in the second block where the image has it (57 of 57). **No
+`if`/`else` spelling expresses "the failure value is set on one path only";
+the position of the materialisation is the thing to control.**
+
+**An AND-mask on an index flips `lwzx` operand order, and the mask is
+invisible.** `sub_8215ED28`, 12 of 12, from `items[i & 0x3FFFFFFF]`. MSVC
+matches `base + (index << scale)` as an addressing mode and puts the base in
+rA; a masked index misses that pattern and falls back to a generic add, which
+puts the index in rA. Keeping all 30 low bits is absorbed into the `rlwinm`
+that the `* 4` already needed, so the scaling word is byte-identical and
+ONLY the load's operand order moves. Nothing else in the function changes,
+which is what makes this usable rather than a guess.
+
+**Count the masked bools.** One trailing mask per inlined bool helper, plus
+one for a bool return. `sub_821F5EE0` has two masks, so ONE helper, so the
+trailing comparisons are further terms of the same `||` chain:
+`return IsMoving(d) || d->kind == 1 || d->kind == 6;` -- 22 of 22. The
+discriminator: every true exit reaching one shared `li r11,1` is the
+short-circuit form, whereas a private `li r3,1 ; blr` is a separate
+statement.
+
+**Merging loop exits.** `sub_8217E808`, 16 of 16. Writing the exit test at
+the END of each arm rather than as the loop condition merges both tests into
+one latch and all three zero-returns into one block planted immediately
+after it. The tell is that the exit block sits BETWEEN the latch and the
+out-of-line arm.
+
+**`mulli rD,rS,<small constant>` is an `/Os` PROPERTY, not a source shape --
+and it is the loudest flag signal found so far.** Ten spellings of the same
+indexing were measured on `sub_8280D210`: a subscript with an `int`,
+`unsigned` or struct-loaded index, `(char*)e + i * 48`, `e + i`,
+`i * sizeof(E)`, the offset in a local, a 12-`int` element, an `__int64`
+index, and the whole loop rewritten. **All ten** expand to
+`rlwinm`/`add`/`rlwinm` at `/O2`, and **all ten** emit `mulli ...,48` at
+`/O2 /Os`.
+
+So a `mulli` by a small constant is worth treating the way a coalesced
+register is treated, except that it is far easier to see: it says try the
+level before touching the source. (It remains true, as the idiom table says,
+that the constant is the element size -- the two readings do not conflict.)
+
+**`/fp:fast` REASSOCIATES `a * C * b`, and parentheses stop it.**
+`(float)n * 0.4f * r->scale` already associates left in C, but MSVC sinks
+the constant and emits `(scale * n) * 0.4f` -- 26 of 28 on `sub_825A36C0`.
+Writing `((float)n * 0.4f) * r->scale` is 28 of 28. Thirteen shapes were
+measured, and the rule is about SEPARATION rather than order: every spelling
+that makes the first product a separate expression matches -- parentheses, a
+temporary, `*=`, an inlined helper -- and every unparenthesised three-factor
+chain fails identically whichever order it is written in.
+
+**The address-of lever must be applied at EVERY site, and sometimes needs a
+call boundary.** `sub_8216E778` needs `u32* s = &t->nodes; *s = delta + *s;`
+at all three update sites; applying it only where the dead `addi` survives
+leaves the inner copy missing, at 10 of 28. `sub_825FAC00` is stronger: a
+bare `int*` local is not enough there, eleven spellings sit at 16 of 26, and
+only an inlined `static void Pack(int* p, int mask, int v)` reaches 28 of 28.
+
+**A list sentinel with NO null check says the head is a whole node, not a
+bare link.** `static_cast<Item*>(&r->head)` on a `Link` member cannot be
+proven non-null, so it costs `addic.`/`bne-`/`li` -- three words that are not
+in the image. Declaring the head as a full `Item` at +260 makes `&r->head` a
+plain `addi r10,r3,260` and puts its own `next` at 352, the exact word the
+loop starts from. One layout produces both constants, which is what makes it
+the right one rather than merely a shorter one.
+
+**At `/Os`, an `if` guard plus a `do/while` is TAIL-MERGED with the loop's
+own increment** (80 bytes against 112). The plain rotated `while` is the
+shape that survives.
+
+**MSVC's `rlwimi` for a bitfield insert is fully decodable, and the shift is
+NOT the field position.** The kept mask names the field's low bit
+(`keep = (1 << P) - 1`, so `ME = 31 - P`), but MSVC materialises the ODD PART
+of the inserted constant and folds the power of two into the rotate, then
+CSEs the odd parts across inserts. In `sub_82700B30` one `li r10,1` serves
+the values 8, 32 and 2 at shifts 7, 6 and 7. All five inserts reproduce
+exactly once that is read correctly, so an `rlwimi` run is worth decoding
+rather than guessing at.
+
+### Constructors, and what a DELETED store proves
+
+Constructors are the densest structural targets in the image -- one match
+pins a whole layout -- and they have their own levers, because most of a
+constructor is stores and MSVC's dead-store elimination is unusually visible
+in them.
+
+**A dead vptr store can pin a BASE-CLASS BOUNDARY.** `sub_8253F5D8` stores
+two vtables to +0x00. MSVC deletes the first as dead -- 180 bytes against the
+image's 192 -- unless something it cannot analyse sits between them. The
+global load IS emitted between the two stores, and a load from a global
+cannot be disambiguated from `*(void**)this`, so the store survives. But
+that only happens if the read is a BASE member initialiser. DSE failing is
+therefore what located the base boundary, at 0x1C. A store the compiler
+deletes is evidence about the class shape, not just a missing word.
+
+**Stores emitted before a class's own vptr belong to a BASE of it.** A
+constructor stores its vptr before any of its own member initialisers, but
+AFTER its base constructors have run. `sub_8253F5D8` writes 0x04, 0x08, 0x0C
+and 0x10 ahead of the first vptr, so those four live in a base of the base.
+Getting that wrong displaced eleven words.
+
+**A member initialiser and the same assignment in the body are different
+code.** `id10 = -1` written in the body runs after the global read, keeps the
+-1 live one value longer than the volatile registers allow, and spills to
+r31 -- a `std`/`ld` pair, 200 bytes against 192.
+
+**`__lwsync()` from the XDK's `ppcintrinsics.h` is a real DSE barrier**, and
+on `sub_82784F90` it is what keeps a repeated four-float store group alive;
+writing the group inline through a helper instead loses one store.
+
+**Naming `&member` AFTER a guard rather than before decides whether the base
+pointer is formed at all.** On `sub_82772FC0`, `Cursor* c = &p->cursor;`
+INSIDE the guarded block is 38 of 38; the identical declaration before the
+guard is 6 of 38; and spelling `p->cursor.x` at every use folds everything
+into r3 so the base is never formed, at 4 of 38.
+
+**Two independent chains above an `if` are scheduled in source DECLARATION
+order.** On `sub_8216C240`, declaring `w` before the bit mask rather than
+after was worth twelve words, 25 to 37 of 38, with nothing else changed.
+
+**A comparison emitted far ahead of its branch means the `if` is at the TOP
+of the source**, with the body written out once per arm rather than shared.
+On the same function that reading took it from 1 of 38 to 25 of 38, and it
+is also what produces the record form `divw.` whose CR0 both arms use as the
+trip-count test while the cheap `subf` stays duplicated. Hoisting the common
+work above the `if` instead gives a plain `divw` and a separate `cmpwi cr6`,
+at every one of eight loop spellings.
+
+**Source order of switch arms decides which arm owns a merged tail** -- after
+layout order has stopped carrying information. On `sub_82790710` the arms lay
+out identically either way, because the decision tree emits its fall-through
+case first. But ascending source order keeps the LATER arms' copies of the
+shared tail with forward branches (37 of 65), and descending keeps the FIRST
+arm's copy with backward branches (65 of 65). Spelling the join out
+structurally with `goto` is worse than both, at 10 of 65, because forcing the
+join re-allocates every register.
+
+**A NEGATIVE result worth as much as the others: `or` operand order is not
+source-readable.** It belongs with `mullw` and the commutative float
+operators, not with `add`/`subf`. Sixteen spellings on `sub_8216C240` --
+`|=`, both explicit orders, the word or the address in a local either way,
+two helpers with swapped parameters, `s32` and `u32` in all combinations --
+plus all 72 flag combinations give the identical instruction. That one word
+is the entire remaining difference in that function, and it is not reachable.
+
+**Two layouts recovered this way, both recorded in their sources:**
+
+* `sub_822DA8B0` -- a hand-written copy of an 0x88-byte state record, 35
+  fields, every type named by its load instruction. The proof that it is
+  hand-written rather than an implicit copy is that **0x34 exists and is
+  deliberately not copied**: every other 4-byte slot in the range is, and
+  0x38 is a byte needing no alignment, so there is no hole to explain it.
+* `sub_8253F5D8` -- an audio DSP module constructor. The string
+  `"mod_dspi.cpp"` sits at 8205E630, immediately before its two vtables, so
+  this one has its ORIGINAL FILENAME. 26 offsets, four circular-list
+  sentinels of the form `{this+off, this+off, 0}`, and a 44100.0f at 0xF8.
+  `DspBase`'s size is asserted at 0x1C; the outer size is NOT asserted,
+  because the last field at 0x110 gives a floor of 0x114 and smallest-
+  possible was not measured.
+
 ### Names are RECOVERABLE for about a hundred functions
 
 `sub_82216918` is in the manifest as **`TtCheckLineOfSight`**, and that name
@@ -836,7 +1081,6 @@ order, even when it is not address order. `sub_82649240` writes 64, 68, then
 0; `sub_82548F10` writes 20 then 4, 8, 12, 16; `sub_82202BC8` interleaves an
 integer store between the fourth and fifth float stores. Each was written in
 the target's own order and matched.
-
 
 ### Flags are a property of the translation unit
 
@@ -918,22 +1162,48 @@ transposed functions and moved none of them.
 
 ## What still resists
 
-Six remain, down from eleven. Eight of the original list were not stalls at
-all -- they wanted `/Os` -- and one more (`sub_822D0BE8`) came down to `x > 0`
-against `x != 0`, which compile to different branch conditions for an
-unsigned value.
+**Do not read a list from here.** This section carried one for three
+revisions and was wrong by the third, in the way that costs most: it listed
+`82806FD0` as "branch polarity -- a probability decision" and `82600AD0` as
+"a reloaded field the compiler will not keep in a register", and both are
+now matched, neither for the recorded reason. A stale list of stalls does
+not merely go out of date; it tells the next reader not to try.
 
-| function | bytes | the free choice |
-|---|---|---|
-| `82806FD0` | 84 | branch polarity -- `bgtlr` vs `ble-`, a probability decision |
-| `826C1480` | 76 | instruction order -- where one store sits among five loads |
-| `8215E5B0` | 28 | register assignment across an argument permutation |
-| `82600AD0` | 28 | a reloaded field the compiler will not keep in a register |
-| `82639C38` | 20 | an extra `mr` to keep the object alive across a float load |
-| `827618E8` | 136 | loop rotation; the target keeps counts in callee-saved r30/r31 |
+The live figure, at both optimisation levels, with relocated words excluded:
 
-None of them matches at `/O2`, `/O1` or `/O2 /Os`, so the flag explanation is
-exhausted for these. `tools/permuter.py` has not moved any of them either.
+```bash
+python tools/sweep.py --attempts
+```
+
+`src/attempts.txt` is the list, and each source file carries its own
+measurement and what has been ruled out.
+
+**The pattern worth keeping from three revisions of this table.** Of the
+functions ever written down here as stalls, the great majority came out
+later, and they came out in three ways, in this order of frequency:
+
+1. **The optimisation level.** Whole cohorts of these were never stalls at
+   all -- they wanted `/O2 /Os`. `mulli` by a small constant and a
+   coalesced destination register are the two loud signatures.
+2. **A source shape nobody had tried**, usually one that controls WHERE a
+   value is materialised or WHICH read becomes the CSE representative,
+   rather than one that reorders statements. See "Levers that cracked a
+   recorded stall" above -- three of those six had a recorded mechanism
+   explaining why they were unreachable, and the mechanism was right while
+   the conclusion was wrong every time.
+3. **A layout fact**, most often in a constructor, where a store the
+   compiler deletes is evidence about a base-class boundary.
+
+What has NOT yet moved anything: `tools/permuter.py`'s mutations, which do
+not reach register allocation. That remains the one worth writing.
+
+There are also real boundaries, and they are worth stating so they are not
+re-searched. `sub_826377B0` cannot be finished because retail's own `lwzx`
+operand order is not uniform within the function. `sub_8216C240`'s last word
+is an `or` operand order, which sixteen spellings and 72 flag combinations
+show is not source-readable. And three functions want `/O2`'s register
+allocation with `/Os`'s instruction selection, which no flag combination
+expresses.
 
 ---
 

@@ -41,6 +41,39 @@
 // The hit block recomputes i * 12 with a `mulli` instead of reusing the
 // walking pointer, which is the same strength-reduction split as
 // src/f_name_lookup.cpp.
+//
+// NOT MATCHED, and the two optimisation levels each supply half of it.
+//
+//   /O2      13 of 22 words, 96 bytes. The loop and the miss return are
+//            exact. The hit block expands i * 12 as the shift-add chain
+//            `rlwinm 1 / add / rlwinm 2` -- three words where the target has
+//            one `mulli r11,r10,12` -- so the block is two words long and
+//            everything after it shifts.
+//
+//   /O2 /Os  9 of 21 words, 84 bytes. `mulli r11,r9,12` IS EMITTED, which is
+//            the /Os instruction-selection signature already recorded for
+//            the 12-byte stride in src/t4_span_dispatch.cpp. But /Os then
+//            coalesces both `cntlzw` results into r11, which makes the two
+//            returns' tails textually identical, and MSVC MERGES them: the
+//            hit path ends in `b` to the miss path's `rlwinm r3,r11,27,31,31`
+//            instead of carrying its own copy. The target has both copies,
+//            with different source registers (r4 and r7), so it cannot have
+//            been compiled that way.
+//
+// The register coalescing that /Os does is therefore what ENABLES the tail
+// merge -- two returns are mergeable only once their inputs share a register
+// -- so the size difference and the register difference are one phenomenon,
+// not two.
+//
+// tools/flagsweep.py: 72 combinations, exactly TWO outcomes, 44 giving 13/57
+// and 28 giving 9/57. There is no third setting between them.
+//
+// This is the third function in this batch that wants /O2's register
+// allocation with /Os's instruction selection -- sub_826973C8 (cr6 from /O2,
+// GPRs from /Os) and sub_821FC4D8 (fresh-register float chain from /O2, phi
+// copy from /Os) are the others. Three independent instances say the split
+// is a property of the toolchain configuration and not of any one function's
+// source, and none of the 72 flag combinations expresses it.
 
 struct KeyValue
 {

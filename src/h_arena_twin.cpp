@@ -15,9 +15,11 @@
 // Same registers, same values, operands transposed: the target puts the
 // CURSOR in rA and every source shape tried puts the BASE there. Read
 // f_arena_alloc.cpp for the full account -- the eleven shapes tried there,
-// the 72-combination flag sweep, and why any source that reads the base
-// before the branch collapses the two tails into one and drops the body from
-// 40 words to 37.
+// the thirteen added since (including the named-const-view lever that solved
+// sub_82667EE0, which cannot reach a global's address expression), the
+// 72-combination flag sweep, and why any source that reads the base before
+// the branch collapses the two tails into one and drops the body from 40
+// words to 37.
 //
 // NINE MORE SHAPES were tried on this twin, all 33 of 35 with exactly those
 // two words transposed and nothing else moved:

@@ -225,6 +225,30 @@ def main(argv):
     img = Image()
     inv = dict(load_inventory())
 
+    # No (address, symbol) pair twice. Several agents append to the manifest
+    # concurrently and two of them can write the same row -- one did, and the
+    # function was then compiled twice, spliced twice over itself, and
+    # COUNTED twice. The bytes stay correct, which is exactly why nothing
+    # else catches it: the total silently overstates how much is matched.
+    seen = {}
+    dups = []
+    for src, target, want_sym, _uf in rows:
+        key = (target, want_sym)
+        if key in seen:
+            dups.append((target, want_sym, seen[key], src.name))
+        else:
+            seen[key] = src.name
+    if dups:
+        print("DUPLICATE MANIFEST ROW(S) -- the same function would be built,")
+        print("spliced and counted more than once:")
+        for target, sym, first, second in dups:
+            print("    %08X %-24s in %s and %s"
+                  % (target, sym or "-", first, second))
+        print("")
+        print("Remove the extra row(s). This is a concurrent-append")
+        print("collision, not a source problem.")
+        return 2
+
     print("Building %d function(s) from %s\n" % (len(rows), MANIFEST))
     patches = []
     failures = 0

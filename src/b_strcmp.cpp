@@ -55,6 +55,21 @@
 // independently of the order they are written in. That is a scheduling or
 // CR-allocation property, the same class of thing as the six stalls in
 // MATCHED.md, and nothing reachable from source order or flags changes it.
+//
+// STILL 9 of 11 words. Sixteen more shapes were compiled at BOTH levels and
+// every one reproduces the same split -- r8/r7 with cr6 at /O2, r10/r9 with
+// cr0 at /Os: declaration order of `c` and `d` in both orders; a local copy
+// of the first pointer declared before and after the ints; the second byte
+// named, declared first and second; the increments in either order and
+// written as `+= 1`; a goto loop; `const unsigned char*` parameters;
+// `break` instead of the early return; the difference written
+// `-(int)*b + c`; a dead extra local pointer carrying the increment; and
+// top-level `const` on the parameters with the walk on copies (which
+// instead triggers a loop-invariant-delta transform, `lbzx r8,r10,r11`).
+// The two peeling shapes get r10/r9 at /O2 and cost 12 to 20 bytes.
+//
+// The GPR pair and the CR field are properties of the optimisation level
+// and not of the source, and they disagree about which level is right.
 
 #include "types.h"
 

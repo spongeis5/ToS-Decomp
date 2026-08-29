@@ -26,6 +26,25 @@
 // top of the constructor before any user code exists to reorder with. So
 // WHEN A STORE OF A VTABLE ADDRESS COMES FIRST AND WILL NOT MOVE, THE SOURCE
 // IS A CONSTRUCTOR, not an initialise-this-struct function.
+//
+// NOT MATCHED: 8 of 10 words. The two that differ are the FIRST TWO STORES,
+// transposed and nothing else -- we emit `stw r11,8(r3)` where the target
+// emits `stw r9,0(r3)`, and vice versa. The four setup instructions ahead of
+// them (lis, li r11,0, addi r9, li r8,1) are identical in both, so the
+// vtable address is ready at exactly the same cycle in both and this is not
+// the gap-filling exception above: it is a pure TIE-BREAK between two ready
+// stores. The target issues the one whose value was defined LATER (r9, from
+// the addi at slot 3); we issue the one defined EARLIER (r11, from the li at
+// slot 2).
+//
+// Eight class and constructor shapes were compiled at BOTH levels and all
+// eight put the vptr store second: a member initialiser list; an unused
+// constructor parameter; a second virtual function; the zeros written
+// through a named local; `enabled` as `bool` rather than `u8`; an empty base
+// class carrying the virtual (which splits the vptr store into the base
+// constructor and is not this function); `this` copied into a named local;
+// and the baseline. At /O2 /Os the vtable register changes from r9 to r10
+// and the transposition remains, so the flag does not reach it either.
 struct Listener
 {
     /* 0x00 */ /* vptr */

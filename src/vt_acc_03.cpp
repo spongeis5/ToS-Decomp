@@ -13,7 +13,36 @@
 //
 // Do not hand-edit: regenerate.
 
+struct VObj;
+typedef void (*VFn)(VObj*);
+struct VTbl { VFn slot[256]; };
+struct VObj { VTbl* vt; };
+
+void Acc_821F97C0(void* p, u32 v) { *(u32*)((char*)p + 8) = v; }
+u32 Acc_821F9910(void* p) { return *(u32*)((char*)p + 0); }
+void Acc_821FD130(VObj* p) { p->vt->slot[5](p); }
+void Acc_821FD140(void* p, u32 v) { *(u32*)((char*)p + 20) = v; }
+u32 Acc_822015E0(void* p) { return *(u32*)((char*)p + 584); }
+u32 Acc_82202208(void* p) { return *(u32*)((char*)p + 480); }
+void Acc_82202658(void* p, u32 v) { *(u32*)((char*)p + 52) = v; }
+u32 Acc_822158C0(void* p) { return *(u32*)((char*)p + 416); }
+void* Acc_82216DA0(void* p) { return (char*)p + 3912; }
+void Acc_82216DA8(void* p)
+{
+    VObj* q = *(VObj**)((char*)p + 4);
+    q->vt->slot[31](q);
+}
+void Acc_82216DC0(void* p)
+{
+    VObj* q = *(VObj**)((char*)p + 4);
+    q->vt->slot[30](q);
+}
+float Acc_82216DD8(void* p) { return *(float*)((char*)p + 5192); }
 void* Acc_82216DE0(void* p) { return (char*)p + 72; }
+void Acc_82219748(VObj* p) { p->vt->slot[21](p); }
+void Acc_82219758(VObj* p) { p->vt->slot[22](p); }
+void Acc_82219768(VObj* p) { p->vt->slot[25](p); }
+void Acc_82219778(VObj* p) { p->vt->slot[26](p); }
 u8 Acc_8221E048(void* p) { return *(u8*)((char*)p + 231); }
 u8 Acc_8221E050(void* p) { return *(u8*)((char*)p + 232); }
 void Acc_8221E058(void* p, u8 v) { *(u8*)((char*)p + 132) = v; }
@@ -25,6 +54,7 @@ float Acc_8221E0B0(void* p) { return *(float*)((char*)p + 120); }
 void* Acc_82227698(void* p) { return (char*)p + 200; }
 void* Acc_82228488(void* p) { return (char*)p + 132; }
 float Acc_82228490(void* p) { return *(float*)((char*)p + 152); }
+void Acc_8224BD10(VObj* p) { p->vt->slot[2](p); }
 u32 Acc_8224BF80(void* p) { return *(u32*)((char*)p + 336); }
 u32 Acc_8224BF88(void* p) { return *(u32*)((char*)p + 340); }
 u8 Acc_8224C110(void* p) { return *(u8*)((char*)p + 56); }
@@ -35,21 +65,8 @@ void Acc_8224D5A0(void* p, u32 v) { *(u32*)((char*)p + 268) = v; }
 void* Acc_8224DDA0(void* p) { return (char*)p + 580; }
 u32 Acc_8224DDA8(void* p) { return *(u32*)((char*)p + 112); }
 void Acc_8224DE30(void* p, u32 v) { *(u32*)((char*)p + 1088) = v; }
-void* Acc_8224FF08(void* p) { return (char*)p + 4; }
-u8 Acc_822520E0(void* p) { return *(u8*)((char*)p + 13); }
-void* Acc_82252328(void* p) { return (char*)p + 100; }
-u8 Acc_8225B9D0(void* p) { return *(u8*)((char*)p + 16); }
-u8 Acc_8225B9F0(void* p) { return *(u8*)((char*)p + 17); }
-void* Acc_8225ECF8(void* p) { return (char*)p + 689; }
-void* Acc_82261490(void* p) { return (char*)p + 144; }
-void* Acc_82261870(void* p) { return (char*)p + 192; }
-u32 Acc_82261E98(void* p) { return *(u32*)((char*)p + 128); }
-void* Acc_82266330(void* p) { return (char*)p + 104; }
-u32 Acc_82270198(void* p) { return *(u32*)((char*)p + 44); }
-void Acc_822701A0(void* p, u32 v) { *(u32*)((char*)p + 44) = v; }
-u32 Acc_82270210(void* p) { return *(u32*)((char*)p + 52); }
-void* Acc_8228BE90(void* p) { return (char*)p + 56; }
-u32 Acc_8228CF28(void* p) { return *(u32*)((char*)p + 56); }
-u32 Acc_822D8898(void* p) { return *(u32*)((char*)p + 4); }
-u8 Acc_822D88A0(void* p) { return *(u8*)((char*)p + 48); }
-u32 Acc_82315CDC(void* p) { return *(u32*)((char*)p + 88); }
+void Acc_8224E050(void* p)
+{
+    VObj* q = *(VObj**)((char*)p + 8);
+    q->vt->slot[44](q);
+}

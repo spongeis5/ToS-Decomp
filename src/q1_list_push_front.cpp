@@ -46,6 +46,29 @@
 //
 // `lhz` with no `extsh` on either field, and both used unwidened in `add` and
 // `lwzx`, so the offset is an unsigned 16-bit field.
+//
+// NOT MATCHED: 18 of 28 words. EVERY INSTRUCTION AND EVERY OFFSET IS RIGHT
+// and the size is exact; r9 and r10 are TRANSPOSED throughout. The target
+// keeps `off` in r10 and uses r9 for the short-lived values -- the
+// `flags & 1` temp first, then `pp` -- and we do the opposite.
+//
+// MATCHED.md's rule for a transposed pair is "change the flag", and that is
+// not available here: /O2 /Os rewrites the guard as `clrlwi.` and the body
+// as 96 bytes, four words shorter, which is the OTHER documented /Os
+// signature and rules it out on its own. Its companion rule, "try the member
+// form when the first argument is an object pointer", also does nothing.
+//
+// Ten shapes were compiled, all 112 bytes with the same transposition:
+// `old` and `off` declared in either order; the flag word named in a local
+// declared first and declared last; the flag test named as a `bool`; the
+// test written `(h->flags & 1) != 0`; `off` declared `u16` instead of `u32`
+// (which is 128 bytes -- it re-masks at all four uses, so the field is read
+// into a 32-bit local); the watch pointer read as `h->watch` rather than
+// `*pp`; a const view of the link offset; and the member-function form.
+//
+// So this is a register-NAMING difference with the whole instruction stream
+// already correct, and neither of the two levers that normally move one
+// applies.
 struct LNode;
 
 struct LList

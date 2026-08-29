@@ -45,6 +45,47 @@
 // commutative float multiply carry no information, so nothing is spent there.
 //
 // 0x82002D40 is the same 1.0f src/j_inv_or_clamp.cpp loads.
+//
+// ---------------------------------------------------------------------
+// 13 of 19 words, up from 8 of 19, and the six that differ are ONE MISSING
+// INSTRUCTION -- the dead `fmr f0,f13` -- with everything after it shifted
+// by a word. Every instruction before 821FC514 is now identical.
+//
+// WHAT MOVED IT: THE INNER CLAMP'S FAST PATH IS AN EARLY STORE AND RETURN,
+// NOT AN ASSIGNMENT TO THE SHARED LOCAL. That decides which of `n` and
+// `ceiling` gets the phi register, and everything else follows:
+//
+//   t = (n < ceiling) ? n : ceiling;      lfs f13,12(r3) then lfs f0,4(r3);
+//   (and every other single-store form)   fmadds f0,... ; fcmpu cr6,f0,f13 ;
+//                                         blt- -- n is in the phi register
+//                                         f0, ceiling is spilled to f13,
+//                                         and the CEILING store is the one
+//                                         MSVC tail-duplicates.  8 of 19.
+//
+//   if (n < ceiling) { s->value = n;      lfs f0,4(r3) then lfs f13,12(r3);
+//                      return; }          fmadds f13,... ; fcmpu cr6,f13,f0 ;
+//   t = ceiling;                          bge- -- the target's registers,
+//                                         its compare operand order and its
+//                                         branch polarity exactly.  13 of 19.
+//
+// So the register assignment inside the clamp is decided by whether the
+// fast path RETURNS or falls into the shared tail, and not by the operand
+// order of the comparison, the polarity of the `if`, or which value is
+// named in a local. Ten single-store spellings were measured -- ternary
+// both ways, if/else both ways, assign-then-clamp, `!(n < c)`, a named
+// `c`, a min() helper, and the outer test inverted -- and all ten give
+// `fmadds f0` and 84 bytes.
+//
+// WHAT IS LEFT is the dead `fmr f0,f13` alone. It is the phi copy for the
+// fast path, which this shape no longer has -- the early return stores f13
+// and leaves. So the target wants BOTH: the phi copy of a single-store
+// source AND the register assignment of an early-return one. /O2 /Os
+// produces the copy (`fmr f0,f13` then `b`) but coalesces the whole
+// length-squared chain into f0, which costs the first eight words; no
+// spelling of the dot product recovers the fresh-register form at that
+// level. So the two halves are available at different optimisation levels
+// and not together, which is the same shape as sub_826973C8's cr6/GPR
+// split.
 
 struct ClampState
 {
@@ -72,7 +113,12 @@ void ClampAdvance(ClampState* s, const Point3* v, float step)
     if (v->x * v->x + v->y * v->y + v->z * v->z < s->limit)
     {
         float n = s->rate * step + s->value;
-        t = (n < s->ceiling) ? n : s->ceiling;
+        if (n < s->ceiling)
+        {
+            s->value = n;
+            return;
+        }
+        t = s->ceiling;
     }
     else
     {

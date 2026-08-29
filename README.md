@@ -714,58 +714,94 @@ knows it.
 
 ### What still resists
 
-Twenty-two near-misses, all in `src/attempts.txt`, all exported to objdiff,
-each with its measurement written into its own source file. Every one has the
-right instructions and differs only in a decision made inside the compiler.
+Thirty-one near-misses, all in `src/attempts.txt`, each with its measurement
+written into its own source file. Get the current scores -- at BOTH
+optimisation levels, with relocated words excluded -- with
 
-```
-82806FD0  chunked_at        branch polarity -- bgtlr vs ble-, a probability call
-826C1480  init12            instruction order -- one store among five loads
-8215E5B0  arg_shuffle       register assignment across an argument permutation
-82600AD0  list_insert       a reloaded field the compiler will not keep in a register
-82639C38  fadd_fwd          an extra mr to keep the object alive across a float load
-827618E8  wstr_compare      loop rotation; counts in callee-saved r30/r31
-821A5350  m_state_1or2       4/8   the boolean stays in r11, zero-extended at the end
-825FE880  m_ctor_94          8/12  the vtable store will not move to the front
-826973C8  b_strcmp           9/11  the CR FIELD of one compare, cr6 against cr0
-8215ED28  b_bounds_at       11/12  `lwzx` operands swapped; same address either way
-82606EC8  f_arena_alloc     33/40  the operand order of two `add`s
-82606FD8  h_arena_twin      33/40  its twin, the same two words
-82202D08  m_pick_slot        2/11  folds a guard into beqlr; target keeps one exit
-82155080  e_normalize4      45/51  two `fmuls` operand slots
-8214F7E8  e_axis_project     1/47  not close; the load census is in the source
-821A5270  m_copy_adjust      0/10  the copy is integer, so a type here is not float
-827261D8  k_kind_weight     84/91  one case body's register allocation
-82154ED8  j_quat_to_mtx     25/44  one `fmuls` operand slot, carried downstream
-82202B50  j_init_defaults    5/29  where the setup block sits
-82667EE0  VectorGrow        31/38  one `mullw` operand order -- MECHANISM KNOWN
-8217E808  m_tree_lookup      7/11  every instruction right; two tail blocks swapped
-82583290  m_audio_ctor      35/38 stores in EXACT order; DSE removes three
+```bash
+python tools/sweep.py --attempts
 ```
 
-**Three of these are now explained rather than merely recorded**, which is
-the difference between a stall and a fact:
+That command is the ground truth and the comments in the files may lag it.
+The list is not reproduced here any more, because it was reproduced here
+three times and was wrong by the third.
 
-* `VectorGrow` is displaced by an EARLIER READ of the same field making the
-  first occurrence the CSE representative. Proved by its sibling
-  `VectorReserve`, which holds the identical multiply with no earlier read
-  and comes out right first time. Not something the source can undo.
-* `m_audio_ctor` loses three words to MSVC's dead-store elimination removing
-  an early write the retail build kept. So the retail source has an INLINING
-  BOUNDARY a single translation unit cannot express — a constructor compiled
-  as its own function and inlined after DSE had already run. The first thing
-  found here that one `.cpp` provably cannot reproduce.
-* `f_arena_alloc` and `h_arena_twin` are the same two `add` operand orders,
-  and `layout.py`'s sibling experiment says operand order follows local
-  DECLARATION order — which is unreachable here, because both operands are
-  global fields with no locals to reorder.
+**Six were solved after being written down as stalls, and three of those had
+a recorded MECHANISM saying why they could not be solved.** That is the
+useful part of this section, so it is worth being exact about what the wrong
+explanations were:
 
-Two things are known about the class as a whole. Translation-unit context
-does NOT affect codegen — the same function compiled six ways with different
-company gives byte-identical output (§7m) — so reconstructing whole files
-would not help. And `tools/permuter.py`'s seven mutations do not reach
-register allocation, so **the next mutation to write is one that changes
-register PRESSURE**, not statement order.
+* `82667EE0` **VectorGrow**. This file said the `mullw` operand order was
+  displaced by an earlier read making the first occurrence the CSE
+  representative, and that this was "not something the source can undo". It
+  is. A **named const-qualified local view** -- `const ReserveVector* c = v;`
+  -- breaks the value-number tie and it comes out 32 of 32. The local must be
+  NAMED: an inline cast and an inlined `const` accessor are both folded back
+  to the same value number. A `const&`, a base-class pointer, a different
+  struct at the same offset, a union view and an `s32*` view all work.
+  The mechanism as recorded was correct; the conclusion drawn from it was
+  not.
+* `82806FD0` **chunked_at** was recorded as a branch-probability call,
+  `bgtlr` against `ble-`. It is not a probability question at all. A default
+  return materialised ABOVE a guard means a single return through a
+  zero-initialised accumulator -- `void* r = 0; if (...) r = ...; return r;`
+  -- not an early return. The early `li r3,0` clobbers r3, which forces the
+  `mr` and defers the base load; eight of the eleven wrong words were
+  downstream of that one instruction. 21 of 21 at `/O2 /Os`.
+* `82600AD0` **list_insert** was recorded as "a reloaded field the compiler
+  will not keep in a register". A load's position relative to a store it
+  might alias is SOURCE ORDER -- MSVC will not hoist it -- so writing
+  `node->next = head->next;` before `node->prev = head;` fixes it, 7 of 7.
+  The stores then emerge in the opposite order from the source, because the
+  `prev` store is the one instruction available to cover the load's latency.
+  This is the third exception found to "store order is source order".
+* `8217E808` **m_tree_lookup**, 16 of 16. Writing the loop exit test at the
+  END of each arm rather than as the loop condition merges both tests into
+  one latch and all three zero-returns into one block. The tell is that the
+  exit block sits BETWEEN the latch and the out-of-line arm.
+* `8215ED28` **b_bounds_at**, 12 of 12. An AND-mask on the index flips `lwzx`
+  to index-in-rA: `items[i & 0x3FFFFFFF]`. The mask is invisible in the
+  output -- keeping all 30 low bits is absorbed into the `rlwinm` the `* 4`
+  already needed -- so only the load's operand order moves. MSVC matches
+  `base + (index << scale)` as an addressing mode; a masked index misses that
+  pattern and falls back to a generic add.
+* `821F5EE0`, 22 of 22, by COUNTING THE MASKED BOOLS: one per inlined bool
+  helper, plus one for a bool return. Two masks meant one helper, so the
+  trailing comparisons were further terms of the same `||` chain.
+
+**What that record should change.** Every one of those three explanations
+was arrived at honestly, from a real measurement, and each was written down
+as settled. The measurements were right and the conclusions were wrong, in
+the same direction each time: an observation about WHY the compiler did
+something became a claim that nothing could be done about it. A mechanism
+explains a difference; it does not bound the search. So a near-miss with a
+named mechanism is not more finished than one without -- if anything it is
+the more promising target, because the mechanism says which lever to reach
+for.
+
+**Still genuinely open, and the honest reasons:**
+
+* `82583290` **m_audio_ctor** loses words to MSVC's dead-store elimination
+  removing an early write the retail build kept, which implies an INLINING
+  BOUNDARY a single translation unit cannot express. Reached independently a
+  second time on `82700B30`: a flat constructor loses all three duplicate
+  stores to DSE (144 bytes against 176) and only a real base subobject keeps
+  a vptr assignment alive.
+* `82606EC8` / `82606FD8`, the arena twins, 33 of 35. The const-view lever
+  that cracked VectorGrow was tried and has a LIMIT worth recording: it works
+  on fields reached through a pointer parameter, not on a global's
+  `lis`/`addi` address expression -- which is the same reason declaration
+  order cannot reach these either.
+* `826377B0`, 69 of 74, is the counter-example in MATCHED.md: `lwzx` operand
+  order is not uniform WITHIN the retail function, so no single source
+  convention produces both halves.
+* Three functions -- `826973C8`, `821FC4D8`, `8215BD60` -- each want `/O2`'s
+  register allocation with `/Os`'s instruction selection, and none of the 72
+  flag combinations `flagsweep.py` tries expresses that. That is a real
+  boundary of the flag axis rather than a fact about any of the three.
+
+`tools/permuter.py`'s mutations still do not reach register allocation, so
+**a mutation that changes register PRESSURE remains the one worth writing**.
 
 **Larger, in rough order of value:**
 
