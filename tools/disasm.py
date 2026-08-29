@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from peimage import Image, load_functions
+from peimage import Image, load_inventory
 
 import ppcdis
 
@@ -44,7 +44,7 @@ def main(argv):
         print(__doc__)
         return 1
     img = Image()
-    funcs = load_functions()
+    funcs = load_inventory()
     start = int(argv[1], 16)
 
     back = 0
@@ -58,7 +58,7 @@ def main(argv):
                 owner = (a, s)
                 break
         if owner is None:
-            print("%08X is not inside any .pdata function; "
+            print("%08X is not inside any known function; "
                   "give an instruction count instead" % start)
             return 1
         start, count = owner[0], owner[1] // 4
