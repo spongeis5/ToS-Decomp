@@ -57,6 +57,19 @@
 // find. The two arrangements tried (a Flags member with its own two-level
 // constructor, and a third base at 16) both raise register pressure enough
 // to spill r30 and are further away, not nearer.
+//
+// THE HELPER-ON-THE-BITFIELD-WORD LEVER, which is what the dead `addi` says
+// and which took sub_82700DF8 from 160 bytes to its exact 168 in this same
+// batch, DOES NOT WORK HERE. Giving the +16 word its own `Flags` struct and
+// an inlined `Set16(Flags*)` inside BaseB's constructor is 8 of 36; the same
+// for the derived class's +28 word is 184 bytes and 0 of 36; both together
+// are 168 bytes, eight SHORT. The baseline two-base form is 12 of 36 at the
+// correct 176 and remains the best of the four.
+//
+// So a dead `addi rX,r3,N` does not always mean a helper took that address.
+// On sub_82700DF8 it did -- the same fingerprint, and an inlined helper on
+// the bitfield word was worth the last two words there. Here every way of
+// producing it costs more elsewhere than it buys.
 
 #include "types.h"
 

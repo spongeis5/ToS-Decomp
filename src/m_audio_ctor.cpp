@@ -35,31 +35,67 @@
 // its emitted relative order. The emitted alternation between them is
 // dual-issue scheduling, not the source alternating.
 //
-// NOT MATCHED, and the reason is worth more than the match would be.
-// The store ORDER is exactly right -- 35 integer stores emitted in precisely
+// NEAR MISS: 42 of 56 non-relocated words at the EXACT size of 272 bytes --
+// up from 1 of 53 at 260, and the thing that moved it refutes what this file
+// used to say.
+//
+// The store ORDER is exactly right: 35 integer stores emitted in precisely
 // the target's sequence, which is what the two-stream rule predicts for a
 // 46-field constructor and is the strongest confirmation of that lever so
-// far. What is missing is three words: MSVC's DEAD STORE ELIMINATION removes
-// the early write of +0xDC/+0xE0/+0xE4, because the last three stores of the
-// function overwrite them.
+// far.
 //
-// The retail build kept both. Four shapes were tried -- the six statements
-// written out flat, the early set moved before and after the store of `this`
-// (in case the object's address escaping made DSE conservative), a nested
-// member type with a constructor and a Reset(), and the two orders swapped.
-// The flat forms are all 260 bytes with the same three stores gone; the
-// member form is 276.
+// WHAT WAS MISSING was three words: MSVC's dead-store elimination removed
+// the EARLY write of +0xDC/+0xE0/+0xE4, because the last three stores of the
+// function overwrite them. This file concluded from that -- and README.md
+// repeated it -- that "the retail source has an INLINING BOUNDARY that a
+// single translation unit cannot express". THAT WAS WRONG. The measurement
+// was right and the conclusion was not, which is the same failure the
+// project has now recorded four times.
 //
-// So the retail source has an INLINING BOUNDARY that a single translation
-// unit cannot express: a base or member constructor compiled as its own
-// function and inlined after dead-store elimination had already run, which
-// is why its stores survive. That is a fact about how the original was
-// built, not about this source, and it is the first thing found here that
-// one .cpp file provably cannot reproduce.
+// WRITING THE EARLY GROUP THROUGH A POINTER TO THE MEMBER keeps it:
 //
-// The remaining difference is exactly those three words plus the position of
-// the `this` self-store, which the scheduler hoists to the front and which
-// no source order moves -- the "a store with no dependency is hoisted" lever.
+//     static void ResetVoice(void** v)
+//     {
+//         ((s32*)v)[2] = 0;
+//         v[0] = v;
+//         v[1] = v;
+//     }
+//     ...
+//     ResetVoice((void**)&a->voiceNext);
+//
+// Once the address is taken, MSVC can no longer prove that the later
+// `a->voiceNext = &a->voiceNext` overwrites the same location, and both
+// groups survive: 272 bytes, the target's size, and 42 of 56 words. A bare
+// `void** v = (void**)&a->voiceNext;` local instead of the helper is
+// identical, so it is the pointer and not the call.
+//
+// THE DIRECTION MATTERS, and this is the sharp part. Pinning the LATE group
+// instead -- helper or bare local -- is 288 bytes, sixteen OVER, and 0 of
+// 56: it keeps both groups AND stops MSVC folding the tail's three stores
+// into the ones already there. Pinning both is likewise 288. Only the early
+// group may be pinned. Six shapes were measured to establish that.
+//
+// This is the same lever, and the same direction of error, as sub_82700DF8
+// in this batch: another constructor whose duplicated stores DSE removed,
+// also called an inlining boundary, also solved inside one file -- there by
+// real base classes plus an inlined helper on a bitfield word, here by one
+// pointer.
+//
+// WHAT IS STILL WRONG, thirteen words, is the head of the function. The
+// target issues `stw r11,12(r3)` (f0C = 0) first, then next, then prev, then
+// the vtable, filling the gaps between them with the four `lis`es it needs
+// later; ours hoists the vtable store to the front because its lis/addi pair
+// is ready first, and the four `lis` destination registers then differ all
+// the way down. Four more shapes were measured against that and none is more
+// than a word better: `&a->vt` pinned (42), `&a->f0C` pinned (43), the next/
+// prev pair pinned (42), and the vtable written first in source (43). The
+// last two are the informative pair -- moving the vtable assignment to the
+// front of the source does NOT move its store to the front of the output,
+// so the hoist is the scheduler's and not the source's.
+//
+// The `self` store -- `a->self = a` -- is still emitted earlier than its
+// source position, which is the "a store with no dependency is hoisted"
+// lever, and no source order moves it.
 struct AudioVT;
 extern const AudioVT kAudioVTable_82060AA8;
 
@@ -128,15 +164,26 @@ ASSERT_OFFSET(AudioEmitter, self, 0xA4);
 ASSERT_OFFSET(AudioEmitter, voiceNext, 0xDC);
 ASSERT_OFFSET(AudioEmitter, fF4, 0xF4);
 
+/* The EARLY reset of the voice link. It has to go through a POINTER: written
+   as three member stores it is dead-store-eliminated against the identical
+   group at the end of the constructor, and the body comes out 260 bytes with
+   1 of 53 words. Taking the address removes MSVC's proof that the two groups
+   write the same locations. Pinning the LATE group instead is 288 bytes --
+   it also stops the tail folding -- so only this one may be pinned. */
+static void ResetVoice(void** v)
+{
+    ((s32*)v)[2] = 0;
+    v[0]         = v;
+    v[1]         = v;
+}
+
 void ConstructAudioEmitter(AudioEmitter* a)
 {
     a->f0C       = 0;
     a->next      = &a->next;
     a->prev      = &a->next;
     a->vt        = &kAudioVTable_82060AA8;
-    a->fE4       = 0;
-    a->voiceNext = &a->voiceNext;
-    a->voicePrev = &a->voiceNext;
+    ResetVoice((void**)&a->voiceNext);
     a->f1C       = 0;
     a->f18       = 0;
     a->f20       = 0;
