@@ -17027,6 +17027,110 @@
       }
     },
     {
+      "name": "sub_8262FE90 (w4_store_g8)",
+      "target_path": "build/objdiff/target/w4_store_g8_8262FE90.o",
+      "base_path": "build/objdiff/base/w4_store_g8_8262FE90.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w4_store_g8.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_8258A730 (w4_sentinel_b)",
+      "target_path": "build/objdiff/target/w4_sentinel_b_8258A730.o",
+      "base_path": "build/objdiff/base/w4_sentinel_b_8258A730.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w4_sentinel_b.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_8276D308 (w4_get_or_null)",
+      "target_path": "build/objdiff/target/w4_get_or_null_8276D308.o",
+      "base_path": "build/objdiff/base/w4_get_or_null_8276D308.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w4_get_or_null.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_8261A3D8 (w4_get12)",
+      "target_path": "build/objdiff/target/w4_get12_8261A3D8.o",
+      "base_path": "build/objdiff/base/w4_get12_8261A3D8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w4_get12.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_8277F310 (w4_zeroctor)",
+      "target_path": "build/objdiff/target/w4_zeroctor_8277F310.o",
+      "base_path": "build/objdiff/base/w4_zeroctor_8277F310.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w4_zeroctor.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82226F38 (w4_scan4_clear)",
+      "target_path": "build/objdiff/target/w4_scan4_clear_82226F38.o",
+      "base_path": "build/objdiff/base/w4_scan4_clear_82226F38.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w4_scan4_clear.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82761AA8 (w4_and2_flag)",
+      "target_path": "build/objdiff/target/w4_and2_flag_82761AA8.o",
+      "base_path": "build/objdiff/base/w4_and2_flag_82761AA8.o",
+      "metadata": {
+        "complete": true,
+        "source_path": "src/w4_and2_flag.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_825F4740 (w4_sentinel_a)",
+      "target_path": "build/objdiff/target/w4_sentinel_a_825F4740.o",
+      "base_path": "build/objdiff/base/w4_sentinel_a_825F4740.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w4_sentinel_a.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
       "name": "sub_826C1480 (init12)",
       "target_path": "build/objdiff/target/init12_826C1480.o",
       "base_path": "build/objdiff/base/init12_826C1480.o",
@@ -17514,6 +17618,45 @@
       "metadata": {
         "complete": false,
         "source_path": "src/y2_relocate_recs.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_821BFCA8 (w4_at52)",
+      "target_path": "build/objdiff/target/w4_at52_821BFCA8.o",
+      "base_path": "build/objdiff/base/w4_at52_821BFCA8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w4_at52.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82710230 (w4_pick22)",
+      "target_path": "build/objdiff/target/w4_pick22_82710230.o",
+      "base_path": "build/objdiff/base/w4_pick22_82710230.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w4_pick22.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_821A6260 (w4_vec5_init)",
+      "target_path": "build/objdiff/target/w4_vec5_init_821A6260.o",
+      "base_path": "build/objdiff/base/w4_vec5_init_821A6260.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w4_vec5_init.cpp",
         "progress_categories": [
           "nearmiss"
         ],

@@ -11,7 +11,7 @@ the inventory is wrong in both directions, short where a tail call's dead
 `blr` was not counted and long where one `.pdata` row covers several
 frameless bodies.
 
-**1307 functions, 54836 bytes.** Verify all of them, plus the reconstructing
+**1315 functions, 55148 bytes.** Verify all of them, plus the reconstructing
 build and six negative controls, with one command:
 
 ```bash
@@ -22,7 +22,7 @@ Every match is also a row in `src/manifest.txt`, so `tools/build.py` compiles
 it, resolves its relocations against the retail bytes and splices it into
 `.text`. Nothing here is a match on `match.py`'s word-comparison alone.
 
-SPLIT: 454 hand-written, 34948 bytes; 818 generated, 8192 bytes; 35 upstream, 11696 bytes.
+SPLIT: 462 hand-written, 35260 bytes; 818 generated, 8192 bytes; 35 upstream, 11696 bytes.
 <!-- the line above is regenerated; edit tools/matched_table.py, not this -->
 
 The two halves are not comparable and the count should never be quoted
@@ -37,7 +37,7 @@ half does, however much larger it gets. (The counts live in the SPLIT line
 above, which is regenerated; repeating them here is how a document comes to
 contradict itself two commits later.)
 
-**The retail build did NOT use one optimisation level everywhere.** 139 of
+**The retail build did NOT use one optimisation level everywhere.** 141 of
 these need `/O2 /Os`; the rest need plain `/O2`. See "Flags are a property of
 the translation unit" below -- this was claimed the other way round for a
 while and the claim was wrong.
@@ -336,6 +336,7 @@ while and the claim was wrong.
 | `82203890` | 16 | 4 | `h1_inner_bit0.cpp` | - | `/O2` |
 | `822152C0` | 96 | 4 | `m29_set_frame_axes.cpp` | - | `/O2` |
 | `82218FB0` | 36 | 4 | `n1_submit12.cpp` | - | `/O2` |
+| `82226F38` | 48 | 4 | `w4_scan4_clear.cpp` | - | `/O2` |
 | `82249E18` | 92 | 4 | `l17_set_sel_pending.cpp` | - | `/O2` |
 | `8224BA20` | 84 | 4 | `l10_deep_ready_b.cpp` | IsReadyKind7 | `/O2` |
 | `82251AC8` | 24 | 4 | `m20_clear_and_zero64.cpp` | - | `/O2` |
@@ -351,6 +352,7 @@ while and the claim was wrong.
 | `82547880` | 116 | 4 | `m32_list_find_key48.cpp` | - | `/O2` |
 | `825492B8` | 32 | 4 | `m25_out_or_err37.cpp` | - | `/O2` |
 | `8257EC60` | 128 | 4 | `n16_dsp_sink_ctor.cpp` | DspSink | `/O2` |
+| `8258A730` | 44 | 4 | `w4_sentinel_b.cpp` | - | `/O2` |
 | `825914B8` | 96 | 4 | `m30_query_ready.cpp` | - | `/O2` |
 | `825B9970` | 20 | 4 | `l1_clear_triple_b.cpp` | - | `/O2` |
 | `825B9E20` | 20 | 4 | `l2_low3_clear.cpp` | - | `/O2` |
@@ -376,7 +378,9 @@ while and the claim was wrong.
 | `826F99A0` | 68 | 4 | `l20_shape_collection_ctor.cpp` | ??0hkpShapeCollection@@QAA@IE@Z | `/O2` |
 | `82726170` | 28 | 4 | `m23_elem12_addr.cpp` | - | `/O2` |
 | `8272CB78` | 36 | 4 | `n6_copy4_bytes.cpp` | - | `/O2` |
+| `82761AA8` | 40 | 4 | `w4_and2_flag.cpp` | - | `/O2 /Os` |
 | `8277DFF0` | 132 | 4 | `n10_pair_integrate.cpp` | - | `/O2 /Os` |
+| `8277F310` | 56 | 4 | `w4_zeroctor.cpp` | - | `/O2` |
 | `827865F0` | 24 | 4 | `m22_relative_point_call.cpp` | - | `/O2` |
 | `82786608` | 32 | 4 | `m27_relative_rect_call.cpp` | - | `/O2` |
 | `82790F80` | 20 | 4 | `l6_vcall0_second_arg.cpp` | - | `/O2 /Os` |
@@ -424,8 +428,11 @@ while and the claim was wrong.
 | `82581448` | 40 | 3 | `m60_wstrcopy_n.cpp` | - | `/O2` |
 | `825A39C8` | 372 | 3 | `y2_rate_table.cpp` | - | `/O2` |
 | `825ACB20` | 40 | 3 | `m61_clear_and_addref.cpp` | - | `/O2` |
+| `825F4740` | 48 | 3 | `w4_sentinel_a.cpp` | - | `/O2 /Os` |
 | `82600960` | 60 | 3 | `m70_hash_until_brace.cpp` | - | `/O2` |
 | `82606158` | 20 | 3 | `l21_global_pair_first.cpp` | - | `/O2` |
+| `8261A3D8` | 12 | 3 | `w4_get12.cpp` | - | `/O2` |
+| `8262FE90` | 16 | 3 | `w4_store_g8.cpp` | - | `/O2` |
 | `82691B70` | 24 | 3 | `l29_col0_length.cpp` | - | `/O2 /Os` |
 | `82691B88` | 24 | 3 | `l30_col1_length.cpp` | - | `/O2 /Os` |
 | `82698E08` | 60 | 3 | `l43_store_quad.cpp` | SetRow | `/O2` |
@@ -433,6 +440,7 @@ while and the claim was wrong.
 | `82706950` | 36 | 3 | `m58_release_if_not_default.cpp` | - | `/O2 /Os` |
 | `827249B8` | 68 | 3 | `l48_fill_neg1.cpp` | - | `/O2` |
 | `82727138` | 16 | 3 | `m41_elem4_at0.cpp` | - | `/O2` |
+| `8276D308` | 48 | 3 | `w4_get_or_null.cpp` | - | `/O2` |
 | `82786628` | 60 | 3 | `m71_sync_point_delta.cpp` | - | `/O2` |
 | `827882D0` | 16 | 3 | `m42_forward_zeros.cpp` | - | `/O2` |
 | `827EE558` | 52 | 3 | `m64_value_or_vcall.cpp` | - | `/O2 /Os` |

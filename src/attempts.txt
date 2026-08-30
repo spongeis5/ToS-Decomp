@@ -57,3 +57,6 @@ src/z3_ctor_inner_vt.cpp        821AE070
 src/y1_ctor_s28_m56.cpp         821AE070  ??0Obj821AE070@@QAA@XZ
 src/y2_count_tokens.cpp          8215A5C8
 src/y2_relocate_recs.cpp         82166B50  RelocateRecs
+src/w4_at52.cpp                  821BFCA8
+src/w4_pick22.cpp                82710230
+src/w4_vec5_init.cpp            821A6260

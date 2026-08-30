@@ -1317,3 +1317,11 @@ src/l23_memcpy_globals.cpp      82158E50
 src/e_normalize4.cpp            82155080  QuatNormalize
 src/y2_wave_format_ok.cpp       82578558  CheckWaveFormat
 src/m70_hash_until_brace.cpp    82600960
+src/w4_store_g8.cpp              8262FE90
+src/w4_sentinel_b.cpp            8258A730
+src/w4_get_or_null.cpp           8276D308
+src/w4_get12.cpp                 8261A3D8
+src/w4_zeroctor.cpp              8277F310
+src/w4_scan4_clear.cpp           82226F38
+src/w4_and2_flag.cpp             82761AA8  flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/w4_sentinel_a.cpp            825F4740  flags=/O2,/Os,/Gy,/GS-,/fp:fast
