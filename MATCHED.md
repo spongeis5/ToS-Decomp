@@ -11,7 +11,7 @@ the inventory is wrong in both directions, short where a tail call's dead
 `blr` was not counted and long where one `.pdata` row covers several
 frameless bodies.
 
-**1315 functions, 55148 bytes.** Verify all of them, plus the reconstructing
+**1316 functions, 55164 bytes.** Verify all of them, plus the reconstructing
 build and six negative controls, with one command:
 
 ```bash
@@ -22,7 +22,7 @@ Every match is also a row in `src/manifest.txt`, so `tools/build.py` compiles
 it, resolves its relocations against the retail bytes and splices it into
 `.text`. Nothing here is a match on `match.py`'s word-comparison alone.
 
-SPLIT: 462 hand-written, 35260 bytes; 818 generated, 8192 bytes; 35 upstream, 11696 bytes.
+SPLIT: 463 hand-written, 35276 bytes; 818 generated, 8192 bytes; 35 upstream, 11696 bytes.
 <!-- the line above is regenerated; edit tools/matched_table.py, not this -->
 
 The two halves are not comparable and the count should never be quoted
@@ -403,6 +403,7 @@ while and the claim was wrong.
 | `821F6250` | 28 | 3 | `m51_prefix_and_format.cpp` | - | `/O2` |
 | `821F7AF8` | 32 | 3 | `m54_guard_global_flag.cpp` | - | `/O2` |
 | `821FF7B8` | 44 | 3 | `l38_set_deep_float.cpp` | - | `/O2` |
+| `822038B0` | 16 | 3 | `w4_bit1_of56.cpp` | - | `/O2` |
 | `8223C1F0` | 40 | 3 | `m59_two_flags_dispatch.cpp` | - | `/O2` |
 | `822481D8` | 44 | 3 | `l39_post_if_enabled.cpp` | - | `/O2` |
 | `8224B698` | 24 | 3 | `l26_upcast_64.cpp` | - | `/O2` |

@@ -126,7 +126,8 @@ def main():
     print("")
     before = {p: (ROOT / p).read_bytes()
               for p in ("README.md", "HANDBOOK.md", "MATCHED.md",
-                        "src/manifest.txt", "src/attempts.txt")}
+                        "src/manifest.txt", "src/attempts.txt",
+                        "src/w4_tail_floats.cpp")}
 
     clean_passes("tool table passes on a clean tree",
                  ["tools/tool_table.py", "--check"])
@@ -138,6 +139,8 @@ def main():
                  ["tools/prune_attempts.py", "--check"])
     clean_passes("open-stall list agrees with the manifest",
                  ["tools/open_stalls.py", "--check"])
+    clean_passes("no finished source is missing its row",
+                 ["tools/sweep.py", "--check"])
 
     # A NEW TOOL must make the inventory stale. The table is built by
     # enumerating tools/*.py, so this is the case it cannot miss -- and the
@@ -202,6 +205,17 @@ def main():
     control("a stale link figure in HANDBOOK prose",
             "HANDBOOK.md", _bump(rb"links (\d+) contiguous runs"),
             ["tools/readme_stats.py", "--check"])
+
+    # FINISHED WORK WITH NO ROW. The deliberate case declares itself with a
+    # marker in its own source; removing that marker must make the source
+    # look like what it would be without the declaration -- an orphan whose
+    # bytes are counted nowhere. Three had accumulated before anything
+    # checked, one of them a near-miss row an agent deleted.
+    control("a matching source with no row and no declaration",
+            "src/w4_tail_floats.cpp",
+            lambda b: b.replace(b"NO MANIFEST ROW:", b"no home:", 1),
+            ["tools/sweep.py", "--check"],
+            want_in_output="have no row in")
 
     addr = first_manifest_address()
     control("an address in BOTH manifest and attempts",

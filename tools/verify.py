@@ -352,6 +352,16 @@ def main():
     results.append(check("no near-miss secretly matches",
                          ["tools/sweep.py", "--attempts", "--check"]))
 
+    # AND NO FINISHED WORK WITH NO ROW AT ALL. The check above re-scores rows
+    # already IN attempts.txt; a source matching its target while listed in
+    # NEITHER file was invisible to this entire suite. Three were sitting
+    # there at once: one simply never given a manifest row, one deliberate
+    # and now declaring itself, and one whose near-miss row an agent deleted
+    # and a `git add -A` committed. HANDBOOK has said for months that "work
+    # can be finished and still have nowhere to go"; nothing checked.
+    results.append(check("no finished source is missing its row",
+                         ["tools/sweep.py", "--check"]))
+
     # NO ADDRESS IN BOTH src/manifest.txt AND src/attempts.txt. It happens the
     # moment a function is matched by a NEW source while an older near-miss
     # source for the same address is still on record -- 825409E8 was matched
@@ -427,7 +437,7 @@ def main():
     # --check compare the file to itself and pass, so the guard that exists
     # because the front page was wrong by six times could be silenced by
     # removing the sentence it maintains.
-    results.append(check("doc guards refuse what they claim, 16 cases",
+    results.append(check("doc guards refuse what they claim, 21 cases",
                          ["tools/test_doc_guards.py"]))
     # An UNMEASURED function is not a broken one. Two overlapping verify runs
     # had their compiles refused by the other's negative-control lock and

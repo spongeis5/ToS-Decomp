@@ -32,13 +32,13 @@ bytes identical to the retail image. Not a port, not a re-implementation.
 function starts known           30,630
 .text                           8,467,964 bytes
 
-FUNCTIONS MATCHED               1,315
-  read off the disassembly      462   (35,260 bytes)
+FUNCTIONS MATCHED               1,316
+  read off the disassembly      463   (35,276 bytes)
   generated from encodings      818   (8,192 bytes)
   upstream third-party source   35   (11,696 bytes)
 
-bytes rebuilt from source       55,148   (0.6513% of .text)
-near-misses recorded            41
+bytes rebuilt from source       55,164   (0.6514% of .text)
+near-misses recorded            42
 vetted match candidates         4,231
 ```
 The three parts of the match count are never added up without
@@ -219,7 +219,7 @@ contiguous **run** of matched functions, hands it the retail order through
 emits against the image byte for byte.
 
 ```
-121 of 177 runs, 12,012 of the 31,316 bytes those runs span
+122 of 178 runs, 12,088 of the 31,392 bytes those runs span
 ```
 
 laid out by the linker rather than by us, at the addresses the image gives
@@ -823,7 +823,7 @@ was reached rather than presenting the bound as an answer.
 python tools/verify.py
 ```
 
-35 checks: the tool self-tests, the whole manifest rebuilt and hashed, the
+36 checks: the tool self-tests, the whole manifest rebuilt and hashed, the
 real link over every contiguous run, and the negative controls -- which each
 corrupt one fact and require the thing they guard to FAIL. A failing negative
 control is the serious kind: it means a check reports success without being
@@ -1325,7 +1325,7 @@ in particular has not once survived contact with a new lever.
    merged with the 6,453 `lib` matches.
 6. ~~**A build system and a progress dashboard.**~~ **PARTLY DONE.**
    `tools/build.py` is the build, `tools/objdiff_export.py` gives the
-   dashboard, and `tools/link.py` links 121 contiguous runs — 12,012 bytes —
+   dashboard, and `tools/link.py` links 122 contiguous runs — 12,088 bytes —
    with the retail linker, each at its retail address, ordering and padding
    included. What is still missing is a link that spans **more than one run**:
    26 runs cannot be linked because something in them relocates against a
@@ -1370,21 +1370,37 @@ in particular has not once survived contact with a new lever.
    31,000 COMDATs + 31,000 REL24               0.7      21.3   ditto; 62/62 sampled
                                                       bl targets land on the
                                                       public each reloc names
-   1,500 one-COMDAT objects, one cmdline      12.7      10.4   1500/1500 publics;
+   1,500 one-COMDAT objects, one cmdline   12.7-26.7    10.4   1500/1500 publics;
                                                       21,294 of the 32,767-char
                                                       CreateProcess limit
    ```
 
    So capacity is not a constraint at any dimension that matters: 31k
    COMDATs with 31k relocations link in under a second, and the many-object
-   dimension costs ~9 ms per object — pack the filler into a few large
-   objects rather than thousands and the whole-image link is a minute of
-   linking at most. Two defects in the synthetic-object writer were found by
-   the validation, not by success: a relocation record is 10 bytes, not 8,
-   and patching a symbol name in the string table without fixing its length
-   field corrupts the object in a way LNK1106 reports as "invalid file",
-   which reads like a linker refusal rather than a writer bug. Distrust an
-   exit code until the map and the bytes agree with what was asked for.
+   dimension costs 9–18 ms per object (it is the one figure here that moves
+   between runs — 12.7 s and 26.7 s for the same 1,500 objects on the same
+   machine) — pack the filler into a few large objects rather than thousands
+   and the whole-image link is a minute of linking at most. Two defects in
+   the synthetic-object writer were found by the validation, not by success:
+   a relocation record is 10 bytes, not 8, and patching a symbol name in the
+   string table without fixing its length field corrupts the object in a way
+   LNK1106 reports as "invalid file", which reads like a linker refusal
+   rather than a writer bug. Distrust an exit code until the map and the
+   bytes agree with what was asked for.
+
+   **That last sentence was true of the tool itself for one commit.** It
+   claimed to check that "62 of 62 sampled bl targets land exactly on the
+   public each relocation names, not merely differ from the placeholder",
+   and the code read ONE word and tested `w != 0x48000000` — which is the
+   placeholder test, on a single instruction. A `bl` with a wrong
+   displacement differs from the placeholder exactly as convincingly as a
+   right one. Nothing compared the publics count to N either, nothing looked
+   at `.text`'s size, and `main()` returned None, so every rung could fail
+   and the tool still exited 0. The check is real now: displacements are
+   decoded and compared against the map, every rung's failures are
+   collected, and `main` exits non-zero. **The numbers above survived the
+   correction** — 62/62 and 31000/31000 reproduce — so the conclusion stands
+   and only the evidence for it changed.
 
    **Both loose ends are SETTLED — `python tools/loose_ends.py`.** They were
    "the 3 references landing in `.text` at a non-function-start, and the 3

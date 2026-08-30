@@ -60,3 +60,4 @@ src/y2_relocate_recs.cpp         82166B50  RelocateRecs
 src/w4_at52.cpp                  821BFCA8
 src/w4_pick22.cpp                82710230
 src/w4_vec5_init.cpp            821A6260
+src/y2_hsv_to_rgb.cpp           827C35F0

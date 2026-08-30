@@ -29,10 +29,31 @@ Usage:  python tools/scale_link.py
 relocations in one object, 1500 one-COMDAT objects on one command line, and
 the plain no-relocation ladder 64..31000)
 
-Validated before believing: the map must list N publics, .text must hold
-every COMDAT, and -- for the relocation mode -- a SAMPLE of resolved bl
-targets must land exactly on the public each relocation names, not merely
-differ from the placeholder. 62 of 62 sampled at N=31000.
+Validated before believing, and the validation is ENFORCED -- every rung's
+failures are collected and `main` exits non-zero:
+
+  * the map must list exactly N publics;
+  * `.text` must be present and non-empty;
+  * in relocation mode, every SAMPLED bl target must land exactly on the
+    public its relocation names, decoded from the displacement and compared
+    against the map -- not merely differ from the placeholder.
+
+**THE FIRST VERSION CLAIMED THAT LAST ONE AND DID NOT DO IT.** This
+docstring, the commit message and HANDBOOK all said "62 of 62 sampled bl
+targets land exactly on the public each relocation names, not merely differ
+from the placeholder". The code read ONE word and tested `w != 0x48000000`,
+which is the placeholder test on a single instruction. A `bl` with a wrong
+displacement differs from the placeholder just as convincingly as a right
+one, so the check could not fail short of the linker ignoring relocations
+altogether.
+
+Nor was anything else enforced: the publics count and the .text size were
+printed for a human to read, nothing compared them, and `main()` returned
+None -- so every rung could fail and the tool still exited 0. The paragraph
+this measurement produced in HANDBOOK ends "distrust an exit code until the
+map and the bytes agree with what was asked for", which is exactly what the
+tool was not doing. Numbers this prints are only worth what its validation
+is worth, so run it and read the last line rather than quoting the table.
 """
 
 import ctypes
@@ -215,23 +236,59 @@ def run_link(n, relocs=False, tag=None):
                               .read_text(errors="replace"))
         ours = set(names)
         res["publics"] = len(ours & set(syms))
+        res["want_publics"] = n
         pe = (WORK / ("out_%s.exe" % tag)).read_bytes()
         t = link._text_of(pe)
         res["text"] = t[1] if t else None    # rva; vsize read by text_vsize
         if relocs:
-            # every bl must have been resolved: first body word != BL_NEXT
-            res["reloc_ok"] = pe and _bl_was_relocated(pe, t)
+            res["sampled"], res["landed"] = _bl_targets_land(pe, t, syms, names)
     return res
 
 
-def _bl_was_relocated(pe, t):
-    """True if the first instruction of .text is no longer the placeholder
-    `bl .+0` -- i.e. the linker really applied the REL24."""
-    if not t:
-        return False
+def _bl_targets_land(pe, t, syms, names, stride=500):
+    """-> (sampled, landed exactly on the public the relocation names).
+
+    THIS USED TO READ ONE WORD AND TEST `w != 0x48000000`, while the
+    docstring, the commit message and HANDBOOK all said it sampled 62
+    targets and required each to "land exactly on the public each relocation
+    names, NOT MERELY DIFFER FROM THE PLACEHOLDER". It was the placeholder
+    test, on a single instruction.
+
+    A `bl` whose displacement is wrong differs from the placeholder just as
+    convincingly as one that is right, so the old check could not fail for
+    any reason short of the linker ignoring relocations entirely -- which is
+    the one outcome nobody suspected. Claiming the stronger check and
+    performing the weaker one is how a measurement gets believed.
+
+    comdat_object() emits, for COMDAT i, a `bl` at its offset 0 relocated
+    against the external symbol of COMDAT (i+1) % n. So the target is
+    computable from the map, and this decodes the displacement and compares.
+    """
+    if not t or not pe:
+        return 0, 0
     _ib, _rva, ptr = t
-    w = struct.unpack_from(">I", pe, ptr)[0]
-    return w != 0x48000000
+    base = link.BASE
+    sampled = landed = 0
+    for i in range(0, len(names), stride):
+        want_name = names[(i + 1) % len(names)]
+        here = syms.get(names[i])
+        there = syms.get(want_name)
+        if here is None or there is None:
+            continue
+        off = ptr + (here - base) - _rva
+        if off < 0 or off + 4 > len(pe):
+            continue
+        w = struct.unpack_from(">I", pe, off)[0]
+        if (w >> 26) != 18:                    # not a b/bl at all
+            sampled += 1
+            continue
+        disp = w & 0x03FFFFFC
+        if disp & 0x02000000:                  # sign-extend 26 bits
+            disp -= 0x04000000
+        sampled += 1
+        if (here + disp) == there:
+            landed += 1
+    return sampled, landed
 
 
 def run_many(n):
@@ -289,14 +346,47 @@ def text_vsize(pe):
     return None
 
 
+def problems(r):
+    """Everything about this rung that is not what was asked for.
+
+    The validation was DESCRIBED and never ENFORCED: the publics count and
+    the .text size were printed for a human to eyeball, nothing compared
+    them to anything, and main() returned None so the tool exited 0 even
+    when a link failed. A measurement harness that cannot fail is the same
+    shape as a check that cannot fail, and this repository keeps
+    verify_ghidra.py around as the worked example.
+    """
+    bad = []
+    if r["rc"] != 0:
+        bad.append("link failed, rc=%d" % r["rc"])
+        return bad
+    want = r.get("want_publics")
+    got = r.get("publics")
+    if want is not None and got != want:
+        bad.append("map lists %s public(s), asked for %d" % (got, want))
+    exe = WORK / ("out_%s.exe" % r["tag"])
+    if not exe.exists():
+        bad.append("no output file")
+    elif text_vsize(exe.read_bytes()) in (None, 0):
+        bad.append(".text is absent or empty")
+    if "sampled" in r:
+        if r["sampled"] == 0:
+            bad.append("no bl target could be sampled")
+        elif r["landed"] != r["sampled"]:
+            bad.append("%d of %d sampled bl target(s) did NOT land on the "
+                       "public their relocation names"
+                       % (r["sampled"] - r["landed"], r["sampled"]))
+    return bad
+
+
 def show(r):
     text = None
     exe = WORK / ("out_%s.exe" % r["tag"])
     if r["rc"] == 0 and exe.exists():
         text = text_vsize(exe.read_bytes())
     extra = ""
-    if "reloc_ok" in r:
-        extra = "  relocs_applied=%s" % r["reloc_ok"]
+    if "sampled" in r:
+        extra = "  bl targets %d/%d land" % (r["landed"], r["sampled"])
     if "cmdlen" in r:
         extra = "  cmdlen=%d chars" % r["cmdlen"]
     print("%6s %8.1f %10.1f %8d %10s %11s%s" %
@@ -304,23 +394,39 @@ def show(r):
            r["peak"] / (1024 * 1024.0) if r["peak"] else -1,
            r["rc"], r.get("publics", "-"),
            text if text is not None else "-", extra))
+    bad = problems(r)
+    for b in bad:
+        print("      FAIL %s" % b)
     if r["rc"] != 0:
         for l in [l for l in r["log"].splitlines() if l.strip()][:6]:
             print("      ! %s" % l.strip()[:120])
     sys.stdout.flush()
+    return bad
 
 
 def main():
     print("%6s %8s %10s %8s %10s %11s" %
           ("tag", "secs", "peak MB", "rc", "publics", "text bytes"))
+    bad = []
     for n in (1000, 31000):
-        show(run_link(n, relocs=True))
+        bad += show(run_link(n, relocs=True))
     for n in (1500,):
-        show(run_many(n))
+        bad += show(run_many(n))
     # the already-measured plain ladder, for the record
     for n in (64, 1000, 8000, 16000, 31000):
-        show(run_link(n))
+        bad += show(run_link(n))
+    print("")
+    if bad:
+        print("%d rung(s) did not do what was asked for. The timings above "
+              "are NOT" % len(bad))
+        print("evidence of capacity: a link that did not place what it was "
+              "given is")
+        print("fast for the wrong reason.")
+        return 1
+    print("every rung validated: publics as asked, .text present, and every")
+    print("sampled bl target landed on the public its relocation names.")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

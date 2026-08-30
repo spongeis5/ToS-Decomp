@@ -40,6 +40,12 @@ MANIFEST = SRC / "manifest.txt"
 ATTEMPTS = SRC / "attempts.txt"
 WORK = ROOT / "build/sweep"
 
+# A source may declare that it can have no row, by carrying this marker and
+# its reason. Opting out is then a deliberate act recorded beside the
+# evidence, rather than a file quietly absent from both lists -- which is
+# how three of them accumulated at once without anything noticing.
+NO_ROW_MARKER = "NO MANIFEST ROW:"
+
 O2 = ["/c", "/nologo", "/O2", "/Gy", "/GS-", "/fp:fast"]
 OS_ = ["/c", "/nologo", "/O2", "/Os", "/Gy", "/GS-", "/fp:fast"]
 ADDR_RE = re.compile(r"sub_([0-9A-Fa-f]{8})")
@@ -264,7 +270,7 @@ def main(argv):
     # Seven were sitting like that -- solved by an agent, never promoted --
     # and what surfaced them was a human noticing green rows in objdiff.
     # That is not a detection mechanism.
-    if "--check" in argv:
+    if "--check" in argv and "--attempts" in argv:
         if matched:
             print("")
             print("FAIL: %d row(s) in attempts.txt MATCH and should have been"
@@ -277,6 +283,49 @@ def main(argv):
             return 1
         print("")
         print("no row in attempts.txt secretly matches.")
+        return 0
+
+    # WITHOUT --attempts, --check asks the OTHER question: is there finished
+    # work with no row at all?
+    #
+    # verify.py ran only `--attempts --check`, which re-scores rows already
+    # IN attempts.txt. A source that matches and is in NEITHER file was
+    # invisible to the entire suite, and three were sitting there at once:
+    # w4_bit1_of56.cpp (16 bytes, 4 of 4 words, no relocations, simply never
+    # given a row), w4_tail_floats.cpp (deliberate -- see below), and
+    # y2_hsv_to_rgb.cpp, whose near-miss row was deleted by an agent and
+    # swept into a commit by `git add -A`. HANDBOOK has long said "work can
+    # be finished and still have nowhere to go"; nothing checked for it.
+    #
+    # THE DELIBERATE CASE IS DECLARED IN THE SOURCE, not in a list here. A
+    # file may opt out by containing the marker below together with its
+    # reason, which keeps the exception next to the evidence and makes
+    # opting out an act rather than an oversight. w4_tail_floats.cpp is the
+    # real one: match.py calls it a MATCH while build.py, which RESOLVES
+    # relocations instead of excusing them, sees swapped registers inside
+    # four relocated words -- so neither file can hold the row.
+    if "--check" in argv:
+        homeless = [m for m in matched
+                    if NO_ROW_MARKER not in m[0].read_text(
+                        encoding="utf-8", errors="replace")]
+        excused = len(matched) - len(homeless)
+        if homeless:
+            print("")
+            print("FAIL: %d source(s) MATCH and have no row in "
+                  "src/manifest.txt" % len(homeless))
+            print("or src/attempts.txt, so their bytes are counted nowhere:")
+            for p, t, tag, _n, _c in homeless:
+                print("    %-32s %08X  %s" % (p.name, t, tag))
+            print("")
+            print("Add the manifest row, or -- if the row genuinely cannot")
+            print("exist -- say so in the source with a line containing")
+            print("    %s" % NO_ROW_MARKER)
+            print("and the reason beside it.")
+            return 1
+        print("")
+        print("no unrecorded source matches%s."
+              % ("" if not excused else
+                 "; %d declared %s" % (excused, NO_ROW_MARKER)))
         return 0
 
     if "--write" not in argv:

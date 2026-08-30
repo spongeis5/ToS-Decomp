@@ -1325,3 +1325,4 @@ src/w4_zeroctor.cpp              8277F310
 src/w4_scan4_clear.cpp           82226F38
 src/w4_and2_flag.cpp             82761AA8  flags=/O2,/Os,/Gy,/GS-,/fp:fast
 src/w4_sentinel_a.cpp            825F4740  flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/w4_bit1_of56.cpp            822038B0

@@ -7216,7 +7216,7 @@
       "target_path": "build/objdiff/target/t7_ctor_args5_822038C0.o",
       "base_path": "build/objdiff/base/t7_ctor_args5_822038C0.o",
       "metadata": {
-        "complete": false,
+        "complete": true,
         "source_path": "src/t7_ctor_args5.cpp",
         "progress_categories": [
           "handwritten"
@@ -17131,6 +17131,19 @@
       }
     },
     {
+      "name": "sub_822038B0 (w4_bit1_of56)",
+      "target_path": "build/objdiff/target/w4_bit1_of56_822038B0.o",
+      "base_path": "build/objdiff/base/w4_bit1_of56_822038B0.o",
+      "metadata": {
+        "complete": true,
+        "source_path": "src/w4_bit1_of56.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
       "name": "sub_826C1480 (init12)",
       "target_path": "build/objdiff/target/init12_826C1480.o",
       "base_path": "build/objdiff/base/init12_826C1480.o",
@@ -17657,6 +17670,19 @@
       "metadata": {
         "complete": false,
         "source_path": "src/w4_vec5_init.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_827C35F0 (y2_hsv_to_rgb)",
+      "target_path": "build/objdiff/target/y2_hsv_to_rgb_827C35F0.o",
+      "base_path": "build/objdiff/base/y2_hsv_to_rgb_827C35F0.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y2_hsv_to_rgb.cpp",
         "progress_categories": [
           "nearmiss"
         ],

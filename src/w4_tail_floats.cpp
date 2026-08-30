@@ -42,7 +42,10 @@ void SetAndCall(WithFloats* s)
     Tail_821E8060(s->target, one, one, one, minus);
 }
 
-// NO HOME: near-miss in a way neither list file can hold. Under match.py's
+// NO MANIFEST ROW: near-miss in a way neither list file can hold. That
+// marker is what `python tools/sweep.py --check` reads to excuse this file;
+// without it an unrecorded source that matches is a failing check, because
+// three of them had accumulated unnoticed. Under match.py's
 // standard this MATCHES -- but four of its words are relocated, and inside
 // them the constant base registers are swapped (want lis r9/lfs f3 via r9;
 // got lis r10/lfs f4 via r10, 0.0 via the other). build.py RESOLVES
