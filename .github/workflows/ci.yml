@@ -47,10 +47,21 @@ jobs:
           python tools/test_privacy.py
           python tools/test_privacy_guard.py
 
+      # ONLY tests that touch neither the retail image nor the XDK compiler.
+      #
+      # `test_coffreloc.py` was in this list and is not one of them: it takes a
+      # real compiled function, so it calls build.compile_one, so it runs
+      # cl.exe -- which no hosted runner has. It failed here with a six-frame
+      # traceback ending in ENOENT on the compiler path, which reads like a
+      # broken tool rather than a missing toolchain. It has moved below, under
+      # RUN_FULL, with the rest of the work that needs the real thing.
+      #
+      # Before adding anything here, check what it imports. `test_permute.py`
+      # qualifies because `permute.score` takes byte strings and returns
+      # counts; it builds its own inputs and opens nothing.
       - name: Tool self-tests that need neither the image nor the XDK
         run: |
           set -o pipefail
-          python tools/test_coffreloc.py
           python tools/test_permute.py
 
       - name: The manifest must be well-formed
@@ -100,6 +111,15 @@ jobs:
               print("built, spliced and COUNTED twice.")
           sys.exit(1 if bad else 0)
           EOF
+
+      # Everything that needs the retail image, the XDK, or both. On a hosted
+      # runner none of this can run; on a self-hosted runner that holds them,
+      # set RUN_FULL above and it all does.
+      - name: Tool self-tests that DO need the image and the XDK
+        if: env.RUN_FULL == 'true'
+        run: |
+          set -o pipefail
+          python tools/test_coffreloc.py
 
       - name: Full verification
         if: env.RUN_FULL == 'true'

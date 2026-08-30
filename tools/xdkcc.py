@@ -248,6 +248,20 @@ def compile_obj(src, obj, flags=None, workdir=None):
         obj.unlink()
 
     use = list(flags if flags is not None else DEFAULT_FLAGS)
+
+    # A `/I` PATH IN THE MANIFEST IS RELATIVE TO THE REPOSITORY, and is
+    # resolved here rather than by the caller, because cl runs with its cwd in
+    # build/ and would otherwise look for `thirdparty/...` underneath it.
+    #
+    # It cannot be written absolute in the manifest: an absolute path on this
+    # machine contains a home directory, and tools/test_privacy.py fails the
+    # build for exactly that -- correctly, since a tracked file naming
+    # `C:/Users/<someone>/` is what publishing an identity looks like. So the
+    # tracked form stays relative and the absolute form never leaves memory.
+    use = [("/I" + str((ROOT / f[2:]).resolve()))
+           if f.startswith("/I") and not Path(f[2:]).is_absolute() else f
+           for f in use]
+
     try:
         digest = hashlib.sha256()
         digest.update(src.read_bytes())
@@ -275,6 +289,19 @@ def compile_obj(src, obj, flags=None, workdir=None):
         if blob is not None:
             obj.write_bytes(blob)
         return blob, err
+
+    # SAY SO, rather than raising FileNotFoundError from subprocess. Without
+    # this a machine that simply does not hold the XDK -- a CI runner, a fresh
+    # clone -- got a six-frame traceback ending in ENOENT on a path, which
+    # reads like a broken tool rather than an absent toolchain. Every caller
+    # already handles `(None, diagnostic)`; none of them expected an exception.
+    if not CL.exists():
+        return None, (
+            "THE XDK COMPILER IS NOT HERE.\n"
+            "  looked for: %s\n"
+            "This is not in the repository and must not be -- see HANDBOOK.md,"
+            "\n'What you need that is not in this repo'. Anything that\n"
+            "compiles cannot run on a machine without it." % CL)
 
     cmd = ([str(CL.resolve())] + use
            + ["/Fo" + str(obj.resolve()), str(src.resolve())])
