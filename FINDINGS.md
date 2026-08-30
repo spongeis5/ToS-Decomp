@@ -428,6 +428,64 @@ TLS slot 48, and an entry is `{ const char* name; u32 stamp; u32 unk; }`.
 
 ---
 
+## 8a. The Ogg/Vorbis in this image is FMOD's vendored copy, and its version is NOT stamped
+
+*measured 2026-08-29*
+
+`tools/srcfiles.py` recovers 14 Ogg/Vorbis source paths — `ogg/src/framing.c`
+and thirteen `vorbis/lib/*.c` — which reads at first like a standalone
+libvorbis integration. It is not. Dumping every printable run in
+`0005F000..00064000` shows **one contiguous FMOD Ex string block**: the DSP
+parameter help texts, `..\src\fmod_dsp_*.cpp`, `..\src\fmod_codec_*.cpp`,
+`FMOD Ogg Vorbis Codec`, and `..\lib\ogg_vorbis\...` are all the same tree.
+So `lib/ogg_vorbis/` is FMOD's vendored libogg/libvorbis, not the game's.
+
+That matters for how the source is obtained: upstream Xiph releases are the
+right starting point, but FMOD's copy may carry local changes, so some
+functions will match upstream outright and others will not.
+
+### The version is not in the image
+
+```
+Xiph        0 occurrences
+libVorbis   0 occurrences
+Vorbis I    0 occurrences
+```
+
+Upstream carries `GENERAL_VENDOR_STRING "Xiph.Org libVorbis I <date>"` in
+`info.c`; a decoder-only build that never packs a comment header does not
+reference it, and it is absent here. The one `vorbis` string at file+61B54 is
+the six-byte packet signature, not a version. **The libvorbis release is
+NOT_MEASURED from the image.**
+
+### But one string dates the bundle, and another names Havok outright
+
+A sweep for version-shaped tokens across the whole image returns 24, and two
+of them are the answer to different questions:
+
+```
+00062014   reference libFLAC 1.2.1 20070917
+0006C660   Havok-6.5.0-r1
+```
+
+The FLAC string is FMOD's other vendored codec, in the same block, and dates
+the drop to **2007-09-17 or later**. The contemporaneous Xiph releases are
+libvorbis **1.2.0** (2007-07-25) and libogg **1.1.3** (2005-11-27); the next
+ones are libvorbis 1.2.1 (2008-11-14) and libogg 1.1.4 (2009-06-08). That is
+a shortlist, not an answer.
+
+**The version is decidable by measurement.** Fourteen files are named with
+exact addresses, so compiling each candidate release with the XDK's own
+`cl.exe` and byte-comparing settles it — the release that matches is the
+release. That is the same discrimination `libmatch.py` already performs
+against the XDK archives, and it is the only middleware in this image whose
+true source can legitimately be obtained rather than reconstructed.
+
+`Havok-6.5.0-r1` is separately useful: the handbook's Havok version was
+inferred from RTTI class names, and this is the image saying it directly.
+
+---
+
 ## 7z. `complete_code` was never zero, and it was wrong in the flattering direction
 
 *measured 2026-08-29*

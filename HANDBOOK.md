@@ -133,6 +133,41 @@ publicly documented for 6.5. Game code arrives with nothing but its bytes.
 `.?AVhkpWorld@@` vtable at +0 — a function where the class, the header and
 the field names are all knowable before writing a line.
 
+**The middleware, split by vendor** — from `build/attribution.txt`:
+
+```
+Havok (RTTI + profiler)     1,429 fn    341,792 bytes    63%
+FMOD Ex                       254 fn    145,536 bytes    27%
+Havok (by source path)         38 fn     30,388 bytes
+Ogg Vorbis                     50 fn     20,076 bytes    <- open source
+sfx/foreverb                   10 fn      1,804 bytes
+                                        539,924 bytes
+```
+
+Those function counts are **floors**: `srcpath` only catches a function that
+references an assert path, so the real footprint of each is the address band
+its known functions sit in.
+
+**Ogg Vorbis is where to start, and it is the only one whose true source can
+be had.** libogg and libvorbis are BSD-licensed and published by Xiph.Org, and
+the image names fourteen of their files outright with exact addresses. Two
+things to know before fetching anything, both measured — see FINDINGS §8a:
+
+* it is **FMOD's vendored copy**, not a standalone integration: the vorbis
+  paths and the `fmod_*.cpp` paths are one contiguous string block, so expect
+  some local modification;
+* the **version is not stamped** — `Xiph`, `libVorbis` and `Vorbis I` all
+  appear zero times. `reference libFLAC 1.2.1 20070917`, FMOD's other
+  vendored codec in the same block, dates the drop; libvorbis 1.2.0 and
+  libogg 1.1.3 are the contemporaneous releases. Which release it really is
+  should be **decided by compiling candidates and comparing**, not assumed.
+
+**Bink is not in scope for the percentage at all.** It lives at
+`82913600..82923098`, which starts four bytes after `.text` ends — a
+different section, outside the denominator. `src/outofscope/two_null_guards.cpp`
+is the worked example: it matches byte for byte and is deliberately not
+counted, because "it matched" and "it belongs here" are different claims.
+
 ### The memory map
 
 The linker grouped things, so the game's own code is in the gaps:
