@@ -1377,8 +1377,16 @@ in particular has not once survived contact with a new lever.
      `!RtlLeaveCriticalSection`. Our `LockEnter`/`LockLeave` are invented
      names for kernel imports, so the whole-image link needs an import
      thunk there, not a function.
-   * **1 genuine non-start remains**: a data object at `827A7C88`, reached
-     by an ADDR32NB/SECREL pair from inside `.text`.
+   * **The third non-start is not data either.** `827A7C88` disassembles as
+     a 16-byte virtual-call thunk — `lwz r11,0(r3) ; lwz r10,48(r11) ;
+     mtctr ; bctr` — whose ADDRESS the function at `827A7C98` stores into
+     `this+4` as a callback. It looked like a data object only because
+     `store_two.cpp` models what it cannot see as an opaque
+     `extern Thing g_thing_827A7C98`. It is a function start the default
+     inventory lacks because the addrtaken source is opt-in (§7r):
+     `build/addrtaken.txt` has listed it all along, with its one reference.
+     So nothing genuine remains — every needed symbol is a function start,
+     an import thunk, a TLS slot, or data.
 
    The rest resolve cleanly: 94 to a `.text` function start, 39 to `.rdata`,
    29 to `.data`. Nothing in that set blocks the whole-image link.
