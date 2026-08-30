@@ -49,11 +49,28 @@ def clean_passes(name, cmd):
 
 
 def control(name, path, mutate, cmd, want_in_output=None):
-    """Corrupt one fact, require `cmd` to refuse, restore the bytes."""
+    """Corrupt one fact, require `cmd` to refuse, restore the bytes.
+
+    A PLANT THAT CHANGES NOTHING IS ITS OWN FAILURE, and it is reported as
+    one rather than as "NOT CAUGHT". Two controls here planted a literal
+    old figure -- "124 of 180 runs" -- and the link moved to 178, so
+    `bytes.replace` matched nothing, the file was rewritten identically, and
+    the guard was blamed for missing a violation that was never made.
+
+    That is the vacuous-check pattern one level up: this file exists to
+    prove guards can fail, and two of its own controls had quietly stopped
+    being able to. So the mutation is checked before the guard is.
+    """
     p = ROOT / path
     orig = p.read_bytes()
+    planted = mutate(orig)
+    if planted == orig:
+        check(name, False,
+              "THE PLANT DID NOTHING -- this control tests nothing. The text "
+              "it edits has moved; fix the control, not the guard")
+        return
     try:
-        p.write_bytes(mutate(orig))
+        p.write_bytes(planted)
         rc, out = run(cmd)
         ok = rc != 0
         if ok and want_in_output:
@@ -74,6 +91,25 @@ def first_manifest_address():
 
 def nl_of(b):
     return b"\r\n" if b"\r\n" in b else b"\n"
+
+
+def _bump(pattern):
+    """A mutation that adds 1 to the first capture group of `pattern`.
+
+    Derived rather than literal, so the control cannot go vacuous when the
+    figure it perturbs legitimately changes. If the pattern matches nothing
+    the returned bytes are unchanged, and `control` reports THAT as the
+    failure -- which is the signal that the sentence moved.
+    """
+    import re as _re
+
+    def mutate(b):
+        m = _re.search(pattern, b)
+        if not m:
+            return b
+        n = int(m.group(1))
+        return (b[:m.start(1)] + str(n + 1).encode() + b[m.end(1):])
+    return mutate
 
 
 def _blank_open_stalls(b):
@@ -152,20 +188,19 @@ def main():
     # THE LINK FIGURE, IN ALL THREE PLACES IT APPEARS. It disagreed with
     # itself in two of them for long enough that the largest copy was 1,628
     # bytes out. Each is now generated, so each must be caught when edited.
+    # DERIVED, NOT LITERAL. These used to plant "124 of 180 runs" and the
+    # link moved to 178, so the replace matched nothing and both controls
+    # went silently vacuous. Each now finds whatever figure is there and
+    # perturbs it, so it cannot rot when the link does.
     control("a stale link figure on the front page",
-            "README.md",
-            lambda b: b.replace(b"124 of 180 runs, 12,100 bytes",
-                                b"124 of 180 runs, 10,472 bytes", 1),
+            "README.md", _bump(rb"(\d+) of \d+ runs, [\d,]+ bytes"),
             ["tools/readme_stats.py", "--check"])
     control("a stale link figure in the HANDBOOK block",
             "HANDBOOK.md",
-            lambda b: b.replace(b"124 of 180 runs, 12,100 of the 26,724",
-                                b"124 of 181 runs, 12,100 of the 27,128", 1),
+            _bump(rb"\d+ of (\d+) runs, [\d,]+ of the [\d,]+ bytes"),
             ["tools/readme_stats.py", "--check"])
     control("a stale link figure in HANDBOOK prose",
-            "HANDBOOK.md",
-            lambda b: b.replace(b"links 124 contiguous runs \xe2\x80\x94 12,100",
-                                b"links 124 contiguous runs \xe2\x80\x94 10,472", 1),
+            "HANDBOOK.md", _bump(rb"links (\d+) contiguous runs"),
             ["tools/readme_stats.py", "--check"])
 
     addr = first_manifest_address()
