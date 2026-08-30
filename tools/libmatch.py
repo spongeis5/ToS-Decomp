@@ -168,6 +168,76 @@ def unmasked_runs(mask):
     return runs
 
 
+def indexable(code, mask, min_bytes=MIN_UNMASKED):
+    """-> (key, (code, unmasked, runs)) or (None, why not).
+
+    The three refusals are what make a masked scan mean anything: a function
+    trimmed to nothing, one whose first word is relocated (so it has no
+    stable key), and one so masked that agreement would not be evidence.
+    Callers prepend their own labels to the returned triple; `scan` reads
+    only its last three elements.
+    """
+    code, mask = trim_padding(code, mask)
+    if len(code) < 8:
+        return None, "too_short"
+    if not (mask[0] and mask[1] and mask[2] and mask[3]):
+        return None, "first_word_relocated"
+    if sum(mask) < min_bytes:
+        return None, "too_masked"
+    return code[:4], (code, sum(mask), unmasked_runs(mask))
+
+
+def scan(img, wanted, report=None):
+    """Every aligned position in every executable section. -> {va: entry}
+
+    `wanted` maps a four-byte key to a list of entries whose LAST three
+    elements are (code, unmasked byte count, unmasked runs); anything before
+    them is carried through to the result untouched, so a caller can label
+    entries however it likes.
+
+    Factored out of main() so tools/oggmatch.py can identify compiled
+    third-party source the same way rather than growing a second comparator.
+    A masked scan is an IDENTIFICATION, not a verification: it says these
+    bytes came from this code, and deliberately does not use match.py's
+    can_shrink/can_extend, which answer whether a claimed match is exact.
+    """
+    matched = {}
+    positions = 0
+    for s in img.sections:
+        if not (s["exec"] and s["initialized"]):
+            continue
+        # RVA == offset in the unpacked buffer; PointerToRawData is the stale
+        # original file layout and reading through it walks the wrong bytes.
+        start = s["va"] - img.base
+        blob = img.data[start:start + (s["vsize"] or s["rawsz"])]
+        n = len(blob) & ~3
+        positions += n // 4
+        hits_here = 0
+        for off in range(0, n, 4):
+            cands = wanted.get(blob[off:off + 4])
+            if not cands:
+                continue
+            for entry in cands:
+                code, un, runs = entry[-3], entry[-2], entry[-1]
+                if off + len(code) > len(blob):
+                    continue
+                ok = True
+                for a, b_ in runs:
+                    if blob[off + a:off + b_] != code[a:b_]:
+                        ok = False
+                        break
+                if ok:
+                    va = s["va"] + off
+                    prev = matched.get(va)
+                    if prev is None or prev[-1] < un:
+                        matched[va] = entry[:-3] + (len(code), un)
+                    hits_here += 1
+                    break
+        if report is not None:
+            report(s["name"], n // 4, hits_here)
+    return matched, positions
+
+
 def main(argv):
     img = Image()
     # The SCAN is over every aligned position and does not depend on either
@@ -213,62 +283,27 @@ def main(argv):
             for sym, code, mask in fs:
                 stats["lib_functions"] += 1
                 per_lib[lib.name]["lib_functions"] += 1
-                code, mask = trim_padding(code, mask)
-                if len(code) < 8:
-                    stats["too_short"] += 1
+                key, ent = indexable(code, mask, min_bytes)
+                if key is None:
+                    stats[ent] += 1
+                    if ent == "too_masked":
+                        per_lib[lib.name]["too_masked"] += 1
                     continue
-                if not (mask[0] and mask[1] and mask[2] and mask[3]):
-                    stats["first_word_relocated"] += 1
-                    continue
-                if sum(mask) < min_bytes:
-                    stats["too_masked"] += 1
-                    per_lib[lib.name]["too_masked"] += 1
-                    continue
-                wanted[code[:4]].append(
-                    (lib.name, objname, sym, code, sum(mask), unmasked_runs(mask)))
+                wanted[key].append((lib.name, objname, sym) + ent)
         print("  %-26s fns %6d  unusable %5d"
               % (lib.name, per_lib[lib.name]["lib_functions"],
                  per_lib[lib.name]["too_masked"]))
 
-    indexable = sum(len(v) for v in wanted.values())
+    n_indexable = sum(len(v) for v in wanted.values())
     print("\n  %d distinct first-word key(s) over %d indexable function(s)"
-          % (len(wanted), indexable))
+          % (len(wanted), n_indexable))
 
     print("\npass 2: scanning every aligned position in executable sections")
-    matched = {}
-    positions = 0
-    for s in img.sections:
-        if not (s["exec"] and s["initialized"]):
-            continue
-        # RVA == offset in the unpacked buffer; PointerToRawData is the stale
-        # original file layout and reading through it walks the wrong bytes.
-        start = s["va"] - img.base
-        blob = img.data[start : start + (s["vsize"] or s["rawsz"])]
-        n = len(blob) & ~3
-        positions += n // 4
-        hits_here = 0
-        for off in range(0, n, 4):
-            cands = wanted.get(blob[off : off + 4])
-            if not cands:
-                continue
-            for libname, objname, sym, code, un, runs in cands:
-                if off + len(code) > len(blob):
-                    continue
-                ok = True
-                for a, b_ in runs:
-                    if blob[off + a : off + b_] != code[a:b_]:
-                        ok = False
-                        break
-                if ok:
-                    va = s["va"] + off
-                    prev = matched.get(va)
-                    if prev is None or prev[4] < un:
-                        matched[va] = (libname, objname, sym, len(code), un)
-                    stats["matches"] += 1
-                    hits_here += 1
-                    break
-        print("  %-10s %9d aligned position(s), %6d site(s) identified"
-              % (s["name"], n // 4, hits_here))
+    matched, positions = scan(
+        img, wanted,
+        report=lambda name, n, hits: print(
+            "  %-10s %9d aligned position(s), %6d site(s) identified"
+            % (name, n, hits)))
 
     in_pdata = sum(1 for va in matched if va in pdata)
     in_inv = sum(1 for va in matched if va in inventory)
@@ -277,7 +312,7 @@ def main(argv):
     print("  trimmed to under 8 bytes     : %6d" % stats["too_short"])
     print("  first word relocated         : %6d" % stats["first_word_relocated"])
     print("  too masked to judge (<%2d B)  : %6d" % (min_bytes, stats["too_masked"]))
-    print("  indexable                    : %6d" % indexable)
+    print("  indexable                    : %6d" % n_indexable)
     print("  aligned positions scanned    : %6d" % positions)
     print()
     print("DISTINCT IMAGE SITES IDENTIFIED: %6d" % len(matched))

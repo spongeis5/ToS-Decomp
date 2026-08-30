@@ -383,10 +383,27 @@ def main():
     # so a check named "build, report and objdiff-cli agree" was comparing two
     # live numbers against a constant measured once. It passed the whole time.
     # A third opinion that cannot change is not a third opinion.
-    if cli.exists() and cli.stat().st_mtime < (ROOT / "src/manifest.txt").stat().st_mtime:
-        print("      build/report_cli.json is OLDER than src/manifest.txt --")
-        print("      run `python tools/publish_report.py`; it is not a third")
-        print("      opinion until it has been regenerated.")
+    #
+    # Compared by DIGEST of the manifest the export was run against, not by
+    # mtime. Written with mtimes first, it fired on correct input: the
+    # negative controls below restore src/manifest.txt byte for byte, which
+    # bumps its mtime, so every run left the next one calling a perfectly
+    # fresh report stale.
+    import hashlib as _hl
+    _man = _hl.sha256((ROOT / "src/manifest.txt").read_bytes()).hexdigest()[:16]
+    _tot = ROOT / "build/objdiff_totals.json"
+    _exported_for = None
+    if _tot.exists():
+        try:
+            _exported_for = _json.loads(_tot.read_text()).get("manifest")
+        except (ValueError, TypeError):
+            pass
+    if cli.exists() and _exported_for != _man:
+        print("      build/report_cli.json was exported against manifest %s,"
+              % (_exported_for or "?"))
+        print("      which is now %s -- run `python tools/publish_report.py`."
+              % _man)
+        print("      It is not a third opinion until it is regenerated.")
         figures["objdiff-cli(STALE)"] = -1
     elif cli.exists():
         try:

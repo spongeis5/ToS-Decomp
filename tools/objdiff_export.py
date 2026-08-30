@@ -389,12 +389,23 @@ def main(argv):
     import coverage as _cov
     _img, _bs = _cov.buckets()
     emitted_coverage = sum(s for _n, _l, fns in _bs for _a, s in fns)
+    # The manifest DIGEST, not a timestamp. verify.py has to know whether the
+    # objdiff-cli figures it reads still describe the current manifest, and
+    # comparing mtimes fired on correct input: verify's own negative controls
+    # restore src/manifest.txt byte for byte, which bumps its mtime, so every
+    # run made the next run call a perfectly fresh report stale. A guard that
+    # fires on correct input is worse than no guard -- it teaches you to read
+    # past guards.
+    import hashlib
+    digest = hashlib.sha256(
+        (ROOT / "src/manifest.txt").read_bytes()).hexdigest()[:16]
     (Path("build") / "objdiff_totals.json").write_text(json.dumps({
         "sourced_bytes": emitted_sourced,
         "coverage_bytes": emitted_coverage,
         "total_bytes": emitted_sourced + emitted_coverage,
         "sourced_units": done,
         "coverage_units": len(_bs),
+        "manifest": digest,
     }, indent=2) + "\n")
 
     complete = sum(1 for u in units if u["metadata"]["complete"])

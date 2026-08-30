@@ -484,6 +484,87 @@ true source can legitimately be obtained rather than reconstructed.
 `Havok-6.5.0-r1` is separately useful: the handbook's Havok version was
 inferred from RTTI class names, and this is the image saying it directly.
 
+### First result: 1.2.0 / 1.1.3 IS in the image, and the DSP half is not
+
+`tools/oggmatch.py` compiles a release with the XDK's own `cl.exe` and runs
+`libmatch`'s masked scan over the image — identification, not verification.
+Against **libvorbis 1.2.0 + libogg 1.1.3**, at `/O2 /Gy /GS- /fp:fast`:
+
+```
+compiled 374 function(s), 342 indexable
+SITES IDENTIFIED                 37
+  at a known function start      35
+  not a known function start      2
+
+framing.c    10 of 33      block.c        2 of 19
+mdct.c        7 of 11      info.c         1 of 24
+codebook.c    6 of 12      sharedbook.c   1 of 17
+vorbisfile.c  5 of 61      bitwise.c      1 of 35
+floor1.c      3 of 21      synthesis.c    1 of  5
+```
+
+Eight of the fourteen named files contribute. **Six named files match
+nothing**: `psy.c` (32 functions), `res0.c` (20), `smallft.c` (15), `floor0.c`
+(7), `mapping0.c` (7), `envelope.c` (7) — the float-heavy DSP half.
+
+**That is not a flags problem, and it was cheap to rule out.** Six flag sets,
+same source, counted:
+
+```
+/O2 /fp:fast          37 sites, 8 of 14 named
+/O2 (default fp)      37          8            <- /fp:fast IS the default
+/Ox /fp:fast          37          8            <- /Ox == /O2 here
+/O2 /fp:precise       32          8
+/O1 /fp:fast           8          3
+/O2 /Os /fp:fast       7          3
+```
+
+`/Os` and `/O1` collapse, which is what a wrong answer looks like next to a
+right one. So the optimisation level and float model are settled.
+
+### The release is DECIDED: libogg 1.1.3 + libvorbis 1.2.0
+
+Four pairings, same flags, same scan, `tools/oggmatch.py --compare`:
+
+```
+ogg            vorbis         indexable  found  at start  named
+libogg-1.1.3   libvorbis-1.2.0      342     37        35  8 of 14
+libogg-1.1.4   libvorbis-1.2.0      348     33        31  8 of 14
+libogg-1.1.3   libvorbis-1.2.2      284     32        30  7 of 14
+libogg-1.1.4   libvorbis-1.2.2      290     28        26  7 of 14
+```
+
+**Both axes move independently and both point the same way**: holding vorbis
+at 1.2.0, ogg 1.1.3 beats 1.1.4 by 4 sites; holding ogg at 1.1.3, vorbis
+1.2.0 beats 1.2.2 by 5. That is a discrimination, not a preference — the
+older pair is contemporaneous with `reference libFLAC 1.2.1 20070917`, which
+is what predicted it.
+
+(libvorbis 1.2.1 is no longer on the Xiph download server, so 1.2.2 stood in
+as the next release. It loses by more than 1.1.4 does, so the direction is
+not in doubt.)
+
+### Six named files still match nothing, and it is not the version or the flags
+
+`psy.c` (32 functions compiled), `res0.c` (20), `smallft.c` (15), `floor0.c`
+(7), `mapping0.c` (7), `envelope.c` (7) — the DSP half — contribute zero
+sites at the winning pair, while `framing.c` gives 10 of 33, `mdct.c` 7 of
+11 and `codebook.c` 6 of 12. Version and flags are both eliminated by
+measurement above, so what is left is **FMOD's own changes to the files it
+vendored**, which is what a vendored tree predicts. That is a hypothesis with
+a denominator attached, not a conclusion: 6 of 14 named files, 118 of 342
+indexable functions.
+
+**One compile flag is FORCED rather than chosen.** libvorbis's `os.h` guards
+an x86 `__asm { fld f / fistp i }` `vorbis_ftoi` with
+`#if defined(_WIN32) && !defined(__GNUC__) && !defined(__BORLANDC__)`. The XDK
+compiler takes that branch and dies with `C2759: Unknown opcode: fld`, so
+`vorbisfile.c` and `lsp.c` did not compile at all. `/D__BORLANDC__` falls
+through to the portable `(int)(f+.5)`; `__BORLANDC__` appears exactly once in
+either tree, on that line. Whether FMOD did the same or patched `os.h` is
+NOT_MEASURED — but only `lookup.c` and `vorbisfile.c` call `vorbis_ftoi`, so
+it cannot be why a DSP file matches nothing.
+
 ---
 
 ## 7z. `complete_code` was never zero, and it was wrong in the flattering direction

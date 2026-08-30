@@ -563,7 +563,8 @@ broken one pops a modal dialog that blocks until someone clicks OK.
 | `disasm.py` | disassemble a guest address range, annotating string references |
 | `match.py` | **the matching loop**: compile a candidate, diff against the image |
 | `objcode.py` | disassemble a COFF object's code |
-| `libmatch.py` | match XDK library objects against the image (relocation-masked) |
+| `libmatch.py` | match XDK library objects against the image (relocation-masked); `indexable`/`scan` are the shared primitives |
+| `oggmatch.py` | compile a libogg/libvorbis release with the XDK cl.exe and find it in the image; `--sweep` settles the flags by counting |
 | `rtti.py` | MSVC RTTI → Havok class names and vtables |
 | `xeximports.py` | XEX import table + XDK import libs → 207 named thunks |
 | `srcfiles.py` | source paths the code forms addresses to |
