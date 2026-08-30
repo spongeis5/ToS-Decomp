@@ -27,12 +27,62 @@ problem and a much worse one: it needs a filter-branch and a force-push, and
 on a repository anyone has cloned it cannot be recalled at all.
 """
 
+import os
 import re
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+
+# TWO OF THE FOUR CHECKS ASK ABOUT THIS MACHINE, and a hosted CI runner is not
+# it. They are not skipped for convenience -- they have NO POWER there, and
+# both of the answers they can give are wrong:
+#
+#   * A GitHub-hosted runner's home directory sits under `/home/` with the
+#     service account as its last component, so `Path.home().name` is the
+#     literal word that account is called. The check then searches every
+#     tracked file for that word -- which .github/workflows/ci.yml contains
+#     fourteen times, quite properly, being a document about those machines.
+#     That is the FALSE FAIL that surfaced this.
+#
+#     (This comment does not spell the path out. Written with the literal
+#     example in it, this file tripped its own home-path rule -- the same
+#     lesson ALLOWED_PATHS already records twice, one level further in.)
+#
+#     The false PASS is the worse half and was there all along: on any runner
+#     whose account name is generic, this check reports "ok" while never
+#     having looked for the developer's name at all. A check that cannot fail
+#     for the right reason is one this project deletes or fixes.
+#
+#   * `git config user.email` asks what identity the NEXT commit would carry.
+#     A runner makes no commits and has none configured, so the check reports
+#     a missing identity as a leak.
+#
+# Both still run, and must still pass, on a developer machine and in
+# hooks/pre-catch -- which are the two gates that actually stand between the
+# content and publication. What CI can genuinely check, it does: a
+# home-directory-shaped path belonging to ANYONE, and the identity on every
+# commit already in history.
+#
+# The condition is deliberately two-part, so setting CI=true on a real machine
+# does not disable anything: the environment must say hosted CI AND the
+# account name must be a service account rather than a person's.
+SERVICE_ACCOUNTS = {"runner", "runneradmin", "root", "containeradmin",
+                    "circleci", "jenkins", "buildkite-agent"}
+
+
+def local_gate_reason():
+    """-> why the machine-specific checks cannot run here, or None."""
+    on_ci = (os.environ.get("GITHUB_ACTIONS") == "true"
+             or os.environ.get("CI") == "true")
+    if not on_ci:
+        return None
+    who = (Path.home().name or "").lower()
+    if who not in SERVICE_ACCOUNTS:
+        return None
+    return ("hosted CI: the home account is the service account %r, so "
+            "'this machine' is not a person's machine" % who)
 
 # Identities allowed to appear as commit author or committer. Shapes, not
 # addresses: anything routing to a real mailbox is rejected by not matching.
@@ -65,12 +115,23 @@ ALLOWED_PATHS = {
 }
 
 RESULTS = []
+SKIPPED = []
 
 
 def check(name, ok, detail=""):
     RESULTS.append(ok)
     print("  %-4s %s%s" % ("ok" if ok else "FAIL", name,
                            ("  -- " + detail) if detail else ""))
+
+
+def not_here(name, why):
+    """A check that cannot run in this environment. NOT a pass.
+
+    Kept out of RESULTS entirely, so it can never be counted as evidence, and
+    printed at the end where it cannot be skimmed past.
+    """
+    SKIPPED.append((name, why))
+    print("  n/a  %s  -- %s" % (name, why))
 
 
 def git(*args):
@@ -88,10 +149,15 @@ def main():
     print("privacy -- nothing here names a person; the rules are derived")
     print("")
 
+    local_only = local_gate_reason()
+
     # 1. The account name of whoever is running this, in any tracked file.
     account = Path.home().name
     hits = []
-    if account and len(account) >= 3:
+    if local_only:
+        not_here("this machine's account name is not in any tracked file",
+                 local_only)
+    elif account and len(account) >= 3:
         pat = re.compile(re.escape(account), re.I)
         for rel in tracked():
             p = ROOT / rel
@@ -102,10 +168,11 @@ def main():
             for i, line in enumerate(text.splitlines(), 1):
                 if pat.search(line):
                     hits.append((rel, i, line.strip()[:70]))
-    check("this machine's account name is not in any tracked file",
-          not hits, "%d hit(s)" % len(hits) if hits else "")
-    for rel, i, line in hits[:8]:
-        print("       %s:%d  %s" % (rel, i, line))
+    if not local_only:
+        check("this machine's account name is not in any tracked file",
+              not hits, "%d hit(s)" % len(hits) if hits else "")
+        for rel, i, line in hits[:8]:
+            print("       %s:%d  %s" % (rel, i, line))
 
     # 2. Any home-directory-shaped path, whoever it belongs to.
     hp = []
@@ -146,13 +213,31 @@ def main():
 
     # 4. And the identity git would use for the NEXT commit.
     nxt = (git("config", "user.email") or "").strip()
-    check("the configured commit email is a privacy address",
-          bool(nxt) and bool(ALLOWED_EMAIL.match(nxt)),
-          nxt or "user.email is unset")
+    if local_only and not nxt:
+        # A runner makes no commits and configures no identity. An unset
+        # value here is the absence of a question, not a failed answer.
+        not_here("the configured commit email is a privacy address",
+                 local_only + "; and no identity is configured")
+    else:
+        check("the configured commit email is a privacy address",
+              bool(nxt) and bool(ALLOWED_EMAIL.match(nxt)),
+              nxt or "user.email is unset")
 
     print("")
     bad_n = RESULTS.count(False)
-    print("%d of %d check(s) passed" % (len(RESULTS) - bad_n, len(RESULTS)))
+    print("%d of %d applicable check(s) passed"
+          % (len(RESULTS) - bad_n, len(RESULTS)))
+    if SKIPPED:
+        print("")
+        print("%d CHECK(S) DID NOT RUN HERE and are not counted above:"
+              % len(SKIPPED))
+        for name, why in SKIPPED:
+            print("  - %s" % name)
+        print("They ask about the machine running them, and this is not a")
+        print("developer's machine. They run -- and must pass -- in")
+        print("tools/verify.py and hooks/pre-commit, which are the gates")
+        print("between the content and publication. Do not read this run as")
+        print("clearing what they cover.")
     if bad_n:
         print("")
         print("Publishing now would put the above into a public repository.")

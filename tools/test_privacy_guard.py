@@ -83,10 +83,22 @@ def main():
 
     check("clean tree passes", run_privacy() == 0)
 
+    # The account-name plant can only fire where the account-name check runs.
+    # On a hosted runner that check is `n/a` -- the home account is a service
+    # account, not a person -- so planting it would prove nothing and the
+    # guard would report a failure that is really an environment.
+    local_only = test_privacy.local_gate_reason()
     account = Path.home().name
-    rc = plant("An accidental mention of %s in a doc." % account)
-    check("planting this machine's account name FAILS", rc != 0,
-          "account name redacted from this output")
+    if local_only:
+        print("  n/a  planting this machine's account name FAILS  -- %s"
+              % local_only)
+        print("       the check it guards does not run here either; both are")
+        print("       enforced on a developer machine and in the pre-commit")
+        print("       hook, and this run does not clear them")
+    else:
+        rc = plant("An accidental mention of %s in a doc." % account)
+        check("planting this machine's account name FAILS", rc != 0,
+              "account name redacted from this output")
 
     rc = plant("See C:/Users/someone/Downloads/thing for details.")
     check("planting a Windows home path FAILS", rc != 0)
