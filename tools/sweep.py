@@ -137,8 +137,13 @@ def score(img, sizes, blob, target):
         # of wrong, because nobody re-examines a function that looks one
         # word away.
         #
-        # match.py, given no symbol, takes the LARGEST function. Closest-to-
-        # target is the same intent and is right when our code is short.
+        # match.py used to take the LARGEST function when given no symbol.
+        # It now REFUSES instead, because that is a guess dressed as a
+        # default and it scored the wrong function while reporting a better
+        # number for it. This file cannot refuse -- it exists to sweep every
+        # attempt without being told anything -- so it picks by closeness to
+        # the target's size, which is the same intent made explicit, and
+        # RETURNS THE SYMBOL it chose so the row it writes names it.
         row = (same, compared, len(code) == ts, name, nfns)
         key = (-abs(len(code) - tsize), same)
         if best is None or key > best[0]:

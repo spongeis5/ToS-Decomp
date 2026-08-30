@@ -322,11 +322,33 @@ def main(argv):
         print("no PowerPC function found in the object")
         return 2
     if len(fns) > 1:
-        print("%d functions in the object; using the largest. "
-              "Use --sym to pick one:" % len(fns))
+        # REFUSE, exactly as build.py does. This used to print a warning and
+        # then take the largest, which is a guess dressed as a default.
+        #
+        # It scored the WRONG FUNCTION and reported a BETTER number for it.
+        # `m70_hash_until_brace.cpp` holds a `static` helper that MSVC both
+        # inlines and emits as its own COMDAT, so the object has two 60-byte
+        # functions; `max` by length breaks that tie arbitrarily, and the run
+        # came back 12 of 15 for the helper while the function actually being
+        # worked on was at 11 of 14. A near-miss score is the thing this
+        # project uses to decide what to work on next, and that one was about
+        # a different function.
+        #
+        # build.py has refused this since the beginning, and its comment says
+        # why: "picking the largest silently builds the wrong function the
+        # moment a translation unit grows a second one." Two tools deciding
+        # the same question differently is the drift this repository has paid
+        # for more than any other.
+        print("%d functions in the object and no --sym to choose between"
+              % len(fns))
+        print("them. Refusing to guess -- naming one is the caller's job:")
         for n, c, _m in fns:
             print("    %-50s %d byte(s)" % (n, len(c)))
-    sym, code, mask = max(fns, key=lambda f: len(f[1]))
+        print("")
+        print("    python tools/match.py %s %08X --sym <name>"
+              % (src, target))
+        return 2
+    sym, code, mask = fns[0]
     code, mask = trim_padding(code, mask)
 
     # The recorded size can be SHORT. Ghidra computes a function body from
