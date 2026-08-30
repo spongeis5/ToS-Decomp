@@ -22,7 +22,7 @@ points at do not, and they are where the knowledge is.
 ## The loop
 
 ```bash
-python tools/verify.py                 33 checks; ~5 min. Run it first.
+python tools/verify.py                 35 checks; ~5 min. Run it first.
 python tools/batch.py 40 --no-vmx      candidates, ranked by CALLER COUNT
 python tools/match.py <src> <addr>     compile one and compare
 python tools/sweep.py                  recover work whose row was never written

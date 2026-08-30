@@ -8,16 +8,29 @@ like a failure -- it looks like a match. `compile_obj` already deletes the
 .obj before every compile for exactly that reason; adding a memo above it
 re-opens the same hole one level up unless the key is right.
 
-So the key is the source's CONTENT, the exact flag list, and the compiler
-binary's own size and mtime -- never a path, never a source timestamp. An
-edit changes the key; swapping the XDK changes the key.
+So the key is the source's CONTENT, ITS PATH, the exact flag list, and the
+compiler binary's own size and mtime -- never a source timestamp. An edit
+changes the key; moving the file changes the key; swapping the XDK changes
+the key.
 
-Eleven checks over BOTH halves. FOUR must miss the cache and actually invoke
-cl (first compile, edited text, changed flags, edited text again against the
-disk half); three must hit it, one of them FROM A SEPARATE PROCESS, which is
-the case the in-process memo cannot serve and the entire reason the disk
-half exists. The rest check that what comes back is the right bytes and that
-a failure stays a failure rather than returning as a benign empty object.
+THE PATH WAS NOT IN THE KEY, and this docstring used to say "never a path"
+as though that were the careful choice. It reads like a content-addressed
+cache and is not one: two byte-identical files at different paths do not
+compile to the same object, because `#include "foo.h"` resolves relative to
+the including file's own directory before any `/I` is consulted, and
+`__FILE__` expands to the path and lands in the object as a string. An
+agent's header-shim probe -- a copy of a file at a new path with a different
+header beside it -- came back with an unchanged score, having been served
+the original object. Nothing failed and the number was wrong, which is the
+expensive shape.
+
+Thirteen checks over BOTH halves. FIVE must miss the cache and actually
+invoke cl (first compile, edited text, changed flags, THE SAME BYTES AT A
+NEW PATH, and edited text again against the disk half); three must hit it,
+one of them FROM A SEPARATE PROCESS, which is the case the in-process memo
+cannot serve and the entire reason the disk half exists. The rest check that
+what comes back is the right bytes and that a failure stays a failure rather
+than returning as a benign empty object.
 
 A suite where every case expected a hit would pass just as happily with no
 invalidation at all, so the misses are the point.
@@ -72,7 +85,7 @@ def main():
     WORK.mkdir(parents=True, exist_ok=True)
     src = WORK / "probe.cpp"
 
-    print("compile memo -- 11 checks across BOTH halves, in-process and on disk")
+    print("compile memo -- 13 checks across BOTH halves, in-process and on disk")
     print("")
 
     src.write_text(body("0x11111111"))
@@ -99,6 +112,32 @@ def main():
     _e, _ee, ran_e = compile_counting(
         src, ["/c", "/nologo", "/O2", "/Os", "/Gy", "/GS-", "/fp:fast"])
     check("different flags must MISS", ran_e)
+
+    # THE SAME BYTES AT A DIFFERENT PATH MUST MISS. `#include "x.h"` resolves
+    # against the including file's own directory, so identical text in two
+    # places can pull in two different headers -- and this is exactly the
+    # probe that was silently served a stale object.
+    #
+    # The control is not "it recompiled": it is that the two objects DIFFER,
+    # produced from byte-identical sources whose only difference is which
+    # `local.h` sat beside them. A key that ignored the path would return the
+    # first object for the second file and the two would compare equal.
+    here, there = WORK / "samebytes", WORK / "samebytes_elsewhere"
+    here.mkdir(parents=True, exist_ok=True)
+    there.mkdir(parents=True, exist_ok=True)
+    (here / "local.h").write_text("#define WHICH 0x5A5A5A5Au\n")
+    (there / "local.h").write_text("#define WHICH 0xA5A5A5A5u\n")
+    text = ('// %s\n#include "local.h"\nunsigned int f(void) '
+            '{ return WHICH; }\n' % NONCE)
+    (here / "p.cpp").write_text(text)
+    (there / "p.cpp").write_text(text)
+    p1, e1, _r1 = compile_counting(here / "p.cpp")
+    p2, e2, ran_p2 = compile_counting(there / "p.cpp")
+    check("the SAME BYTES at a NEW PATH must MISS", ran_p2,
+          "a path-blind key would serve the first object here")
+    check("and must yield a DIFFERENT object",
+          p1 is not None and p2 is not None and p1 != p2,
+          e1 or e2 or "identical objects from different headers")
 
     # A failing compile must be cached as a FAILURE, and must never come
     # back as a benign empty object.

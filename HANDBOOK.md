@@ -32,12 +32,12 @@ bytes identical to the retail image. Not a port, not a re-implementation.
 function starts known           30,630
 .text                           8,467,964 bytes
 
-FUNCTIONS MATCHED               1,297
+FUNCTIONS MATCHED               1,299
   read off the disassembly      448   (34,308 bytes)
   generated from encodings      818   (8,192 bytes)
-  upstream third-party source   31   (7,320 bytes)
+  upstream third-party source   33   (8,160 bytes)
 
-bytes rebuilt from source       49,820   (0.5883% of .text)
+bytes rebuilt from source       50,660   (0.5983% of .text)
 near-misses recorded            45
 vetted match candidates         4,231
 ```
@@ -45,10 +45,15 @@ The three parts of the match count are never added up without
 being split, here or anywhere else. The generated ones are a
 single expression each, written by script from the instructions
 themselves. The upstream ones are libogg 1.1.3 and libvorbis
-1.2.0, obtained rather than recovered -- the release pair decided
-by measurement in FINDINGS 8a. Both reproduce the image exactly
-and a link needs every one; only the first says anything about how
-much of this game has been read.
+1.2.0 -- the release pair decided by measurement in FINDINGS 8a --
+mostly OBTAINED rather than recovered, plus a few RECONSTRUCTED
+where the image holds a modified build of an upstream file and the
+modification had to be read out of the disassembly. Those are
+counted here, not as hand-written, because their bodies are
+upstream text and the smaller claim is the safer one; see
+thirdparty/ogg_vorbis_fmod/README.md. All of them reproduce the
+image exactly and a link needs every one; only the first line says
+anything about how much of this game has been read.
 <!-- /STATS -->
 
 Matches are listed in `MATCHED.md`, whose table is generated from
@@ -214,7 +219,7 @@ contiguous **run** of matched functions, hands it the retail order through
 emits against the image byte for byte.
 
 ```
-124 of 181 runs, 12,100 of the 27,128 bytes those runs span
+124 of 178 runs, 12,100 of the 27,568 bytes those runs span
 ```
 
 laid out by the linker rather than by us, at the addresses the image gives
@@ -609,6 +614,7 @@ broken one pops a modal dialog that blocks until someone clicks OK.
 | `matched_table.py` | Regenerate the function table in MATCHED.md from src/manifest.txt |
 | `readme_stats.py` | Regenerate the figures in README.md and HANDBOOK.md from the repository |
 | `tool_table.py` | Regenerate HANDBOOK.md's tool inventory from the tools themselves |
+| `open_stalls.py` | The list of open stalls must not name a function that already matches |
 | `coverage.py` | Target-only objdiff units for the code with no source yet |
 | `objdiff_export.py` | Export this project for objdiff, so the matching can be browsed visually |
 | `report.py` | Emit a decomp.dev-compatible progress report |
@@ -627,6 +633,7 @@ broken one pops a modal dialog that blocks until someone clicks OK.
 | `test_privacy.py` | Refuse to let identifying information reach a public repository |
 | `test_privacy_guard.py` | The privacy check must FAIL on each thing it claims to catch |
 | `test_doc_guards.py` | The documentation guards must FAIL on what they claim to catch |
+| `test_verify_honesty.py` | verify.py must not report an UNMEASURED function as a broken one |
 | `vmx128_check.py` | Mark the VMX128 decoder against Biallas's independent bit tables |
 | `vmx128_oracle.py` | Mark the VMX128 decoder against MICROSOFT'S OWN ENCODER |
 | `vmx128_table.py` | Exhaustive VMX128 table check: binutils vs the documentation vs MSVC |
@@ -797,7 +804,7 @@ was reached rather than presenting the bound as an answer.
 python tools/verify.py
 ```
 
-33 checks: the tool self-tests, the whole manifest rebuilt and hashed, the
+35 checks: the tool self-tests, the whole manifest rebuilt and hashed, the
 real link over every contiguous run, and the negative controls -- which each
 corrupt one fact and require the thing they guard to FAIL. A failing negative
 control is the serious kind: it means a check reports success without being
@@ -995,11 +1002,30 @@ whole splice afterwards, so a mistake is loud.
 
 ### Functions the inventory cannot name, and the two sources stuck behind it
 
-`python tools/interior.py` finds **307 function starts that lie INSIDE
-another inventory row and have no row of their own**, across 200 enclosing
-rows. Each is terminated-before and referenced — by a call, a data word, or a
-`lis`/`addi` pair — so they are real functions the `.pdata` table simply does
-not describe separately.
+`python tools/interior.py` finds **211 function starts that lie INSIDE
+another inventory row and have no row of their own**, across 145 enclosing
+rows, totalling 42,216 bytes. Each is terminated-before and referenced — by a
+call, a data word, or a `lis`/`addi` pair — so they are candidates for real
+functions the `.pdata` table does not describe separately.
+
+**It said 307 across 200 rows and 97,092 bytes until 2026-08-30, and 96 of
+those were jump tables.** `build/switch_tables.txt` writes a length of 0
+where the case count could not be recovered and says so in its own header;
+`interior.py` read that 0 as a length, so `lo <= a < lo + 0` excluded
+nothing for exactly the 106 of 437 tables whose extent was unknown. A table
+sitting in `.text` looks like an interior start from every angle this tool
+measures — it is preceded by the `bctr` that reads it and pointed at from
+code — so all 96 came through, carrying **54,876 of the 97,092 bytes**. The
+extent is now measured as the run of aligned `.text` addresses at the table
+address, and the count of unknown-length tables is printed on every run.
+
+The remaining 211 are still an upper bound on *functions*: a structural pass
+over them classified 33 as LABELS branched into from elsewhere in the same
+row and 53 as not ending in a terminator, leaving **125 that are
+function-shaped, 4,108 bytes**. Those 125 are the set that survives both
+reference evidence and a structural test — measured against the 2,571 known
+switch case bodies `switches.py` recovered, that intersection admits **0 of
+2,571**, where either test alone admits more than 80%.
 
 **They are unmatchable today, and `src/` holds the worked example.**
 `src/g_memcmp_n.cpp` and `src/p5_mem_compare.cpp` both target `82697748`,
@@ -1011,14 +1037,48 @@ source can be recorded in `src/manifest.txt` or `src/attempts.txt`, and
 tooling being honest, not a defect — but it means work can be finished and
 still have nowhere to go.
 
-The two files also disagree: one reads the function as 60 bytes, the other as
-56. That is not resolved, and resolving it is part of the job.
+**The 60-versus-56 disagreement is SETTLED, and the row's arithmetic settles
+it.** Disassembling all 68 bytes: `82697740` is `b 0x828A8C50`, one 4-byte
+thunk; `82697744` is a 4-byte `.long 0` pad; and `82697748`..`82697780` is a
+15-instruction byte compare ending in `blr` — **60 bytes**. 4 + 4 + 60 = 68,
+and the row closes exactly. `src/g_memcmp_n.cpp` is right. `p5_mem_compare.cpp`
+is wrong and self-contradictory: its header says 56 while the listing beneath
+it transcribes all 15 instructions. The 56 is that file's own *output* size
+recorded in a slot that means the *target's* size.
+
+Two more corrections fall out of the same listing. The note in
+`src/attempts.txt` describing "three 8-byte thunks" does not close — three
+thunks exist at `82697730`, `82697738` and `82697740`, but the first two are
+their own 4-byte rows, and 24 + 60 = 84, not 68. And `g_memcmp_n.cpp` says a
+`.pdata` entry covers the row; none does. The nearest ends at `82697678`, and
+`82697740` is a `discover` row, not a compiler-emitted one. `82631F30` is the
+same: 72 + 80 = 152 closes exactly, the first 72 bytes are already matched by
+`src/n15_slot_clear.cpp`, and `n17_find_paired.cpp`'s 80 is right — but a
+naive "split at the next terminator" reads it as 64, because the `blr` at
+`82631FB4` is followed by an out-of-line block that a `beq-` inside the body
+branches to. **Any bounding rule must run to the next ACCEPTED start, not the
+next terminator.**
 
 **What it would take.** Writing these to the inventory needs its own
 validation pass, because every existing match was verified against sizes the
 current inventory produced — so a change to it has to be shown not to move
-any of them. That is the whole reason it has not been done, and it is 307
-functions and 97,092 bytes of currently invisible target.
+any of them. Measured: only **2 of 1,299** manifest rows have a promoted
+start inside them — `8215E5B0` (`arg_shuffle.cpp`, matched 28 B, row 156 →
+32) and `82167FE0` (`j_scale_pair.cpp`, matched 212 B, row 240 → 216) — and
+both already match below the new bound, so neither breaks. That is the whole
+reason this has not been done, and it is 211 candidates and 42,216 bytes of
+currently invisible target, of which 125 and 4,108 bytes pass a structural
+test as well.
+
+**Do NOT do it by running `tools/inventory.py --addrtaken`.** It adds all
+1,252 address-taken starts, and **331 of the 437 switch-table bases are in
+`build/addrtaken.txt`** — `addrtaken.py` excludes case *bodies* via
+`switch_targets.txt` but never table *bases*. That is 331 false starts, each
+silently truncating the row it lands in. `interior.py --write` is not safe
+either as written: it appends all of them unsorted and does not shrink the
+enclosing row, leaving overlapping rows — and `disasm.py --fn` takes the
+FIRST containing row in file order, so an appended row is shadowed by the one
+it sits inside.
 
 ### What still resists
 
@@ -1235,7 +1295,7 @@ in particular has not once survived contact with a new lever.
    merged with the 6,453 `lib` matches.
 6. ~~**A build system and a progress dashboard.**~~ **PARTLY DONE.**
    `tools/build.py` is the build, `tools/objdiff_export.py` gives the
-   dashboard, and `tools/link.py` links 124 contiguous runs — 10,472 bytes —
+   dashboard, and `tools/link.py` links 124 contiguous runs — 12,100 bytes —
    with the retail linker, each at its retail address, ordering and padding
    included. What is still missing is a link that spans **more than one run**:
    26 runs cannot be linked because something in them relocates against a

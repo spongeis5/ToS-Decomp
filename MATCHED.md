@@ -11,7 +11,7 @@ the inventory is wrong in both directions, short where a tail call's dead
 `blr` was not counted and long where one `.pdata` row covers several
 frameless bodies.
 
-**1297 functions, 49820 bytes.** Verify all of them, plus the reconstructing
+**1299 functions, 50660 bytes.** Verify all of them, plus the reconstructing
 build and six negative controls, with one command:
 
 ```bash
@@ -22,7 +22,7 @@ Every match is also a row in `src/manifest.txt`, so `tools/build.py` compiles
 it, resolves its relocations against the retail bytes and splices it into
 `.text`. Nothing here is a match on `match.py`'s word-comparison alone.
 
-SPLIT: 448 hand-written, 34308 bytes; 818 generated, 8192 bytes; 31 upstream, 7320 bytes.
+SPLIT: 448 hand-written, 34308 bytes; 818 generated, 8192 bytes; 33 upstream, 8160 bytes.
 <!-- the line above is regenerated; edit tools/matched_table.py, not this -->
 
 The two halves are not comparable and the count should never be quoted
@@ -493,7 +493,7 @@ while and the claim was wrong.
 | `826969B8` | 140 | 0 | `y1_pack_child.cpp` | - | `/O2` |
 | `82696A60` | 108 | 0 | `y1_bind_child.cpp` | - | `/O2` |
 | *(818 generated)* | 8192 | - | `vt_typeid_*`, `vt_const_*`, `vt_acc_*` | one expression each | `/O2` |
-| *(31 upstream)* | 7320 | - | `thirdparty/ogg_vorbis/` | libogg 1.1.3 + libvorbis 1.2.0, obtained not recovered | `/O2` |
+| *(33 upstream)* | 8160 | - | `thirdparty/ogg_vorbis/` | libogg 1.1.3 + libvorbis 1.2.0, obtained not recovered | `/O2` |
 ---
 
 ## How these were found
@@ -1403,13 +1403,28 @@ later, and they came out in three ways, in this order of frequency:
 What has NOT yet moved anything: `tools/permuter.py`'s mutations, which do
 not reach register allocation. That remains the one worth writing.
 
-There are also real boundaries, and they are worth stating so they are not
-re-searched. `sub_826377B0` cannot be finished because retail's own `lwzx`
-operand order is not uniform within the function. `sub_8216C240`'s last word
-is an `or` operand order, which sixteen spellings and 72 flag combinations
-show is not source-readable. And three functions want `/O2`'s register
-allocation with `/Os`'s instruction selection, which no flag combination
-expresses.
+**And this section named a matched function as a boundary for two
+revisions.** It said `sub_8216C240`'s last word "is an `or` operand order,
+which sixteen spellings and 72 flag combinations show is not
+source-readable". Both halves of that were true as measured. It came out at
+38 of 38 anyway, by applying the AND-mask lever to the **index rather than
+the operator** -- a masked index misses MSVC's `base + (index << scale)`
+pattern, the expression tree is rebuilt, and the `or` falls out the other
+way round. The sixteen spellings had all been spellings of the operator.
+
+This section had already been corrected once for listing solved functions,
+and its opening paragraph says so. It went stale again anyway, in the same
+direction, three hundred lines from a generated table that had the right
+answer the whole time. So the boundaries are not listed here any more.
+
+**`HANDBOOK.md`'s "Still genuinely open" is now the only list**, and
+`tools/open_stalls.py --check` reads it on every `verify.py` run: an address
+in that list that turns out to be in `src/manifest.txt` is a failing check,
+and so is an address no file tracks, a missing heading, or a list that names
+nothing. That guard covers a delimited list, not prose — this section is
+free to keep naming `8216C240`, `82806FD0` and `82600AD0`, because naming
+functions that CAME OUT is the useful half of it. `tools/sweep.py
+--attempts` remains the live scoreboard.
 
 ---
 

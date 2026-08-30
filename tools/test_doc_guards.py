@@ -76,6 +76,15 @@ def nl_of(b):
     return b"\r\n" if b"\r\n" in b else b"\n"
 
 
+def _blank_open_stalls(b):
+    """Empty the open-stall region, keeping both of its headings."""
+    begin = b"**Still genuinely open, and the honest reasons:**"
+    end = b"**Larger, in rough order of value:**"
+    i = b.index(begin) + len(begin)
+    j = b.index(end, i)
+    return b[:i] + nl_of(b) + nl_of(b) + b[j:]
+
+
 def main():
     print("documentation guards -- each must refuse what it claims to catch")
     print("")
@@ -91,6 +100,8 @@ def main():
                  ["tools/readme_stats.py", "--check"])
     clean_passes("no matched address is also a near-miss",
                  ["tools/prune_attempts.py", "--check"])
+    clean_passes("open-stall list agrees with the manifest",
+                 ["tools/open_stalls.py", "--check"])
 
     # A NEW TOOL must make the inventory stale. The table is built by
     # enumerating tools/*.py, so this is the case it cannot miss -- and the
@@ -138,12 +149,70 @@ def main():
             ["tools/readme_stats.py", "--check"],
             want_in_output="HAS NO HEADLINE LINE")
 
+    # THE LINK FIGURE, IN ALL THREE PLACES IT APPEARS. It disagreed with
+    # itself in two of them for long enough that the largest copy was 1,628
+    # bytes out. Each is now generated, so each must be caught when edited.
+    control("a stale link figure on the front page",
+            "README.md",
+            lambda b: b.replace(b"124 of 180 runs, 12,100 bytes",
+                                b"124 of 180 runs, 10,472 bytes", 1),
+            ["tools/readme_stats.py", "--check"])
+    control("a stale link figure in the HANDBOOK block",
+            "HANDBOOK.md",
+            lambda b: b.replace(b"124 of 180 runs, 12,100 of the 26,724",
+                                b"124 of 181 runs, 12,100 of the 27,128", 1),
+            ["tools/readme_stats.py", "--check"])
+    control("a stale link figure in HANDBOOK prose",
+            "HANDBOOK.md",
+            lambda b: b.replace(b"links 124 contiguous runs \xe2\x80\x94 12,100",
+                                b"links 124 contiguous runs \xe2\x80\x94 10,472", 1),
+            ["tools/readme_stats.py", "--check"])
+
     addr = first_manifest_address()
     control("an address in BOTH manifest and attempts",
             "src/attempts.txt",
             lambda b: b + nl_of(b)
             + ("src/zzz_probe.cpp %s" % addr).encode() + nl_of(b),
             ["tools/prune_attempts.py", "--check"])
+
+    # THE ONE THAT WENT STALE FOR FOUR REVISIONS. A function that has been
+    # matched must not still be listed as an open stall -- that is the stale
+    # fact which changes what the next reader does, because it tells them
+    # not to try.
+    marker = b"**Still genuinely open, and the honest reasons:**"
+    control("a MATCHED function listed as an open stall",
+            "HANDBOOK.md",
+            lambda b: b.replace(
+                marker,
+                marker + nl_of(b) + nl_of(b)
+                + ("* `%s`, cannot be done." % addr).encode(), 1),
+            ["tools/open_stalls.py", "--check"],
+            want_in_output="ALREADY MATCH")
+
+    # An address no file tracks cannot go stale loudly, only quietly.
+    control("an open stall in neither manifest nor attempts",
+            "HANDBOOK.md",
+            lambda b: b.replace(
+                marker,
+                marker + nl_of(b) + nl_of(b) + b"* `82ABCDE0`, cannot be done.",
+                1),
+            ["tools/open_stalls.py", "--check"],
+            want_in_output="NEITHER")
+
+    # Deleting the heading must not silence the check that heading exists
+    # for. This is the readme_stats.py hole, planted against a second tool.
+    control("a DELETED open-stall heading is a failure, not a no-op",
+            "HANDBOOK.md",
+            lambda b: b.replace(marker, b"**Some notes:**", 1),
+            ["tools/open_stalls.py", "--check"],
+            want_in_output="CANNOT READ THE OPEN-STALL LIST")
+
+    # And a list that names nothing is not an empty list, it is a broken one.
+    control("an open-stall list naming NO address is a failure",
+            "HANDBOOK.md",
+            lambda b: _blank_open_stalls(b),
+            ["tools/open_stalls.py", "--check"],
+            want_in_output="NAMES NO ADDRESSES")
 
     same = all((ROOT / p).read_bytes() == b for p, b in before.items())
     check("every planted file is byte-identical to how it was found", same,

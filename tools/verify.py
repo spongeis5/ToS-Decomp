@@ -21,6 +21,7 @@ CONTROL available, it runs that too, and a check whose control does not fail
 is reported as broken even if the check itself passes.
 """
 
+import atexit
 import os
 import subprocess
 import sys
@@ -28,6 +29,57 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PY = sys.executable
+
+sys.path.insert(0, str(Path(__file__).parent))
+import xdkcc                                                  # noqa: E402
+
+# ONE RUN AT A TIME. Two verify.py processes cannot both be right: each one
+# corrupts a real source file during its negative controls, and each one
+# compiles 1,297 functions in a section that does not hold the lock. Run
+# them together and the second reads the first's deliberate corruption --
+# or, more often, has its compiles REFUSED by the first's lock and reports
+# the refusals as broken functions.
+#
+# That is not hypothetical. Two overlapping runs produced two DIFFERENT
+# spurious failure sets, one naming a single function and the next naming
+# thirty-two accessors, and nothing was wrong with any of them.
+#
+# The dead-holder rule is the same one test_lock.py records for the compile
+# lock, and for the same reason: a guard that cannot be cleared is worse
+# than the race it prevents, because a run killed by a timeout would
+# otherwise lock the project out permanently.
+RUNLOCK = ROOT / "build/.verify_running"
+
+
+def claim_run_lock():
+    """-> None, or a message saying who holds it. Clears a dead holder."""
+    if RUNLOCK.exists():
+        try:
+            holder = int(RUNLOCK.read_text(encoding="utf-8").strip() or 0)
+        except ValueError:
+            holder = 0
+        if holder and holder != os.getpid() and xdkcc._pid_alive(holder):
+            return ("tools/verify.py is ALREADY RUNNING as pid %d.\n\n"
+                    "Two runs cannot both be right: each corrupts a source\n"
+                    "file during its negative controls while the other is\n"
+                    "compiling, so the answer would be wrong in a way that\n"
+                    "looks exactly like a broken function.\n\n"
+                    "Wait for it to finish. If it was killed, this lock\n"
+                    "clears itself as soon as that pid is gone."
+                    % holder)
+    RUNLOCK.parent.mkdir(parents=True, exist_ok=True)
+    RUNLOCK.write_text(str(os.getpid()), encoding="utf-8")
+    atexit.register(release_run_lock)
+    return None
+
+
+def release_run_lock():
+    try:
+        if RUNLOCK.exists() and \
+                RUNLOCK.read_text(encoding="utf-8").strip() == str(os.getpid()):
+            RUNLOCK.unlink()
+    except OSError:
+        pass
 
 
 def run(args, cwd=ROOT):
@@ -207,7 +259,39 @@ def documented_count_problems(total):
     return stale
 
 
+def classify_match(rc, out):
+    """What a tools/match.py run actually established. -> (verdict, why).
+
+    Three outcomes, not two. `match` and `differ` are verdicts match.py
+    REACHED; `unmeasured` is what it means when it never compared anything,
+    and conflating that with `differ` is what produced two contradictory
+    sets of phantom failures in one afternoon.
+
+    The test for "it compared" is POSITIVE: match.py prints its
+    `N word(s) compared:` line before every verdict it reaches, so the
+    absence of that line is evidence no comparison happened. A blacklist of
+    known failure strings would have to be extended for every new way of
+    failing, and until someone extended it the new way would be counted as a
+    broken function.
+    """
+    if rc == 0:
+        return "match", ""
+    if "word(s) compared" in out:
+        return "differ", ""
+    if "REFUSING TO COMPILE" in out:
+        return "unmeasured", ("compile refused -- another process holds the "
+                              "negative-control lock")
+    for line in out.splitlines():
+        if line.strip():
+            return "unmeasured", line.strip()
+    return "unmeasured", "no output at all from match.py"
+
+
 def main():
+    busy = claim_run_lock()
+    if busy is not None:
+        print(busy)
+        return 1
     restore_if_interrupted()
     results = []
 
@@ -224,7 +308,7 @@ def main():
     # cache serving an object built from different text is indistinguishable
     # from a match. Keyed on content, and these 7 checks are what says so --
     # 3 of them must MISS the cache.
-    results.append(check("compile memo, 11 cases (in-process + on-disk)",
+    results.append(check("compile memo, 13 cases (in-process + on-disk)",
                          ["tools/test_xdkcc_cache.py"]))
     # permute.py ranks source shapes, so a scorer that counts relocated words
     # as mismatches does not merely under-report -- it recommends the wrong
@@ -329,15 +413,29 @@ def main():
     # unrunnable for some time, invisible because nothing imports it.
     results.append(check("HANDBOOK tool table lists every tool, and each parses",
                          ["tools/tool_table.py", "--check"]))
-    # The four --check guards above all report "up to date" on a clean tree,
+    # A stale FIGURE is embarrassing; a stale STALL is expensive, because the
+    # only people who read the list are deciding what to work on next and it
+    # tells them not to. MATCHED.md named `8216C240` as "not source-readable"
+    # for two revisions while its own generated table, three hundred lines
+    # earlier, listed the function as matched.
+    results.append(check("no matched function is listed as an open stall",
+                         ["tools/open_stalls.py", "--check"]))
+    # The five --check guards above all report "up to date" on a clean tree,
     # which says nothing on its own. This plants each violation and requires a
     # refusal. It found readme_stats.py substituting the front-page headline
     # only when the regex matched: editing or deleting that sentence made
     # --check compare the file to itself and pass, so the guard that exists
     # because the front page was wrong by six times could be silenced by
     # removing the sentence it maintains.
-    results.append(check("doc guards refuse what they claim, 11 cases",
+    results.append(check("doc guards refuse what they claim, 16 cases",
                          ["tools/test_doc_guards.py"]))
+    # An UNMEASURED function is not a broken one. Two overlapping verify runs
+    # had their compiles refused by the other's negative-control lock and
+    # reported the refusals as mismatches -- one naming a single function, the
+    # next naming thirty-two, none of them actually wrong. These 12 cases hold
+    # the three-way classification and the whole-run lock that now prevents it.
+    results.append(check("unmeasured is not a mismatch, 13 cases",
+                         ["tools/test_verify_honesty.py"]))
     results.append(check("backslash-heredoc hook, 7 cases",
                          [".claude/hooks/test_no_backslash_heredoc.py"]))
     results.append(check("reconstructing build (.text reproduces)",
@@ -528,17 +626,40 @@ def main():
     print("")
     print("MATCHES -- %d function(s)\n" % len(MATCHES))
     ok_n = 0
+    mismatched, unmeasured = [], []
     for src, addr, sym, flags in MATCHES:
         args = ["tools/match.py", src, addr] + (["--sym", sym] if sym else [])
         if flags:
             args += ["--flags", "/c /nologo " + " ".join(flags.split(","))]
-        rc, _out = run(args)
-        if rc == 0:
+        rc, out = run(args)
+        # THIS COST A WHOLE DIAGNOSIS. Two verify runs overlapped with other
+        # processes compiling; xdkcc refused those compiles because the
+        # negative-control lock was held, and this loop printed the refusals
+        # as FAIL. One run blamed a single function, the next blamed
+        # thirty-two accessors, and nothing was wrong with any of them.
+        # xdkcc's own refusal text predicts exactly that -- "the result would
+        # look like an ordinary mismatch rather than a race" -- and this is
+        # the code that was throwing that text away.
+        verdict, why = classify_match(rc, out)
+        if verdict == "match":
             ok_n += 1
-        else:
+        elif verdict == "differ":
+            mismatched.append((src, addr, sym, flags))
             print("  FAIL  %-28s %s %s %s"
                   % (Path(src).name, addr, sym or "", flags or ""))
-    print("  %d of %d match" % (ok_n, len(MATCHES)))
+        else:
+            unmeasured.append((src, addr, sym, why))
+            print("  ????  %-28s %s %s" % (Path(src).name, addr, why))
+    print("  %d of %d match, %d differ, %d could not be measured"
+          % (ok_n, len(MATCHES), len(mismatched), len(unmeasured)))
+    if unmeasured:
+        print("")
+        print("  A function that could not be COMPILED has not been shown to")
+        print("  differ from anything. These are reported apart from real")
+        print("  mismatches on purpose, and they still fail this run --")
+        print("  an unmeasured fact is not a passing one either.")
+        print("  The usual cause is another verify.py, an agent, or a build")
+        print("  running at the same time. Run it alone and try again.")
     results.append(ok_n == len(MATCHES))
 
     print("")

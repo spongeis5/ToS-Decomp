@@ -127,6 +127,31 @@ def addrtaken():
     return out
 
 
+def _address_run(img, a0, limit=4096):
+    """How many bytes at `a0` are a run of aligned .text addresses.
+
+    Used only for a table whose recorded length is 0, i.e. unknown. Returns
+    0 when the first word is not such an address, so a table this cannot
+    read is excluded no more than it was before -- the fallback never claims
+    more than it can see.
+    """
+    text = next((s for s in img.sections if s["name"] == ".text"), None)
+    if text is None:
+        return 0
+    lo = text["va"]
+    hi = lo + (text["vsize"] or text["rawsz"])
+    n = 0
+    while n < limit:
+        b = img.read(a0 + n, 4)
+        if b is None:
+            break
+        w = struct.unpack(">I", b)[0]
+        if w % 4 or not (lo <= w < hi):
+            break
+        n += 4
+    return n
+
+
 def find(img, inv):
     starts = sorted(inv)
     calls = call_targets()
@@ -140,7 +165,24 @@ def find(img, inv):
     # exactly like an interior start: preceded by the `bctr` that reads it,
     # and pointed at from code. 8215AC14 -- 1,724 bytes "inside"
     # 8215ABD0 + 1792 -- is one. switches.py already knows where they are.
-    tables = []
+    #
+    # A RECORDED LENGTH OF 0 MEANS "COULD NOT BE RECOVERED", NOT "EMPTY".
+    # switch_tables.txt says so in its own header -- "bytes is 0 where the
+    # case count could not be recovered" -- and this read it as a length, so
+    # `lo <= a < lo + 0` excluded nothing for exactly the tables whose extent
+    # was unknown. 106 of 437 recorded tables are in that state, and they
+    # accounted for 96 of the 307 "interior function starts" this tool
+    # reported: every one of them a jump table, 54,876 of the 97,092 bytes it
+    # claimed were waiting to be matched.
+    #
+    # The producer stated its uncertainty and the consumer dropped it, which
+    # is the failure this project names first: absence of evidence rendered
+    # as evidence of absence.
+    #
+    # So an unknown extent is MEASURED here rather than assumed away. A jump
+    # table of the absolute-address form is a run of aligned words that are
+    # all addresses inside .text, so the run itself gives the extent.
+    tables, unknown = [], 0
     sw = ROOT / "build/switch_tables.txt"
     if sw.exists():
         for line in sw.read_text().splitlines():
@@ -150,13 +192,21 @@ def find(img, inv):
             f = line.split()
             if len(f) >= 2:
                 try:
-                    a0 = int(f[0], 16)
-                    tables.append((a0, a0 + int(f[1])))
+                    a0, n = int(f[0], 16), int(f[1])
                 except ValueError:
-                    pass
+                    continue
+                if n == 0:
+                    unknown += 1
+                    n = _address_run(img, a0)
+                tables.append((a0, a0 + n))
 
     def in_table(a):
         return any(lo <= a < hi for lo, hi in tables)
+
+    find.tables_unknown = unknown
+    find.tables_total = len(tables)
+    find.tables_recovered = sum(
+        1 for i, (lo, hi) in enumerate(tables) if hi > lo) if tables else 0
 
     cands = set(calls) | pointed | taken
     interior = defaultdict(list)
@@ -193,6 +243,15 @@ def main(argv):
     print("%d inventory row(s); %d distinct call target(s)"
           % (len(inv), len(calls)))
     print("")
+    unknown = getattr(find, "tables_unknown", 0)
+    if unknown:
+        print("%d of %d switch table(s) have NO RECORDED LENGTH; their extent"
+              % (unknown, getattr(find, "tables_total", 0)))
+        print("was measured here as the run of aligned .text addresses at the")
+        print("table address. Read as a length of 0 -- which is what this did")
+        print("until it was fixed -- they excluded nothing, and 96 jump tables")
+        print("were reported below as hidden functions.")
+        print("")
     print("%d function start(s) lie INSIDE another row and have no row of"
           % total)
     print("their own, across %d enclosing row(s). Each is terminated-before"

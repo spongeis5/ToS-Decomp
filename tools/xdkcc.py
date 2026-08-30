@@ -262,9 +262,37 @@ def compile_obj(src, obj, flags=None, workdir=None):
            if f.startswith("/I") and not Path(f[2:]).is_absolute() else f
            for f in use]
 
+    # THE PATH IS PART OF THE KEY, because it is part of the compile.
+    #
+    # This was keyed on source bytes + flags + cl stamp alone, which reads as
+    # a content-addressed cache and is not one: two byte-identical files at
+    # different paths do NOT compile to the same object.
+    #
+    #   * `#include "foo.h"` resolves relative to the INCLUDING FILE'S OWN
+    #     directory before any `/I` is consulted, so the same text in two
+    #     places can pull in two different headers;
+    #   * `__FILE__` expands to the source path and lands in the object as a
+    #     string -- which is why tools/test_privacy.py exists.
+    #
+    # It was found by an agent whose header-shim probe -- a copy of a file at
+    # a new path, with a different header beside it -- came back with an
+    # unchanged score, because it had been served the original object. That
+    # is the "tool succeeded with a stale answer" shape this project treats
+    # as the expensive kind: nothing failed, and the number was wrong.
+    #
+    # Keyed RELATIVE to the repository where possible, so the cache survives
+    # a clone into a different directory; absolute only for a source outside
+    # the tree, which nothing here compiles today.
     try:
+        rel = src.resolve()
+        try:
+            rel = rel.relative_to(ROOT.resolve())
+        except ValueError:
+            pass
         digest = hashlib.sha256()
         digest.update(src.read_bytes())
+        digest.update(b"\0")
+        digest.update(str(rel).replace("\\", "/").encode())
         digest.update(b"\0".join(f.encode() for f in use))
         digest.update(_cl_stamp().encode())
         tag = digest.hexdigest()

@@ -420,8 +420,16 @@ def _manifest_digest():
     return hashlib.sha256(MANIFEST.read_bytes()).hexdigest()[:16]
 
 
-def write_linked(ok_addrs):
-    """Record every address that a full run proved linked, placed and equal."""
+def write_linked(ok_addrs, stats=None):
+    """Record every address that a full run proved linked, placed and equal.
+
+    `stats` is the run/byte summary, recorded here so that documents can
+    QUOTE it instead of keeping their own copy. Three hand-written copies of
+    this one figure had drifted apart in two files -- "124 of 181 runs,
+    12,100 of 27,128 bytes", "124 contiguous runs, 10,472 bytes", and the
+    truth, 124 of 180 and 12,100 of 26,724. Nobody mistyped anything; the
+    link simply moved and the prose did not.
+    """
     lines = ["# Addresses inside a run tools/link.py linked, PLACED at its",
              "# retail address, and found byte-identical. Written only by a",
              "# full run. Consumed by tools/report.py to decide which units",
@@ -430,8 +438,43 @@ def write_linked(ok_addrs):
              "# has moved.",
              "manifest %s" % _manifest_digest(),
              "count %d" % len(ok_addrs)]
+    if stats:
+        for k in ("runs_ok", "runs_total", "bytes_ok", "bytes_span",
+                  "units_complete", "units_total"):
+            lines.append("stat %s %d" % (k, stats[k]))
     lines += ["%08X" % a for a in sorted(ok_addrs)]
     LINKED.write_text("\n".join(lines) + "\n")
+
+
+def linked_stats():
+    """-> (stats dict, None) or (None, why it cannot be answered).
+
+    Same refusal rule as `linked_addresses`: a figure measured against a
+    different manifest is not a smaller figure, it is an unknown one, and
+    handing it back would be a stale number wearing the authority of a
+    generated one.
+    """
+    if not LINKED.exists():
+        return None, ("%s has not been written; run `python tools/link.py`"
+                      % LINKED.relative_to(ROOT).as_posix())
+    want = _manifest_digest()
+    got, stats = None, {}
+    for line in LINKED.read_text().splitlines():
+        line = line.split("#")[0].strip()
+        if line.startswith("manifest "):
+            got = line.split()[1]
+        elif line.startswith("stat "):
+            _, k, v = line.split()
+            stats[k] = int(v)
+    if got != want:
+        return None, ("%s was measured against a different src/manifest.txt "
+                      "(%s, now %s); re-run `python tools/link.py`"
+                      % (LINKED.relative_to(ROOT).as_posix(), got, want))
+    if not stats:
+        return None, ("%s carries no `stat` lines; it was written by an "
+                      "older tools/link.py -- re-run `python tools/link.py`"
+                      % LINKED.relative_to(ROOT).as_posix())
+    return stats, None
 
 
 def linked_addresses():
@@ -843,17 +886,26 @@ def main(argv):
     # set to whatever was asked for last -- which report.py would then read as
     # "the rest stopped being linked".
     if not args:
+        # Written in two passes: the addresses first, because complete_sources
+        # reads them back, and then again with the unit figures it returns.
         write_linked(ok_addrs)
         print("")
         print("wrote %s: %d address(es) in a linked, placed, identical run"
               % (LINKED.relative_to(ROOT).as_posix(), len(ok_addrs)))
         comp, why, err = complete_sources()
+        stats = {"runs_ok": ok, "runs_total": len(allruns),
+                 "bytes_ok": okbytes, "bytes_span": total,
+                 "units_complete": 0, "units_total": 0}
         if err:
             print("  complete units: %s" % err)
         else:
+            n_total = len(comp) + len(set(s for s, _w in why))
+            stats["units_complete"] = len(comp)
+            stats["units_total"] = n_total
             print("  %d of %d source unit(s) are COMPLETE -- every function"
-                  % (len(comp), len(comp) + len(set(s for s, _w in why))))
+                  % (len(comp), n_total))
             print("  they define is matched AND in a linked run")
+        write_linked(ok_addrs, stats)
     if bad:
         return 1
     return 0

@@ -1307,3 +1307,5 @@ src/y1_float_state.cpp          82103CF8  ?SetFloat29D0@@YAXPAUFloatState@@I@Z  
 src/y1_float_state.cpp          82103D20  ?SetFloat29C8@@YAXPAUFloatState@@I@Z  flags=/O2,/Os,/Gy,/GS-,/fp:fast
 src/y1_field_state.cpp          82103318  ?SetField1@@YAXPAUFieldState@@I@Z  flags=/O2,/Os,/Gy,/GS-,/fp:fast
 src/y1_field_state.cpp          82103358  ?SetField2@@YAXPAUFieldState@@I@Z  flags=/O2,/Os,/Gy,/GS-,/fp:fast
+thirdparty/ogg_vorbis_fmod/mdct_init.cpp       825C1D28  mdct_init              flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis_fmod/mdct_clear.cpp      825C27F8  mdct_clear             flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
