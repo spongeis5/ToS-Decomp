@@ -661,6 +661,7 @@ broken one pops a modal dialog that blocks until someone clicks OK.
 | `pemanifest.py` | Find which XDK tools will die with R6034, WITHOUT running them |
 | `fix_manifests.py` | Repair the XDK tools that ship without a VC90 activation context |
 | `verify_ghidra.py` | **superseded**; kept as a worked example of a vacuous check |
+| `scale_link.py` | Measure link.exe 9.00.8153 at whole-image COMDAT counts |
 ---
 
 ## Rules this project paid for
@@ -1358,6 +1359,32 @@ in particular has not once survived contact with a new lever.
    the program has been recovered. The first thing it would catch is a call
    whose REL24 the linker computes differently from `build.py`'s hand-solved
    one, which nothing checks today.
+
+   **The linker TAKES the scale — measured, `python tools/scale_link.py`.**
+   Synthetic COFF in the exact cl.exe COMDAT shape, link.exe invoked with
+   `link.py`'s own flag set, three modes:
+
+   ```
+   mode                                        secs   peak MB   validated
+   31,000 COMDATs, no relocations              0.4      21.0   31000/31000 publics
+   31,000 COMDATs + 31,000 REL24               0.7      21.3   ditto; 62/62 sampled
+                                                      bl targets land on the
+                                                      public each reloc names
+   1,500 one-COMDAT objects, one cmdline      12.7      10.4   1500/1500 publics;
+                                                      21,294 of the 32,767-char
+                                                      CreateProcess limit
+   ```
+
+   So capacity is not a constraint at any dimension that matters: 31k
+   COMDATs with 31k relocations link in under a second, and the many-object
+   dimension costs ~9 ms per object — pack the filler into a few large
+   objects rather than thousands and the whole-image link is a minute of
+   linking at most. Two defects in the synthetic-object writer were found by
+   the validation, not by success: a relocation record is 10 bytes, not 8,
+   and patching a symbol name in the string table without fixing its length
+   field corrupts the object in a way LNK1106 reports as "invalid file",
+   which reads like a linker refusal rather than a writer bug. Distrust an
+   exit code until the map and the bytes agree with what was asked for.
 
    **Both loose ends are SETTLED — `python tools/loose_ends.py`.** They were
    "the 3 references landing in `.text` at a non-function-start, and the 3
