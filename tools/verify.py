@@ -322,6 +322,13 @@ def main():
                          ["tools/readme_stats.py", "--check"]))
     results.append(check("MATCHED.md table matches the manifest",
                          ["tools/matched_table.py", "--check"]))
+    # The tool inventory rotted to 27 of 77 missing, including tools in the
+    # daily loop, so it is generated from each tool's own docstring now. This
+    # also catches a tool that DOES NOT PARSE -- `vmx128_intrinsics.py` had a
+    # string split across two lines by the backslash trap and had been
+    # unrunnable for some time, invisible because nothing imports it.
+    results.append(check("HANDBOOK tool table lists every tool, and each parses",
+                         ["tools/tool_table.py", "--check"]))
     results.append(check("backslash-heredoc hook, 7 cases",
                          [".claude/hooks/test_no_backslash_heredoc.py"]))
     results.append(check("reconstructing build (.text reproduces)",

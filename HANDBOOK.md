@@ -53,12 +53,13 @@ much of this game has been read.
 
 Matches are listed in `MATCHED.md`, whose table is generated from
 `src/manifest.txt` rather than maintained by hand. **The retail build did not
-use one optimisation level everywhere** — 117 of the matches are recorded as
-needing `/O2 /Os`, the rest plain `/O2`. That count is a floor, not a
-census: it records the level each match was FOUND at, and a function that
-compiles identically either way is recorded at whichever was tried first.
-`python tools/flagpairs.py` is what separates those three cases, and it has
-not been re-run since the count grew past a few hundred.
+use one optimisation level everywhere** — some matches are recorded as
+needing `/O2 /Os`, the rest plain `/O2`, and **`MATCHED.md` carries the
+count** because it is generated there and was stale here twice. That count is
+a floor, not a census: it records the level each match was FOUND at, and a
+function that compiles identically either way is recorded at whichever was
+tried first. `python tools/flagpairs.py` is what separates those three cases,
+and it has not been re-run since the count grew past a few hundred.
 
 The level is a property of the TRANSLATION UNIT. Measured over the matches
 that existed when it was last run: **34 informative adjacent pairs, 34
@@ -556,56 +557,84 @@ broken one pops a modal dialog that blocks until someone clicks OK.
 
 | tool | what it does |
 |---|---|
-| `xex.py` | XEX2 container: parse, decrypt, decompress, verify |
-| `flatten_pe.py` | rewrite section headers to match the memory image |
+| `xex.py` | XEX2 reader for the Truth or Square decompilation |
+| `flatten_pe.py` | Rewrite the unpacked image's section headers so PointerToRawData equals |
 | `verify_mapping.py` | **decide** the VA→offset mapping against `.pdata`, both arms scored |
-| `pdata.py` | walk the unwind table; picks the entry layout by marking four arms |
-| `inventory.py` | `.pdata` ∪ discovery — the real function population; `--addrtaken` folds in the third source |
-| `peimage.py` | shared image access, `load_inventory()`, XDK region map |
+| `pdata.py` | Walk the .pdata exception directory: the compiler's own function table |
+| `inventory.py` | Build the complete function inventory: .pdata UNION discovery |
+| `peimage.py` | Shared access to the unpacked retail image |
 | `ppcdis.py` | disassembly via binutils — **the only decoder here that knows VMX128** |
-| `disasm.py` | disassemble a guest address range, annotating string references |
+| `disasm.py` | Disassemble a range of the retail image by guest address |
+| `discover.py` | Find function starts and call edges from the image alone, without Ghidra |
+| `addrtaken.py` | Function starts whose address is TAKEN IN CODE |
+| `switches.py` | Decode MSVC PowerPC switch dispatch, and say what the targets are |
+| `truncated.py` | Which inventory rows are TRUNCATED by a jump table sitting inside them? |
+| `interior.py` | Function starts hidden INSIDE another inventory row, and unreachable |
+| `rtti.py` | Recover classes and vtables from MSVC RTTI |
+| `vtables.py` | Recover the GAME'S OWN vtables, which RTTI cannot see |
+| `xeximports.py` | Name every kernel/XAM import the title uses |
+| `srcfiles.py` | Harvest every source-file path the image forms an address to |
+| `profnames.py` | Harvest the title's own profiler scope names |
+| `strings.py` | String census over the unpacked image |
+| `xref.py` | Find every reference to a guest address |
+| `tunits.py` | Named translation units, from the assert-registration stubs |
+| `segment.py` | Group functions into probable translation units |
+| `attribute.py` | Consolidate every attribution signal into one scope picture |
+| `candidates.py` | Find good first targets for byte-matching |
+| `libmatch.py` | Match XDK library code against the retail image |
+| `oggmatch.py` | Compile a libogg/libvorbis release with the XDK compiler and find it in the image |
+| `ogg_rows.py` | Turn identified Ogg/Vorbis sites into VERIFIED manifest rows |
+| `compid.py` | Read the `@comp.id` stamp out of COFF objects |
+| `objcode.py` | Extract and disassemble the PowerPC code a COFF object contains |
+| `coffreloc.py` | COFF functions WITH their relocation records, for PowerPC objects |
+| `coffwrite.py` | Write the two COFF objects a real link needs that no compiler produces |
+| `xdkcc.py` | One place that knows how to invoke the XDK compiler |
 | `match.py` | **the matching loop**: compile a candidate, diff against the image |
-| `objcode.py` | disassemble a COFF object's code |
-| `libmatch.py` | match XDK library objects against the image (relocation-masked); `indexable`/`scan` are the shared primitives |
-| `oggmatch.py` | compile a libogg/libvorbis release with the XDK cl.exe and find it in the image; `--sweep` settles the flags by counting |
-| `rtti.py` | MSVC RTTI → Havok class names and vtables |
-| `xeximports.py` | XEX import table + XDK import libs → 207 named thunks |
-| `srcfiles.py` | source paths the code forms addresses to |
-| `profnames.py` | profiler scope names around `mftb` |
-| `strings.py` | classified string census |
-| `xref.py` | find references to an address (`lis`+`addi`/`ori` pairs) |
-| `attribute.py` | merge every signal into one scope picture |
-| `candidates.py` | vetted match targets: leaf, unattributed, outside XDK, sound |
+| `batch.py` | Dump the next N match candidates, ranked by caller count, with disassembly |
+| `bridge.py` | **which unmatched function would MERGE two linked runs** — ranked by the span it unlocks |
+| `climb.py` | Climb the call graph: which CALLER should be matched next? |
+| `layout.py` | Which unmatched functions would tell us the most about a TYPE? |
+| `serial.py` | Adjacent-dependency density of a function. DOES NOT PREDICT MATCHABILITY |
+| `sweep.py` | **recover work** whose manifest row was never written; `--attempts` scores near-misses |
+| `prune_attempts.py` | Drop near-miss rows whose address is now matched |
+| `permute.py` | Try several source shapes for one target and report how each scores |
+| `permuter.py` | Search source shapes automatically for a function that will not match |
+| `flagsweep.py` | Sweep compiler flags for one source against one target function |
+| `flagpairs.py` | Does adjacency predict the optimisation level? Measure it over every match |
+| `gen_typeids.py` | Generate and verify sources for the constant-returning virtuals |
+| `gen_accessors.py` | Generate and verify the image's single-expression accessors |
+| `category.py` | What kind of work a matched function represents. One definition |
 | `build.py` | **the reconstructing build**: compile, resolve relocations, hash `.text` |
-| `link.py` | **the real link**: `link.exe` places a contiguous run at its retail address; `--units` says which files are COMPLETE; `--selftest` is its ten controls |
-| `bridge.py` | which unmatched function would MERGE two linked runs — ranked by the span it would unlock, not its own size |
-| `coffwrite.py` | write the two COFF objects no compiler produces — absolutes, and sized padding |
-| `coffreloc.py` | COFF functions with their relocation records |
-| `discover.py` | function starts and the call graph, from the image alone |
-| `addrtaken.py` | a THIRD discovery source: function pointers formed in code by `lis`+`addi` |
-| `batch.py` | dump the next N candidates with disassembly, ranked by CALLER COUNT |
-| `matched_table.py` | regenerate MATCHED.md's table from the manifest; `--check` catches drift |
-| `flagpairs.py` | compile every match at BOTH levels and score the adjacency claim |
-| `climb.py` | which CALLER to match next — ranked by how much of it is already known |
-| `layout.py` | which unmatched function would pin the most LAYOUT — fields, span, vtable, stride |
-| `tunits.py` | named translation units, from the title's own assert-registration stubs |
-| `test_shrink.py` | six cases on `match.can_shrink`, five of which must refuse |
-| `segment.py` | probable translation units — scores itself, and mostly fails |
-| `permuter.py` | automatic source mutation; `--selftest` rediscovers a known match |
-| `objdiff_export.py` | synthesize ELF pairs + `objdiff.json` for visual diffing |
-| `dumptext.py` | full `.text` disassembly to a file (VMX128-aware) |
-| `switches.py` | decode MSVC switch dispatch, all THREE forms; write the jump tables |
-| `verify.py` | **run everything**, including five negative controls |
-| `flagsweep.py` | sweep compiler flags for one source against one target |
-| `permute.py` | sweep source shapes for one target at fixed flags |
-| `vmx128_*.py` | four independent VMX128 validations — see `VMX128.md` |
-| `rich.py` | decode a PE's Rich header — the linker's census of contributing tools |
-| `rich_calibrate.py` | **measure** what each product id means, by building known flag sets |
-| `compid.py` | `@comp.id` per object; `--join` cross-checks the matched library objects |
-| `pemanifest.py` | which XDK tools will raise R6034 — read statically, nothing is run |
-| `fix_manifests.py` | repair those, with an external manifest rather than by editing binaries |
+| `link.py` | **the real link**: `link.exe` places a contiguous run at its retail address |
+| `matched_table.py` | Regenerate the function table in MATCHED.md from src/manifest.txt |
+| `readme_stats.py` | Regenerate the figures in README.md and HANDBOOK.md from the repository |
+| `tool_table.py` | Regenerate HANDBOOK.md's tool inventory from the tools themselves |
+| `coverage.py` | Target-only objdiff units for the code with no source yet |
+| `objdiff_export.py` | Export this project for objdiff, so the matching can be browsed visually |
+| `report.py` | Emit a decomp.dev-compatible progress report |
+| `publish_report.py` | Regenerate everything decomp.dev reads, and put report.bin at the root |
+| `dashdata.py` | Collect the numbers the dashboard shows, straight from the tools |
+| `dashhistory.py` | Reconstruct the matched-function history from git, for the dashboard |
+| `dashboard.py` | Render the progress dashboard from the repo's own outputs |
+| `dumptext.py` | Disassemble the whole of .text to a file |
+| `verify.py` | **run everything**, and say which checks can actually fail |
+| `test_shrink.py` | Prove match.can_shrink accepts a genuine over-long row and nothing else |
+| `test_coffreloc.py` | Prove the relocation handling excuses the address and nothing else |
+| `test_permute.py` | permute.py's scorer must skip relocated words, not count them as wrong |
+| `test_mutations.py` | The two new permuter mutations must produce C++ that actually COMPILES |
+| `test_lock.py` | The negative-control lock must refuse other processes and only those |
+| `test_xdkcc_cache.py` | The compile memo must never serve a result from different source text |
+| `test_privacy.py` | Refuse to let identifying information reach a public repository |
+| `test_privacy_guard.py` | The privacy check must FAIL on each thing it claims to catch |
+| `vmx128_check.py` | Mark the VMX128 decoder against Biallas's independent bit tables |
+| `vmx128_oracle.py` | Mark the VMX128 decoder against MICROSOFT'S OWN ENCODER |
+| `vmx128_table.py` | Exhaustive VMX128 table check: binutils vs the documentation vs MSVC |
+| `vmx128_intrinsics.py` | Build the mnemonic -> intrinsic map, which is what MATCHING needs |
+| `rich.py` | Decode the MSVC "Rich" header of a PE |
+| `rich_calibrate.py` | Measure what each Rich-header product id MEANS, using this XDK |
+| `pemanifest.py` | Find which XDK tools will die with R6034, WITHOUT running them |
+| `fix_manifests.py` | Repair the XDK tools that ship without a VC90 activation context |
 | `verify_ghidra.py` | **superseded**; kept as a worked example of a vacuous check |
-
 ---
 
 ## Rules this project paid for
@@ -756,12 +785,12 @@ was reached rather than presenting the bound as an answer.
 python tools/verify.py
 ```
 
-31 checks: the tool self-tests, the whole manifest rebuilt and hashed, the
+32 checks: the tool self-tests, the whole manifest rebuilt and hashed, the
 real link over every contiguous run, and the negative controls -- which each
 corrupt one fact and require the thing they guard to FAIL. A failing negative
 control is the serious kind: it means a check reports success without being
 able to detect the failure it exists to detect. `verify.py` checks that this
-number is still 31, so it cannot rot the way it did when it said 12.
+number is still 32, so it cannot rot the way it did when it said 12.
 
 ### Four ways to choose what to match next
 
@@ -952,11 +981,40 @@ one that buys the most readability per unit of risk -- every path change has
 to be reflected in `src/manifest.txt`, and `tools/build.py` re-verifies the
 whole splice afterwards, so a mistake is loud.
 
+### Functions the inventory cannot name, and the two sources stuck behind it
+
+`python tools/interior.py` finds **307 function starts that lie INSIDE
+another inventory row and have no row of their own**, across 200 enclosing
+rows. Each is terminated-before and referenced — by a call, a data word, or a
+`lis`/`addi` pair — so they are real functions the `.pdata` table simply does
+not describe separately.
+
+**They are unmatchable today, and `src/` holds the worked example.**
+`src/g_memcmp_n.cpp` and `src/p5_mem_compare.cpp` both target `82697748`,
+which is not a function start: the inventory has one 68-byte row at
+`82697740` covering an 8-byte `b 0x828A8C50` thunk and the function behind
+it. `match.py` refuses an address it cannot find in the inventory, so neither
+source can be recorded in `src/manifest.txt` or `src/attempts.txt`, and
+`sweep.py` reports both every run as *"is not in the inventory"*. That is the
+tooling being honest, not a defect — but it means work can be finished and
+still have nowhere to go.
+
+The two files also disagree: one reads the function as 60 bytes, the other as
+56. That is not resolved, and resolving it is part of the job.
+
+**What it would take.** Writing these to the inventory needs its own
+validation pass, because every existing match was verified against sizes the
+current inventory produced — so a change to it has to be shown not to move
+any of them. That is the whole reason it has not been done, and it is 307
+functions and 97,092 bytes of currently invisible target.
+
 ### What still resists
 
-Thirty-one near-misses, all in `src/attempts.txt`, each with its measurement
-written into its own source file. Get the current scores -- at BOTH
-optimisation levels, with relocated words excluded -- with
+Every near-miss is in `src/attempts.txt` with its measurement written into
+its own source file, and **the count is in the generated block at the top of
+this file** rather than spelled out here, where it was wrong twice. Get the
+current scores -- at BOTH optimisation levels, with relocated words
+excluded -- with
 
 ```bash
 python tools/sweep.py --attempts

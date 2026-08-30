@@ -22,7 +22,7 @@ points at do not, and they are where the knowledge is.
 ## The loop
 
 ```bash
-python tools/verify.py                 31 checks; ~5 min. Run it first.
+python tools/verify.py                 32 checks; ~5 min. Run it first.
 python tools/batch.py 40 --no-vmx      candidates, ranked by CALLER COUNT
 python tools/match.py <src> <addr>     compile one and compare
 python tools/sweep.py                  recover work whose row was never written
@@ -62,6 +62,19 @@ because the rule it enforces was broken while written down.
 **Any tool that decides "does this match?" must import `can_shrink` and
 `can_extend` from `match.py`.** Five have now disagreed with `verify.py` by
 reimplementing that comparison, always in the direction that gets believed.
+
+**And any tool that picks WHICH function a manifest row means must import
+`pick_function` from `libmatch.py`.** Five had their own copy; two omitted
+the exact-name test between the mangled test and the substring test, and
+since C symbols are not mangled and `vorbis_book_decode` is a prefix of
+`vorbis_book_decodev_add`, one of them measured a 100-byte function as 572
+and inflated the published byte count by 488.
+
+**Figures in prose rot; generate them or point at the generated block.**
+`readme_stats.py`, `matched_table.py` and `tool_table.py` own every count
+that appears in a document, and `verify.py` fails when one drifts. The tool
+inventory reached 27 of 77 missing before it was generated, and the README
+front page was once wrong by six times.
 
 **State the denominator on every count.** Not "24 draws" but "24 draws of 59
 packets walked". A fact that could not be measured is not zero.

@@ -169,18 +169,14 @@ def image_forms():
     c = Counter()
     p = Path("build/text_dis.txt")
     if not p.exists():
-        raise SystemExit(
-            "build/text_dis.txt is missing.
-"
-            "  Returning an empty census here would report ZERO VMX128 forms
-"
-            "  in the image, which reads exactly like a fact about the image
-"
-            "  rather than a missing input -- and the whole point of this
-"
-            "  check is to find forms that have no intrinsic.
-"
-            "  Produce it with:  python tools/dumptext.py")
+        raise SystemExit(chr(10).join([
+            "build/text_dis.txt is missing.",
+            "  Returning an empty census here would report ZERO VMX128",
+            "  forms in the image, which reads exactly like a fact about",
+            "  the image rather than a missing input -- and the whole",
+            "  point of this check is to find forms with no intrinsic.",
+            "  Produce it with:  python tools/dumptext.py",
+        ]))
     for line in p.read_text(errors="replace").splitlines():
         parts = line.split(None, 2)
         if len(parts) < 3:
