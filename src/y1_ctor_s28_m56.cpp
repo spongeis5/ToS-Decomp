@@ -1,9 +1,21 @@
 #include "types.h"
 
-// sub_821AE070 -- NEAR MISS, 5 of 36 words, the same five as
-// y1_ctor_s32_m60.cpp. 144 B, and the HIGHEST-VALUE bridge in the image:
-// it joins TypeId_821AE060 and TypeId_821AE100, both of which are in this
-// class's own vtable at 820053B4 (slots 1 and 11), for a 748-byte run.
+// sub_821AE070 -- NEAR MISS, 19 of 24 non-relocated words, /O2.  144 B, and
+// the HIGHEST-VALUE bridge in the image: it joins TypeId_821AE060 and
+// TypeId_821AE100, both of which are in this class's own vtable at 820053B4
+// (slots 1 and 11), for a 748-byte run.
+//
+// THIS READING IS DOMINATED AND IS KEPT ONLY FOR ITS LAYOUT.  The returned-
+// pointer reading in src/z3_ctor_inner_vt.cpp is 23 of 24 on the same
+// address, and the base-class spelling used here is now known to be
+// structurally unable to reach the four r3 stores: MSVC does not model an
+// out-of-line base constructor as returning `this`.  That was measured
+// twice.  Once as finding 8 in z3_ctor_inner_vt.cpp, and once by
+// sub_821ADFC8 (src/y1_ctor_s32_m60.cpp), which was written in exactly this
+// base-class spelling with exactly these five wrong words and MATCHED as
+// soon as it was rewritten as `Obj* o = BaseInit(this)` with one address-of
+// pin.  So the five words below are not a scheduling residue to be chased in
+// this shape; they are the shape.
 //
 // 19 of 36 words identical, 5 differ, 12 are relocated and excluded. The
 // five:
@@ -18,8 +30,10 @@
 // RETURNED in r3, we reach it through the saved `this` in r31. The store
 // after `addi r3,r3,56` (`stfs f13,40(r31)`) is off r31 in both, and the
 // whole schedule, both store streams, the r30 allocation for the twice-used
-// zero and every immediate are already right. See y1_ctor_s32_m60.cpp for
-// the six spellings that were measured and what each of them did.
+// zero and every immediate are already right. src/z3_ctor_inner_vt.cpp
+// carries the full measurement of this residue -- 60-odd source shapes, all
+// 720 statement orders, all 256 pin subsets and 2334 flag combinations --
+// and src/y1_ctor_s32_m60.cpp carries the shape that finished the sibling.
 //
 // The layout is settled and is worth keeping even though the function is
 // not matched: 56 + 80 = 136 puts the +152 store outside the 80-byte

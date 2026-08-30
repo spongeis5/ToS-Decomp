@@ -4,9 +4,7 @@
 // sub_82155080 -- normalise a quaternion from `in` into `out` and return the
 // length it had. 204 B, 16 callers.  r3 = out, r4 = in.  /O2.
 //
-// NOT A MATCH: 45 of 51 words at /O2 (4 more differ in relocated words, which
-// is expected). What is left is TWO `fmuls` whose two multiplicands are in the
-// opposite A/C slots; see the bottom of this comment, which is the useful part.
+// MATCHED: 47 of 47 non-relocated words (4 more are relocated pool loads).
 //
 //   len2 = x*x + y*y + z*z + w*w        (three fmadds, FUSED from a*b+c)
 //   lfs f1,11584(r11)      -> 82002D40 = 1.0f, loaded into the RETURN
@@ -29,114 +27,69 @@
 //
 //   * w is stored FIRST in all three arms -- 12, then 0, 4, 8. All 24
 //     orderings of the four scaling statements were compiled; w,x,y,z is the
-//     only one that puts the stores where the target has them, and it is also
-//     the best-scoring (the next best, y,x,w,z, is 43/51).
+//     only one that puts the stores where the target has them.
 //
 //   * The equality tests are `==`, not an epsilon: `fcmpu` + `bne-` with no
 //     fsubs/fabs in front. Compare sub_8214D640, which does use an epsilon
 //     and spends four extra instructions on it.
 //
-// WHAT IS LEFT, and what it is not:
+// ---- what the last two words were, and the lever that reached them ----
 //
-//     82155118  want fmuls f11,f13,f12    (in->w, inv)   got (inv, in->w)
-//     82155130  want fmuls f7,f12,f8      (inv, in->y)   got (in->y, inv)
+// The residue was two `fmuls` whose multiplicands sat in the opposite A/C
+// slots:
 //
-// Every load, every store, every branch and every other opcode is identical.
-// The target's four scaling multiplies are (in->w,inv) (in->x,inv)
-// (inv,in->y) (inv,in->z); this source gives (inv,in->w) (in->x,inv)
-// (in->y,inv) (inv,in->z).
+//     82155118  want fmuls f11,f13,f12    (in->w, inv)
+//     82155130  want fmuls f7,f12,f8      (inv, in->y)
 //
-// Source operand order does NOT reach this. All 16 combinations of writing
-// the four multiplies as `in->c * inv` or `inv * in->c` compile to BYTE
-// IDENTICAL code -- MSVC canonicalises commutative float operators under
-// /fp:fast. Nor do flags: a 72-combination sweep gives 45/51 for every
-// /fp:fast combination and 0/51 for every /fp:precise one, and /Ou, /Oy,
-// /Ob2, /Og, /Oi, /Ot and /Ox change nothing.
+// so the target's four scaling multiplies are, in slot order,
 //
-// What DOES move it is how the value being scaled is PRODUCED, the same lever
-// that decided sub_82691C50 in this batch. Staging each component through an
-// array element first --
+//     w (comp, inv)   x (comp, inv)   y (inv, comp)   z (inv, comp)
 //
-//     float s[4];
-//     s[3] = in->w;  out->w = s[3] * inv;
-//     s[0] = in->x;  out->x = s[0] * inv;   ...
+// -- a clean split after the second, whereas every ordinary spelling gives
+// the palindrome (inv, comp) (comp, inv) (comp, inv) (inv, comp).
 //
-// -- flips the w multiply into the target's slots and reaches 46 of 51. The
-// y multiply then stays wrong under all 625 combinations of spelling the four
-// components as a direct member read, an array temp, a scalar temp, a scalar
-// result temp or an array result temp, and under a second copy of `inv`, an
-// `inv` staged through an array, `1.0f/len` written out at the last two uses,
-// and a struct declared as `f32 v[4]`. So the open question is one operand
-// slot on one multiply, and it is a codegen choice this file cannot reach
-// from the shape of the arithmetic.
+// **THE SLOT FOLLOWS HOW THE SCALE FACTOR WAS PRODUCED, AND `x / len` IS A
+// DIFFERENT PRODUCTION FROM `x * inv` EVEN THOUGH /fp:fast COMPILES THEM TO
+// THE SAME INSTRUCTION.** MSVC really does fold four divisions by one value
+// into a single `fdivs` plus four `fmuls` -- the nineteen instructions are
+// byte-identical either way -- but the reciprocal reaches the multiply as a
+// value the source named, and the division reaches it as a value the
+// compiler invented, and the two land in opposite slots. So the split in the
+// image is a split in the SOURCE: the first two components are scaled by a
+// named reciprocal and the last two are divided.
 //
-// STILL 45 of 47 non-relocated words. Eight more shapes, none better than the
-// 46 of 47 the array staging already gives:
+// That alone is not enough. It also needs the four components staged through
+// ONE AGGREGATE LOCAL, which is the lever this file already carried for the
+// `w` multiply. Measured, and the two ingredients are independent:
 //
-//   * FOUR DIVISIONS instead of a reciprocal multiply. MSVC /fp:fast really
-//     does fold them to one `fdivs f12,f1,f0` and four `fmuls` -- the same
-//     nineteen instructions -- so the division spelling is NOT
-//     distinguishable from the reciprocal one here. It moves a DIFFERENT
-//     multiply: x flips to (inv, x) and w stays wrong, 44 of 47. Worth
-//     knowing that the transformation happens at all.
-//   * a second named copy of `inv` used for the last two components
-//   * `1.0f / len` written out again at the last two components
-//   * results staged through a float[4] instead of the components
-//   * a const view of the input for the last two components
-//   * float-array views of both quaternions, `d[i] = s[i] * inv`
-//   * array staging for w and x only -- 46 of 47, the same as staging all
-//     four, so the staging that fixes w is not doing anything for y or z
+//     staged, *inv w,x, /len y,z          47 of 47   <- this file
+//     staged, *inv all four               46 of 47   (y wrong)
+//     staged, /len all four               45 of 47   (w and x wrong)
+//     staged, /len w,x, *inv y,z          44 of 47   (the split reversed)
+//     NOT staged, *inv w,x, /len y,z      45 of 47   (w and y wrong)
+//     four scalar temps, *inv w,x, /len y,z  45 of 47
+//     one array SLOT reused for all four  45 of 47
+//     staged w,x,y but not z              46 of 47
 //
-// Nothing addressed at the ARITHMETIC moves the y multiply; what moved w was
-// staging, and staging y the same way does not move y.
+// so the aggregate must hold more than one live element, and the split must
+// be that way round. Neither ingredient alone gets past 46.
 //
-// ---- what the staging lever actually is, measured over all 16 subsets ----
+// WHAT THE BYTES DO NOT SAY is which aggregate. `float s[4]`, a
+// `union { float f[4]; }` view and a `Quat` local are all 47 of 47 and
+// byte-identical; four separate scalars are 45. And `s[k] * (1.0f / len)`
+// written out at the last two sites is byte-identical to `s[k] / len`, so
+// the source may have spelled the division either way. The claim the file
+// makes is therefore "one aggregate, and the last two scaled by a value the
+// source did not name", and no more.
 //
-// Which components are staged was swept exhaustively, and the rule is not
-// positional:
-//
-//      staged   w   plus ANY ONE of x, y, z   ->  46 of 47 (w's slots fix)
-//      staged   w   alone                     ->  45 of 47
-//      any subset WITHOUT w                   ->  45 of 47
-//      y and z staged together                ->  45 of 47 (y does NOT fix)
-//
-// So the fix needs w AND a second element IN THE SAME ARRAY -- giving x its
-// own separate array drops back to 45, and staging all four through ONE slot
-// (`s[0]` reused) is also 45. Whatever the array does, it does it once, to
-// the w multiply, and only when it holds more than one live element.
-//
-// Twelve further structures were measured on top of that and none reaches y:
-// a SECOND array introduced immediately before y (the direct test of "the
-// array re-numbers the first multiply after it"), three arrays, a `float[2]`
-// for y and z, a union per component, `inv` staged through an array at each
-// of the last two sites, and staging y's component and `inv` together. A
-// `Quat s = *in;` struct copy is 30 of 47 at 240 bytes and batch-staging all
-// four components before any multiply is 31 of 46 at 200 bytes, so both
-// change far more than this word.
-//
-// Nineteen spellings AT THE y SITE alone, all 46 of 47: a component temp and
-// an `inv` temp declared in either order, the array slot with an `inv` temp
-// either way, `1.0f / len` re-derived late, a bare component temp, `inv`
-// held in a `float[2]` written before or after the component read, helpers
-// taking (value, k) and (k, value), a `f32* dy = &out->y` destination pin, a
-// const view of `in`, a double staging, `in->y / len`, and y and z both
-// given late `inv` temps.
-//
-// THE len2 SUM CARRIES NO INFORMATION. Reordering it to w,x,y,z or y,x,z,w
-// changes nothing at all -- /fp:fast canonicalises the sum -- so the loads in
-// the guard block cannot be used to steer the scaling block.
-//
-// AND THE FLAG AXIS IS EXHAUSTED ON THE STAGED SHAPE, which the earlier
-// 72-combination sweep was not: tools/flagsweep.py --full, 2304 combinations,
-// 516 of them give 46 of 51 (including plain /O2) and no combination does
-// better. Every /fp:precise variant is 0 of 51 and every /Os variant is
-// 4 of 51 at 200 bytes.
-//
-// The file keeps the direct spelling at 45 of 47 rather than the staged one
-// at 46. Staging buys one word and asserts a `float s[4]` nobody wrote, and
-// it does not finish the function either way; the one word it does not buy
-// is the same one that 2304 flag combinations, 16 staging subsets, 12
-// staging structures and 19 y-site spellings all leave standing.
+// Ruled out and not worth re-trying: source ORDER of any multiply (all 16
+// combinations are byte-identical -- /fp:fast canonicalises commutative
+// float operands), the len2 sum's order, 2304 flag combinations
+// (`flagsweep.py --full`: 516 give 46 of 51, none better; every /fp:precise
+// variant is 0 of 51 and every /Os variant is 4 of 51 at 200 bytes), and the
+// twelve staging structures and nineteen y-site spellings recorded in the
+// previous revision of this comment -- all of which held `inv` fixed as the
+// scale for every component, which is why none of them could reach y.
 
 struct Quat { f32 x; f32 y; f32 z; f32 w; };
 ASSERT_OFFSET(Quat, z, 0x08);
@@ -172,9 +125,11 @@ float QuatNormalize(Quat* out, const Quat* in)
 
     float len = sqrtf(len2);
     float inv = 1.0f / len;
-    out->w = in->w * inv;
-    out->x = in->x * inv;
-    out->y = in->y * inv;
-    out->z = in->z * inv;
+    float s[4];
+
+    s[3] = in->w;  out->w = s[3] * inv;
+    s[0] = in->x;  out->x = s[0] * inv;
+    s[1] = in->y;  out->y = s[1] / len;
+    s[2] = in->z;  out->z = s[2] / len;
     return len;
 }

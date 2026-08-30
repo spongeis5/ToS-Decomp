@@ -4,55 +4,62 @@
 //   lfs f0,92(r3) ; lfs f13,88(r3) ; lwz r3,48(r3) ; fadds f1,f0,f13
 //   b 0x826815C0
 //
-// Both floats are read from r3 BEFORE r3 is overwritten with s->target, so
-// nothing has to be kept in a spare register.
+// MATCHED at /O2. The answer was a PARAMETER THAT IS NEVER MENTIONED IN THE
+// BODY, and it was readable off the CALLEE rather than off this function.
 //
-// NOT MATCHED: 1 of 5 words, 24 bytes against 20. We emit `mr r11,r3` first
-// and then interleave `lwz r3,48(r3)` BETWEEN the two `lfs`, so the second
-// float has to come from the copy. The target issues both `lfs` first and
-// needs no copy at all.
+// What was wrong before: the file declared `void Emit(void*, float)` and
+// `EmitSum(FSrc*)`, which compiles to 24 bytes --
 //
-// The claim this file used to make -- that computing the sum into a local
-// removes the copy -- is WRONG, and it was wrong when written. Eight
-// spellings were compiled and every one is byte-identical, `mr` included:
-// the sum in a local and the target in the call; both floats in locals and
-// the target in the call; all three named in the target's own read order;
-// nothing named at all; a const view for the target read; a const view for
-// the float reads; and the member-function form.
+//      mr r11,r3 ; lfs f0,92(r3) ; lwz r3,48(r3) ; lfs f13,88(r11)
+//      fadds f1,f0,f13 ; b Emit
 //
-// So the pointer load is hoisted above the second float load no matter where
-// the source puts it. MSVC schedules the argument register's producer early
-// because it is the one value the tail call cannot start without, and pays
-// the `mr` to do it. Nothing at the source level was found that changes
-// that ordering, and /O2 /Os does not either.
+// -- one word right of five, with the second float load pushed past the
+// clobber of r3 and paid for with a copy. Eight source spellings, seven
+// tail-call-forwarding shapes and /O2 /Os were all byte-identical to that,
+// and the file recorded the ordering as unreachable from the source. It is
+// not; nothing about the ordering was the problem.
 //
-// THE LEVER THAT SOLVED THE OTHER SHUFFLE DOES NOT WORK HERE, and that is
-// worth recording because the two functions look like the same problem.
-// sub_8215E5B0 is also a register shuffle in front of a tail call, also
-// carried a wrong `mr`, and came out by FORWARDING the callee's result --
-// which keeps r3 live out and changes what the copy sequencer stages. Seven
-// forwarding shapes were compiled here at both levels and every one is
-// byte-identical to the void baseline, `mr r11,r3` included:
+// THE EVIDENCE IS IN THE CALLEE. sub_826815C0 opens
 //
-//     return void* / int / float / bool from the tail call
-//     the sum written inline in the call rather than named
-//     the whole thing as a member function returning the result
-//     a non-virtual member call on `s->target` whose result is returned
+//      mflr r12 ; ... ; li r10,208 ; lwz r11,8(r3)
+//      lvx128 v0,r0,r4                <-- READS r4
+//      mr r31,r3 ; ... ; stvx128 v0,r3,r10
 //
-// The difference is that sub_8215E5B0's shuffle is a copy CYCLE -- r3 gets
-// r5's value while r4 gets a load through r3 -- so something must be staged
-// and the return type decides what. Here there is no cycle: one float load
-// simply has to survive r3 being overwritten, and MSVC always solves that
-// the same way. 1 of 5 words, 24 bytes against 20.
+// so it takes a 16-byte value by address in r4. sub_82639C38 never writes
+// r4 and tail-calls it, so **r4 is live-in here**: this function has a
+// second parameter it passes straight through and never touches. Declaring
+// it is the whole fix --
+//
+//      void EmitSum(FSrc* s, const void* v) { Emit(s->target, v, s->a + s->b); }
+//
+// -- 20 bytes, 4 of 4 non-relocated words, and the `mr` is gone. With r4
+// already holding an outgoing argument MSVC no longer schedules the pointer
+// load into the middle of the float pair; both `lfs` issue first and `s` is
+// dead before r3 is overwritten, so there is nothing to preserve.
+//
+// Three spellings all match identically: `const void*`, the same with the
+// sum named in a local, and a `const Vec4*` with the addends written the
+// other way round. The bytes therefore say the argument exists and say
+// nothing about its type, so the least-claiming spelling is kept -- what the
+// callee does with it (`lvx128`, 16 bytes, alignment-masked address) is
+// recorded here instead of asserted as a struct.
+//
+// THE GENERAL LESSON, which is why the comment is this long: a register that
+// a function neither writes nor reads is invisible in its own disassembly
+// and is still part of its signature. Reading only the target's five
+// instructions cannot find it. When a tail call will not come out and the
+// residue is a copy around the argument registers, disassemble the CALLEE
+// and look for a register it consumes that the caller never produces.
 struct FSrc { char unk0000[0x30]; void* target; char unk0034[0x58 - 0x34];
               f32 b; f32 a; };
 ASSERT_OFFSET(FSrc, target, 0x30);
 ASSERT_OFFSET(FSrc, b,      0x58);
 ASSERT_OFFSET(FSrc, a,      0x5C);
-void Emit(void*, float);
 
-void EmitSum(FSrc* s)
+/* r4 is passed through untouched; sub_826815C0 loads 16 bytes from it. */
+void Emit(void*, const void*, float);
+
+void EmitSum(FSrc* s, const void* v)
 {
-    float sum = s->a + s->b;
-    Emit(s->target, sum);
+    Emit(s->target, v, s->a + s->b);
 }

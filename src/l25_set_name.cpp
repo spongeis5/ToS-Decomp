@@ -69,10 +69,69 @@
 //
 // The single-record reading is kept in the source because the 128 bytes
 // between the two fields are unknown either way, and writing them as a
-// fabricated neighbouring static claims more than the bytes show.  But the
-// next attempt should start from the two-statics shape: it is five of six
-// instructions exact, and what it needs is whatever makes MSVC place the
-// stored-to object BEFORE the address-taken one.
+// fabricated neighbouring static claims more than the bytes show.
+//
+// ---- WHAT DECIDES THE ANCHOR, measured this session ----
+//
+// The advice this comment used to end with -- "start from the two-statics
+// shape and find whatever makes MSVC place the stored-to object BEFORE the
+// address-taken one" -- is answered, and the answer is that the LAYOUT was
+// never the obstacle. Three measurements, in the order they were made:
+//
+// **(1) MSVC anchors on the LOWEST-ADDRESSED object the function
+// references.** Not on the address-taken one, and not on the one at .bss+0:
+// a probe whose second function touches only a higher static emits a COFF
+// symbol for it at .bss+0x84 and anchors there, so a non-zero-offset anchor
+// is perfectly possible -- it just never happens when something lower is
+// also referenced.
+//
+// **(2) MSVC will NOT fold a constant byte offset into a symbol's own `addi`
+// relocation.** Eleven spellings: a `static` record and an `extern` one, a
+// member, `&r.name[0]`, a one-element array of the record, a `char[260]`
+// plus 132, a `u32[65]` plus 33, the address in a named local declared
+// before or after the store, and an anonymous namespace. Every one
+// materialises the record base and spends a SECOND `addi` -- which is the
+// `addi r3,r11,132` this file emits, and the one word it is short.
+//
+// Together (1) and (2) say the two shapes are mutually exclusive: the
+// `mr r3,r10` needs the anchor to BE the buffer, and a negative store
+// displacement needs the anchor to be ABOVE the stored word. Both were
+// checked directly rather than reasoned about --
+//
+//      owner 132 bytes ABOVE the buffer   lis, li, addi, stw +132, mr, b
+//                                         24 B, the target's shape, wrong sign
+//      owner 132 bytes BELOW the buffer   lis, mr, addi, li, addi, stw 0, b
+//                                         28 B, anchor moves to the owner
+//      one symbol AT the buffer, owner
+//        reached at [-33]                 lis, mr, addi, li, mr, stw -132, b
+//                                         28 B, right displacement, two `mr`s
+//
+// -- the last row being twelve further spellings (bare cast, `*(u32*)(buf -
+// 132)`, a named `char* d`, a named `u32* p`, a struct at the buffer with a
+// negative member, an inlined helper taking the buffer, an `extern` and a
+// `static` buffer, the owner as the second parameter, a `volatile` cast, the
+// `strncpy` result forwarded, and `sizeof(g_buf)` for the count) at /O2 and
+// at /O2 /Os. All twelve are byte-identical.
+//
+// **(3) The .bss order of uninitialised statics is not declaration order,
+// size order or alignment order -- it moves with the NAME, and not
+// alphabetically.** Measured by folding `(char*)&A - (char*)&B` to a
+// constant and reading it off the `addi`: `g_head`(132) with `g_buf`(128)
+// puts the buffer first, while `g_ahead` and `g_zhead` -- the same two
+// objects, one character different in the name -- put the head first. Also
+// measured: a `char[N]` for N >= 8 takes 8-byte alignment, so a 132-byte
+// object is followed at +136 and not +132. None of this matters given (1),
+// and it is recorded so the next reader does not spend the afternoon on it.
+//
+// **The companion function came out; this one did not, and the difference is
+// the STORE.** sub_82158E50 is the same "one global record, negative
+// displacements" shape and it now matches, because all three of its accesses
+// are LOADS: reaching them at `[-8]` and `[-7]` off an `extern` at the
+// anchor costs nothing. Here the value being stored arrives in r3 and r3 is
+// also the outgoing argument, so any spelling that derives the store's base
+// from the pointer being passed makes MSVC stage the argument copy first and
+// pay to save the owner. What is still not tried is anything that separates
+// those two roles of r3.
 
 #include "types.h"
 #include <string.h>

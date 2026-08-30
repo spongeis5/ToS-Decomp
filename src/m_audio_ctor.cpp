@@ -81,17 +81,59 @@
 // real base classes plus an inlined helper on a bitfield word, here by one
 // pointer.
 //
-// WHAT IS STILL WRONG, thirteen words, is the head of the function. The
-// target issues `stw r11,12(r3)` (f0C = 0) first, then next, then prev, then
-// the vtable, filling the gaps between them with the four `lis`es it needs
-// later; ours hoists the vtable store to the front because its lis/addi pair
-// is ready first, and the four `lis` destination registers then differ all
-// the way down. Four more shapes were measured against that and none is more
-// than a word better: `&a->vt` pinned (42), `&a->f0C` pinned (43), the next/
-// prev pair pinned (42), and the vtable written first in source (43). The
-// last two are the informative pair -- moving the vtable assignment to the
-// front of the source does NOT move its store to the front of the output,
-// so the hoist is the scheduler's and not the source's.
+// WHAT IS STILL WRONG, fourteen words, is the head of the function, and it is
+// an ADDRESS CREATION ORDER rather than a store order. Registers are handed
+// out as values are created, descending r11, r10, r9, ...:
+//
+//      target  zero=r11, &a->next=r10, vtable=r9 (lis and addi in place),
+//              1.0f base=r8, 10000 base=r7, 360 base=r6, 44100 base=r5,
+//              0.0f base=r4
+//      ours    zero=r11, vtable lis=r10, 1.0f base=r9, 10000 base=r8,
+//              360 base=r7, 44100 base=r6, 0.0f base=r5, vtable addi=r4
+//              (a SECOND value, not written in place), &a->next last of all
+//
+// The target creates `&a->next` second and the whole vtable address third,
+// ahead of every float pool base, and issues `stw r11,12(r3)` (f0C = 0) then
+// next, then prev, then the vtable, filling the gaps between them with the
+// `lis` halves it needs later. Ours materialises all six addresses ahead of
+// every store and splits the vtable's lis/addi across two registers, and the
+// three small constants downstream (`li 1`, `li 128`, `li -1`) are renamed
+// with them.
+//
+// THE FIVE FLOAT POOL BASES ARE ALREADY RIGHT, relative to each other: their
+// creation order is the order the constants are first STORED -- 1.0f, 10000,
+// 360, 44100, 0.0f -- and the float statement order below produces it.
+//
+// THE BASE-CLASS READING OF THE STORE ORDER IS CONFIRMED, and it is worth
+// having even though it did not change the score. MATCHED.md, on
+// sub_8253F5D8: "stores emitted before a class's own vptr belong to a BASE of
+// it". Written as a polymorphic class -- one virtual function, so the vptr is
+// compiler-managed at +0, and a real `AudioLinkBase { next; prev; f0C; }`
+// pushed to +4 whose constructor writes f0C, next, prev -- the emitted store
+// order becomes exactly f0C, next, prev, vptr, with no scheduling coincidence
+// left in it. It scores the same 42 of 56, which is the useful part: the
+// residue was never the store order. A NON-polymorphic base is a layout
+// refutation rather than a shape one -- MSVC puts it at offset 0, so `vt`
+// lands at 0x0C and the whole function is 0 of 55 at 268 bytes.
+//
+// MEASURED AND RULED OUT, beyond the four in the paragraph below:
+//   a real `AudioEmitter::AudioEmitter()` constructor, vt a plain member  42
+//   the polymorphic base-class form above                                 42
+//   the f0C/next/prev group written through a pointer to a 12-byte
+//     sub-struct at +4 -- the address-of lever rather than a base class   42
+//   all 16 ways of naming zero, `&a->next` and the vtable pointer in
+//     locals ahead of the stores, in every order: naming the zero or the
+//     vtable pointer is byte-identical at 42; naming the LINK pointer is
+//     280 bytes and 12 of 56 in all eight combinations that include it
+//   all 72 flag combinations from tools/flagsweep.py: 44 give this same
+//     42 of 68 and 28 give 41 of 68, so the level is /O2 and flags are done
+//
+// Four shapes were measured earlier and none is more than a word better:
+// `&a->vt` pinned (42), `&a->f0C` pinned (43), the next/prev pair pinned
+// (42), and the vtable written first in source (43). The last two are the
+// informative pair -- moving the vtable assignment to the front of the source
+// does NOT move its store to the front of the output, so the hoist is the
+// scheduler's and not the source's.
 //
 // The `self` store -- `a->self = a` -- is still emitted earlier than its
 // source position, which is the "a store with no dependency is hoisted"

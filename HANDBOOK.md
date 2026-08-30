@@ -32,13 +32,13 @@ bytes identical to the retail image. Not a port, not a re-implementation.
 function starts known           30,630
 .text                           8,467,964 bytes
 
-FUNCTIONS MATCHED               1,299
-  read off the disassembly      448   (34,308 bytes)
+FUNCTIONS MATCHED               1,307
+  read off the disassembly      454   (34,948 bytes)
   generated from encodings      818   (8,192 bytes)
-  upstream third-party source   33   (8,160 bytes)
+  upstream third-party source   35   (11,696 bytes)
 
-bytes rebuilt from source       50,660   (0.5983% of .text)
-near-misses recorded            45
+bytes rebuilt from source       54,836   (0.6476% of .text)
+near-misses recorded            38
 vetted match candidates         4,231
 ```
 The three parts of the match count are never added up without
@@ -219,11 +219,27 @@ contiguous **run** of matched functions, hands it the retail order through
 emits against the image byte for byte.
 
 ```
-124 of 178 runs, 12,100 of the 27,568 bytes those runs span
+121 of 177 runs, 11,972 of the 31,276 bytes those runs span
 ```
 
 laid out by the linker rather than by us, at the addresses the image gives
-them, padding included, nothing excused. Six negative controls
+them, padding included, nothing excused.
+
+**THIS FIGURE MOVES OPPOSITE TO THE MATCH COUNT, AND THAT IS NOT A BUG.**
+Over one session the matched count went 1,297 → 1,306 and the bytes 49,820 →
+54,776, while linked bytes went **12,100 → 11,972** and complete units 82 →
+81. Every new match that closes a gap MERGES two runs, and a run must
+resolve everything it references, so the merged run inherits the UNION of
+both halves' outward references. `821ADFC8` is the clean case: matching it
+joined `821ADFB8` to `821AE050`, and the 104-byte run that used to link on
+its own was swallowed by one that needs seven addresses it does not have.
+
+So `bridge.py`'s "run gain" is a SPAN — the right question for layout, the
+wrong one for "how many more bytes link tomorrow". Read them apart. The
+resolution is item 6 below: one link of the whole image, where every symbol
+is placed and no run has anything left to reach for.
+
+Six negative controls
 (`--selftest`) require it to *see* a difference when the order is reversed,
 when two functions are swapped, when the run is placed 8 bytes early or late,
 and when the comparison is moved 4 bytes — because an ordering check that
@@ -1307,7 +1323,7 @@ in particular has not once survived contact with a new lever.
    merged with the 6,453 `lib` matches.
 6. ~~**A build system and a progress dashboard.**~~ **PARTLY DONE.**
    `tools/build.py` is the build, `tools/objdiff_export.py` gives the
-   dashboard, and `tools/link.py` links 124 contiguous runs — 12,100 bytes —
+   dashboard, and `tools/link.py` links 121 contiguous runs — 11,972 bytes —
    with the retail linker, each at its retail address, ordering and padding
    included. What is still missing is a link that spans **more than one run**:
    26 runs cannot be linked because something in them relocates against a

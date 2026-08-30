@@ -14,6 +14,14 @@
 // vtable 82004678, and the same quad {0, 0.2f, 0.0f, 1} at the same relative
 // spacing -- +28/+36/+40/+48 here, +100/+108/+112/+120 there.
 //
+// AND OF sub_821ADFC8 (src/y1_ctor_s32_m60.cpp), which is now MATCHED.  That
+// function carried this one's residue word for word -- the four stores and
+// the `addi` off `this` where the image has them off the base constructor's
+// returned pointer -- and it came out.  Its reading of that residue was
+// right; the conclusion that nothing could be done about it was wrong.  See
+// finding 13 below for what it needed and why the same lever does not reach
+// here.
+//
 //      mflr / std r30 / std r31 ; stwu r1,-112(r1)
 //      mr    r31,r3
 //      bl    821A4628                  the base constructor
@@ -130,6 +138,68 @@
 // 9. THE FLAG AXIS IS EXHAUSTED ON THIS SHAPE TOO.  tools/flagsweep.py's 72
 //    combinations on `&this->inner`: 44 give 23 of 36 (including plain /O2),
 //    28 give 19 of 36 (including /O2 /Os).  Nothing else appears.
+//
+// 10. THE SWAP TRACKS THE ARGUMENT'S VALUE, NOT ITS SPELLING, and there is
+//    now a clean control for that.  Both arms of a folded ternary name both
+//    pointers, and only the surviving one moves the registers:
+//
+//        InnerBase(&(sizeof(Outer) ? this : o)->inner);    23 of 24
+//        InnerBase(&(sizeof(Outer) ? o : this)->inner);    16 of 24
+//
+//    So every way of deriving the argument from `o` while keeping `o` out of
+//    the expression fails identically, at 16 of 24.  Measured, 0 compile
+//    failures: an integer round-trip `u32 a = (u32)o; (Inner*)(a + 56)`, with
+//    and without the local; a union of `Outer*` with `u32` and with `char*`;
+//    a second `bl BaseInit` used only for the argument (9 of 23, and 148
+//    bytes -- it is a second call); a cancelling read of `this` in three
+//    forms, `(char*)this + ((char*)o - (char*)this) + 56`, `(u32)o +
+//    ((u32)this - (u32)this) + 56` and `(u32)o + ((u32)this & 0) + 56`; a
+//    dead first assignment `Inner* ip = &this->inner; ip = &o->inner;`; a
+//    two-parameter inlined helper in both parameter orders; the comma
+//    operator, `&(*p28 = 0.0f, o)->inner` and `&((void)this, o)->inner`; and
+//    the argument through a one-line helper `Sub(o)`.  A `volatile Outer*`
+//    or `volatile u32` slot is 5 of 24 -- the volatile forces a stack slot.
+//
+//    This is worth stating as a fact about the compiler rather than about
+//    this function: the r30/r31 assignment is made on the VALUE that reaches
+//    the outgoing argument register, after folding, so no amount of syntax
+//    at that site reaches it.
+//
+// 11. NOTHING STRUCTURAL MOVES IT EITHER.  All 16 of 24, all on the
+//    `&o->inner` shape: `Outer* o;` declared then assigned; `register`; a
+//    second alias `o2` used for the argument or for the stores; `o = this`
+//    after the argument is taken; the `this`-side member pointer formed
+//    BEFORE the first call; a `volatile f32*` for the +40 store; `o`
+//    obtained through an identity helper; an `Outer&` reference on either
+//    side; the zero materialised before the first call, or as a `const`
+//    local; the +152 store unpinned, or written first in the tail; both zero
+//    stores through a helper; the tail through a late-declared `Outer* s =
+//    this`; the +40 store written twice; and the +40 store and the tail
+//    through inlined helpers at one AND at two nesting levels (MATCHED.md's
+//    sub_82164040 lever).  `__restrict` on `o` is 5 of 24 and nesting the
+//    whole `o` half inside the call, `Setup(BaseInit(this))`, is 5 of 24.
+//
+// 12. THE FLAG AXIS IS NOW CLOSED AT THE FULL LEVEL, not just the quick one.
+//    `tools/flagsweep.py --full` on the `&o->inner` shape: 2304 combinations
+//    compiled, 0 failed, and exactly TWO outcomes -- 16 of 36 (1440 of them,
+//    including plain /O2) and 13 of 36 (864, including /O2 /Os).  Thirty
+//    more options from the compiler's own /? list that flagsweep does not
+//    sweep were tried on top of plain /O2 (/Oz /Oc /GF /GR /GR- /GX /EHsc
+//    /EHa /J /Zp4 /Zp16 /vmg /vmm /vms /vd0 /vd1 /vd2 /Zc:forScope-
+//    /Zc:wchar_t- /W4 /Oi- /Og /Ob0 /Ob1 /Ob2 /GS /Gy-): every one is 16 of
+//    24.  /Zp1 and /Zp2 are 5 of 24 because they change the layout, and /Za
+//    does not compile -- reported as a failure, not as a score.
+//
+// 13. THE PIN AXIS THAT FINISHED THE SIBLING DOES NOT REACH IT.  All 256
+//    address-of-pin subsets of the eight stores, on the `&o->inner` shape at
+//    order ACBDE/FGH, 0 compile failures: 64 subsets give 16 of 24, 64 give
+//    15, 96 give 13 and 32 give 5.  Nothing beats 16.  That matters because
+//    ONE pin -- on the zero store -- is exactly what finished sub_821ADFC8
+//    (src/y1_ctor_s32_m60.cpp), which had this function's residue word for
+//    word.  The difference between the two is that sub_821ADFC8 has only ONE
+//    callee-saved register, so `&o->inner` costs it nothing; here there is a
+//    second non-volatile -- the twice-used zero -- for the allocator to
+//    trade against, and it always trades.
 //
 // Constants read out of the image: 82004764 = 0.2f, 82002DA4 = 0.0f,
 // 82003204 = 10.0f.  The sub-object's size is 80, pinned by the sibling

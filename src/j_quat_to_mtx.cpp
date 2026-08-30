@@ -97,6 +97,16 @@
 // a SNAPSHOT of memory that could otherwise alias the destination. Here the
 // products are already pure arithmetic on values in registers, so there is
 // nothing for the staging to pin.
+//
+// AND WHICH PRODUCTS ARE NAMED IS SETTLED TOO: ALL SIX. Every shape recorded
+// above declares all six as locals or writes all six inline, so the 64
+// SUBSETS were the axis left open -- a named local is created where it is
+// declared and an inline expression at its use, which is the control that
+// finished sub_82600960 and is what the float register assignment here
+// follows. All 64 were compiled. Naming all six is 25 of 40 at 176 bytes;
+// the best of the other 63 is 6 of 40, and most are 2 to 5. There is no
+// partial naming that helps, and the ones that drop a product go to 180
+// bytes. That closes the axis rather than leaving it as an untried idea.
 struct Quat { f32 x; f32 y; f32 z; f32 w; };
 ASSERT_OFFSET(Quat, z, 0x08);
 ASSERT_OFFSET(Quat, w, 0x0C);

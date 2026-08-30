@@ -9,7 +9,6 @@
 #
 # source                        address   symbol
 src/init12.cpp                  826C1480
-src/fadd_fwd.cpp                82639C38
 src/wstr_compare.cpp            827618E8
 src/b_strcmp.cpp                826973C8
 # src/g_memcmp_n.cpp targets 82697748, which the inventory does NOT list as a
@@ -24,7 +23,6 @@ src/b_strcmp.cpp                826973C8
 # demonstrated match.py could report MATCH having verified nothing. Kept as
 # a worked example; tools/test_shrink.py now covers the case.
 src/m_pick_slot.cpp             82202D08
-src/e_normalize4.cpp            82155080  QuatNormalize
 src/e_axis_project.cpp          8214F7E8  ProjectOntoAxes
 src/k_kind_weight.cpp           827261D8
 src/j_quat_to_mtx.cpp           82154ED8
@@ -52,15 +50,10 @@ src/m34_set_fixed12.cpp          82761808
 src/m35_read_run.cpp             82790B18
 src/n17_find_paired.cpp          82631F78
 src/n21_outer_inner_ctor.cpp     82273AE8
-src/l23_memcpy_globals.cpp       82158E50
 src/l25_set_name.cpp             821FA140
-src/m70_hash_until_brace.cpp    82600960  ?LookupName@@YAIPBD@Z
 src/m72_upper_in_place.cpp      8215A8F0  ?UpperInPlace@@YAXPAE@Z
 src/z4_chain_nth_fwd.cpp         826C0FB8
 src/z3_ctor_inner_vt.cpp        821AE070
-src/y1_ctor_s32_m60.cpp         821ADFC8  ??0Obj821ADFC8@@QAA@XZ
 src/y1_ctor_s28_m56.cpp         821AE070  ??0Obj821AE070@@QAA@XZ
 src/y2_count_tokens.cpp          8215A5C8
 src/y2_relocate_recs.cpp         82166B50  RelocateRecs
-src/y2_wave_format_ok.cpp        82578558  CheckWaveFormat
-src/y2_hsv_to_rgb.cpp            827C35F0

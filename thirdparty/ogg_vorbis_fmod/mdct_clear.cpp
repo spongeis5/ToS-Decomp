@@ -45,7 +45,22 @@ extern "C" void ogg_mem_free(void *ptr, const char *file, long line);
 #undef _ogg_free
 #define _ogg_free(x) ogg_mem_free((x), __FILE__, __LINE__)
 
-#pragma function(memset)
+/* THE IMAGE HAS TWO memset IMPLEMENTATIONS AND THEY ARE NOT THUNKS.
+ * 82301150 opens `mflr r12 ; bl 828A75CC`; 828A8C50 is a compact byte loop
+ * (`addi r0,r5,1 ; mtctr ; ori`). FMOD's code calls the first, the game's
+ * own code calls the second, and both are reached by `bl` from matched
+ * functions -- so one C name for both makes build.py report
+ * WOULD NOT LINK: one symbol, two addresses. The bytes verify either way,
+ * because each call site is patched from the retail word independently;
+ * it is the SOURCE MODEL that would be wrong, and a real link would refuse
+ * it.
+ *
+ * So it is named for the address it is, which is also what the project does
+ * for `g_arena_829A195C`. `#pragma function` is no longer needed: MSVC
+ * expands `memset` inline at /O2 unless told otherwise, but it has no
+ * reason to expand a function it has never heard of, and the emitted bytes
+ * are identical -- verified with match.py after the rename. */
+extern "C" void *memset_82301150(void *dst, int c, unsigned int n);
 
 /* The filename on the #line is the image's own: the string at 820629A0 that
  * both frees pass is "..\lib\ogg_vorbis\vorbis\lib\mdct.c", FMOD's __FILE__.
@@ -57,6 +72,6 @@ void mdct_clear(void *owner, mdct_lookup *l){
   if(l){
     if(l->trig)_ogg_free(l->trig);
     if(l->bitrev)_ogg_free(l->bitrev);
-    memset(l,0,sizeof(*l));
+    memset_82301150(l,0,sizeof(*l));
   }
 }

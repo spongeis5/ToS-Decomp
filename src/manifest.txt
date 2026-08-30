@@ -1309,3 +1309,11 @@ src/y1_field_state.cpp          82103318  ?SetField1@@YAXPAUFieldState@@I@Z  fla
 src/y1_field_state.cpp          82103358  ?SetField2@@YAXPAUFieldState@@I@Z  flags=/O2,/Os,/Gy,/GS-,/fp:fast
 thirdparty/ogg_vorbis_fmod/mdct_init.cpp       825C1D28  mdct_init              flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
 thirdparty/ogg_vorbis_fmod/mdct_clear.cpp      825C27F8  mdct_clear             flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis_fmod/vorbis_synthesis_blockin.c 825BF448  vorbis_synthesis_blockin flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis_fmod/ogg_stream_pagein.c       825BDFB0  ogg_stream_pagein        flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis_fmod,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+src/y1_ctor_s32_m60.cpp         821ADFC8  ??0Obj821ADFC8@@QAA@XZ
+src/fadd_fwd.cpp                82639C38
+src/l23_memcpy_globals.cpp      82158E50
+src/e_normalize4.cpp            82155080  QuatNormalize
+src/y2_wave_format_ok.cpp       82578558  CheckWaveFormat
+src/m70_hash_until_brace.cpp    82600960

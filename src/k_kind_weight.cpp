@@ -1,82 +1,118 @@
 #include "types.h"
 
-// sub_827261D8 -- NOT MATCHED. 84 of 91 words; the seven that differ are the
-// register allocation of ONE case body and nothing else. Kept for the shape,
-// which is right, and for the two things it establishes about the tools.
+// sub_827261D8 -- NOT MATCHED. 48 of 53 non-relocated words; the five that
+// differ are the register allocation of ONE case body and nothing else. Kept
+// for the shape, which is right, and for what it establishes about the tools.
 //
 // A 31-case switch on a kind byte that scales a table entry by a repeat
 // count. 11 callers. The .pdata row records 60 bytes, which is the distance
 // to the JUMP TABLE at 82726214; the body runs on past it to the epilogue at
 // 82726340, 364 bytes in all -- and our object is 364 bytes with the table in
-// the same place.
+// the same place. Compare it with
 //
-// MATCH.PY CANNOT SPEAK ABOUT THIS FUNCTION, whatever the source. The
-// inventory lists 82726214 -- the jump table -- as a function start, and
-// _is_real_start accepts it because the word before it is the `bctr` that
-// reads it, which is exactly the "control cannot fall in" test. So
-// can_extend's bound is 60 bytes for a 364-byte body and len(code) == tsize
-// can never hold. A switch's jump table is a general blind spot in that
-// heuristic, not a quirk of this address.
+//     python tools/match.py src/k_kind_weight.cpp 827261D8 --sym Weight
 //
-// WHAT IS STILL WRONG, precisely: in the case-24/31 body the target is one
-// register tighter --
+// -- `--sym` is required because the inline `Frames()` is emitted as its own
+// COMDAT as well as being inlined, so the object holds two functions.
 //
-//      want  lis r10 ; rotlwi r9,r11,1 ; addi r10,r10,9272 ; add r9,r11,r9
-//      got   lis r9  ; rotlwi r10,r11,1 ; addi r9,r9,0     ; add r7,r11,r10
+// A NOTE THAT WAS HERE AND IS NOW WRONG, kept because the correction is the
+// point. This file used to say "MATCH.PY CANNOT SPEAK ABOUT THIS FUNCTION,
+// whatever the source", because the inventory lists the jump table at
+// 82726214 as a function start and can_extend's bound was therefore 60 bytes
+// for a 364-byte body. tools/switches.py now supplies the jump-table ranges
+// and match.py excludes them, so it compares all 91 words and would exit 0 on
+// a correct source. A recorded tool limitation outlived the tool, and a
+// stalled function carrying "the tools cannot speak about this" is exactly
+// the note that stops the next reader looking.
 //
-// and every value after it shifts by one (r7/r6/r5/r4 against r6/r5/r4/r3).
-// The target COALESCES the `k*3` onto the register holding `k*2`; we spend a
-// fresh one. The identical body in the first case group allocates a fresh
-// register in the TARGET too, so it is not a property of the expression.
+// WHAT IS STILL WRONG, precisely, and it is a CREATION ORDER. Both compiles
+// assign body 2's values from the free list r11, r10, r9, [r8 = frames], r7,
+// r6, r5, r4, r3 in the order the values are created:
 //
-// That is the /Os register-coalescing signature, and /Os is not available
-// here: at /O2 /Os this compiler abandons the jump table entirely for a
-// compare chain (244 bytes, 4 of 61). Ten other flag combinations -- /Ox,
-// /O1-ish pieces, /Ob0, /Ob1, /Oy-, /Ot, /Og, /Oi, /GF, /Gs, /fp:precise --
-// are all byte-identical to /O2 here except /Ob0, which is worse.
+//      target  sub=r11, base=r10, sub*2=r9, sub*3=r9 (in place), base+8=r7,
+//              scaled=r6, lhzx=r5, extsh=r4              -- seven registers
+//      ours    sub=r11, base=r10, sub*2=r9, base+8=r7, sub*3=r6, scaled=r5,
+//              lhzx=r4, extsh=r3                         -- eight
 //
-// Twenty source shapes were tried and none moved those seven words: a local
-// for the index (u8 and int), a pointer into the array, the count hoisted
-// into a local, `this->` spelled out, an explicit widening cast, a member
-// helper doing the whole lookup, a free helper doing only the lookup, the
-// frames helper as a free function, the whole function as a free function
-// taking Item*, a compound `*=`, both multiply operand orders, `default:`
-// first, last, absent, and assigning the -1 in a default block.
+// The target finishes the whole INDEX chain before forming `base + 8`, so at
+// the `add` the most recently allocated register is r9, sub*2 is dead, and
+// the add is written in place. We form `base + 8` in the middle of the index
+// chain, so r9 is no longer the top of the stack, the add takes a fresh
+// register, and every value after it shifts by one.
 //
-// THREE MORE, all applied to the case-24/31 body ALONE (body 1 is already
-// byte-exact, so any change that reaches this has to be local to body 2), all
-// BYTE-IDENTICAL to the baseline at 46 of 53:
+// THE AND-MASK INDEX LEVER IS WHAT TOOK IT FROM 46 TO 48, and it is the only
+// thing in fifty-odd measured shapes that has moved this function at all:
 //
-//   * MATCHED.md's named const-qualified view, `const Info* t = g_info;` then
-//     `t[sub].size` -- the lever that cracked VectorGrow. Its stated limit is
-//     that the view must name a field reached through a POINTER PARAMETER;
-//     `g_info` is a global, and this is another instance of that limit;
-//   * the base as the RIGHT operand of the add, `(sub + g_info)->size`, on
-//     the theory that MSVC evaluates a binary operator right to left and the
-//     later-evaluated operand is created first. MSVC canonicalises it back;
-//   * a TWO-LEVEL inlined free helper, `InfoSize(i)` calling `InfoAt(i)`,
-//     since two nesting levels is what kept a base pointer alive in
-//     sub_82164040. One level was already known not to move it; two does not
-//     either.
+//      result = g_info[sub & 0x3FFFFFFF].size * Frames();
 //
-// WHAT THE DIFFERENCE ACTUALLY IS, stated more precisely than "one register
-// tighter". Both compiles assign the eight values of body 2 from the free
-// list r11, r10, r9, [r8 = frames], r7, r6, r5, r4, r3 in CREATION order:
+// `sub` is a u8, so any mask of 0xFF or wider changes nothing the function
+// computes, and MATCHED.md's account of why it is invisible holds here --
+// keeping the low bits is absorbed into the `rlwinm` that the `* 4` already
+// needed, so the scaling word is byte-identical. What moves is not an operand
+// order this time but the CREATION order: unmasked, MSVC matches the address
+// as `base + (index << scale)` and builds the base AFTER the scaling; masked,
+// the pattern misses and the base is created first, which is the target's
+// order. `lis r10`, `rotlwi r9` and `addi r10,r10,9272` come into agreement
+// together.
 //
-//      ours    sub=r11, sub*2=r10, base=r9,  sub*3=r7, base+8=r6, ... 8 regs
-//      target  sub=r11, base=r10,  sub*2=r9, sub*3=r9, base+8=r7, ... 7 regs
+//      unmasked  sub=r11, sub*2=r10, base=r9, sub*3=r7, base+8=r6  46 of 53
+//      masked    sub=r11, base=r10, sub*2=r9, base+8=r7, sub*3=r6  48 of 53
 //
-// so the whole residue is that the target creates the g_info ADDRESS before
-// the index scaling and we create it after; the in-place `add r9,r11,r9`
-// follows from that, because sub*2 is then the most recently allocated
-// register and is dead at the add. Body 1 creates the index first in the
-// TARGET too (k*2 -> r11, lis -> r8), so the two bodies genuinely differ in
-// creation order, and the only source-visible difference between them is
-// that body 2's index needs a `lbz` and body 1's is already live in r10.
-// Nothing tried so far reorders those two chains.
+// The mask CONSTANT carries no information: 0x1FF, 0xFFFF, 0xFFFFFF,
+// 0xFFFFFFF, 0x1FFFFFFF, 0x3FFFFFFF and 0x7FFFFFFF are byte-identical, which
+// is what the lever predicts. But the mask must sit IN THE SUBSCRIPT --
+// naming the masked index in a local undoes it completely (368 bytes, 25 of
+// 53).
 //
-// THREE OF THOSE ARE EVIDENCE, and they pin the source shape rather than
-// leaving it open:
+// FLAGS ARE RULED OUT. At /O2 /Os this compiler abandons the jump table
+// entirely for a compare chain (244 bytes, 4 of 61). Ten other combinations --
+// /Ox, /O1-ish pieces, /Ob0, /Ob1, /Oy-, /Ot, /Og, /Oi, /GF, /Gs, /fp:precise
+// -- are all byte-identical to /O2 here except /Ob0, which is worse.
+//
+// SHAPES MEASURED AND RULED OUT, about fifty in all. Every one is applied to
+// the case-24/31 body ALONE, because body 1 is already byte-exact and
+// anything that reaches the residue has to be local to body 2.
+//
+//   Byte-identical to the plain unmasked baseline at 46 of 53: a local for
+//   the index (u8 and int), a pointer into the array, the count hoisted into
+//   a local, `this->` spelled out, an explicit widening cast, a member helper
+//   doing the whole lookup, a free helper doing only the lookup, the frames
+//   helper as a free function, the whole function as a free function taking
+//   Item*, a compound `*=`, both multiply operand orders, `default:` first,
+//   last, absent, the -1 assigned in a default block, and explicit byte
+//   arithmetic with the +8 written before or after the scaled index. Also
+//   MATCHED.md's named const-qualified view, `const Info* t = g_info;` then
+//   `t[sub].size` -- the lever that cracked VectorGrow; its stated limit is
+//   that the view must name a field reached through a POINTER PARAMETER,
+//   `g_info` is a global, and this is another instance of that limit. Also
+//   the base as the RIGHT operand of the add, `(sub + g_info)->size`, which
+//   MSVC canonicalises back. Also a TWO-LEVEL inlined free helper,
+//   `InfoSize(i)` calling `InfoAt(i)`, since two nesting levels is what kept
+//   a base pointer alive in sub_82164040; one level was already known not to
+//   move it and two does not either.
+//
+//   WORSE than the baseline, and worth recording because the first of them
+//   was the point of a whole batch: naming BOTH chains as locals -- the
+//   declaration-order lever from sub_8216C240, worth twelve words there -- is
+//   40 of 53 in EITHER order, six words worse than naming neither. A `u8`
+//   index local is 24 of 53 at 368 bytes; a named entry pointer or a named
+//   `short sz` is 5 of 54 at 396 bytes.
+//
+//   Byte-identical to the MASKED baseline at 48 of 53, so the mask is doing
+//   all the work and nothing composes with it: the masked index cast to
+//   `(u32)` or `(int)`, `<< 0`, `^ 0`, `+ 0`, masked twice, the base named as
+//   a view first, `(&g_info[i])->size`, `(*(g_info + i)).size`, `Frames()`
+//   written as the left operand, `Frames()` named in a local first, explicit
+//   byte arithmetic with the mask in either association order, the index
+//   chain spelled out as `(i + i*2) * 4`, and a two-level masked helper.
+//
+// Body 1 creates the index first in the TARGET too (k*2 -> r11, lis -> r8),
+// so the two bodies genuinely differ in creation order, and the only
+// source-visible difference between them is that body 2's index needs a `lbz`
+// and body 1's is already live in r10.
+//
+// THREE OF THE MEASUREMENTS ABOVE ARE EVIDENCE, not just failed attempts:
+// they pin the source shape rather than leaving it open.
 //
 //   * moving the case-25 group ahead of the case-24/31 group costs 12 more
 //     words, so MSVC lays case bodies out in SOURCE ORDER and this order is
@@ -165,7 +201,12 @@ int Item::Weight()
 
     case 24:
     case 31:
-        result = g_info[sub].size * Frames();
+        /* The mask is inert -- `sub` is a u8 -- and is absorbed into the
+           `rlwinm` the `* 4` already needed. It is here because it defeats
+           MSVC's `base + (index << scale)` addressing-mode match, which is
+           what creates the g_info address before the index scaling: two
+           words, 46 of 53 to 48 of 53. See the header. */
+        result = g_info[sub & 0x3FFFFFFF].size * Frames();
         break;
 
     case 25:

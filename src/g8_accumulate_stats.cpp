@@ -28,15 +28,30 @@
 // 82673020 through 8267305C -- the guard, both maxima, the store between
 // them and the first accumulator's two loads.  What differs:
 //
-//   82673060, 82673070   the operand order of two of the three `add`s.  The
-//     target is not uniform -- rA is the ACCUMULATOR at 82673060 and 82673080
-//     and the DELTA at 82673070 -- and no spelling reaches that.  All EIGHT
-//     assignments of `*p = *p + v` against `*p = v + *p` across the three
-//     accumulators were compiled, and all eight score 29 of 47 with this
-//     same diff; so were all eight orders written as explicit member
-//     pointers without the helper, and those score 27.  This is the
-//     counter-example class from MATCHED.md's `lwzx` note: within one retail
-//     function the choice is not uniform, so one source cannot produce it.
+//   82673060, 82673070   the operand order of two of the three `add`s.
+//
+//     A CORRECTION TO WHAT THIS FILE USED TO SAY HERE. It read: "the target
+//     is not uniform -- rA is the ACCUMULATOR at 82673060 and 82673080 and
+//     the DELTA at 82673070 -- and no spelling reaches that ... within one
+//     retail function the choice is not uniform, so one source cannot produce
+//     it." The first half is a measurement and is right. The second half is a
+//     conclusion and is wrong, in the way this project keeps recording:
+//     OURS IS NOT UNIFORM EITHER. It is non-uniform in the same two places
+//     and inverted there:
+//
+//         82673060  target add r11,r11,r10  rA = acc    ours add r11,r10,r11
+//         82673070  target add r10,r10,r9   rA = delta  ours add r10,r11,r10
+//         82673080  target add r9,r11,r10   rA = acc    ours agrees
+//
+//     So a source that produces a mixed pattern is not the thing that is
+//     missing -- the current source already does. What is missing is a
+//     control over WHICH mixture, and the read-order rule does not supply one
+//     here: five helper flavours (`*p = *p + v`, `*p = v + *p`, a named
+//     `s32 a = *p` first, and both with the delta passed by POINTER so its
+//     read moves inside the helper after `*p`) applied to each accumulator
+//     separately and in all 25 pairs -- 29 shapes -- are byte-identical at
+//     31 of 47 except one at 29. MSVC canonicalises every one of them.
+//     Group 2 also loads its accumulator into r11 where the target uses r9.
 //   82673088..826730C4   the totals block, thirteen words, all of them
 //     schedule.  Ours loads d08, d04, d12 where the target loads d12, d04,
 //     d08, reads t22 before t24, and stores 22 before 20 where the target
@@ -70,6 +85,35 @@
 // (31, the same as the plain pin), and `+=` compound assignment (29). The
 // deltas named as locals in the target's load order before the call is 24,
 // which is worse than passing them as arguments.
+//
+// THE PIN AND THE TARGET'S SHAPE ARE IN OPPOSITION, which is the thing to
+// know before spending another session here. A 120-shape sweep -- the six
+// statement orders crossed with four pin choices (none, &t20, &t24, all
+// three) and four prefetch choices (none, and the three fields read into
+// locals ascending, descending, or 24/20/22 first) -- says:
+//
+//   * WITHOUT any pin, MSVC does put every `lhz` ahead of every `sth`, which
+//     is the target's shape, and then chooses the store order itself: three
+//     different source orders all emit 20, 24, 22. Best 30 of 47.
+//   * WITH the &t20 pin the store order is the source's ascending 20, 22, 24,
+//     and the +20 store is planted between the loads. Best 31 of 47.
+//
+// The target has both, and nothing in the sweep has both. Pinning is what
+// removes MSVC's proof that the +22 and +24 loads cannot alias the +20 store,
+// so it necessarily forbids hoisting them -- the two goals are opposed along
+// this axis, in the same way `count = 0` and `str = string` are opposed in
+// sub_8215A5C8. Also measured and no better: the deltas as a `Delta*` the
+// block reads itself (26 with or without the pin, 31 with the three words
+// read into locals in the target's order), the argument list reordered to the
+// target's load order d12/d04/d08 (27) and to d08/d04/d12 (31), the totals
+// pointer as an `Owner*` the helper dereferences (26), `o->totals` spelled at
+// each use (196 bytes, 23), a two-level `Bump(&t->tNN, v)` helper (28), and
+// the three sums named before any store with and without the pin (31, 29).
+//
+// FLAGS ARE DONE: all 72 combinations from tools/flagsweep.py, 44 of them at
+// this same 31 of 47 and 28 at 23 of 47, every one 188 bytes.
+//
+// About 160 shapes have now been measured on this function in total.
 
 #include "types.h"
 

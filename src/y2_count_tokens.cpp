@@ -29,44 +29,68 @@
 // The out-parameter is optional: `cmplwi cr6,r5,0 ; beq-` guards the single
 // store, and the guard is written last because the store is the fall-through.
 //
-// NEAR MISS: 69 of 75 words at /O2, right size (300 bytes), and every word
-// from 8215A5F8 to the end is identical. All six differences are in the
-// ENTRY BLOCK, and they are one scheduling decision:
+// NEAR MISS: 70 of 75 words at /O2, right size (300 bytes), and every word
+// from 8215A5F8 to the end is identical. All five differences are in the
+// ENTRY BLOCK and they are ONE TRANSPOSITION in the order values are created.
+//
+// READ IT AS A CREATION ORDER, because that is what decides the register
+// numbers -- the same lever that finished sub_82600960:
+//
+//      target  32=r11, str=r10, map-1=r9, count=r3, longest=r31,
+//              ctrl-1=r7, clear zero=r11 (recycled: mtctr r11 freed it)
+//      ours    32=r11, str=r10, map-1=r9, count=r3, clear zero=r8,
+//              ctrl-1=r7, longest=r31
+//
+// so `longest` and the clear loop's zero are in each other's slots, and the
+// fresh r8 is a consequence: created fifth, the zero cannot have r11, which
+// `mtctr` does not free until later. Nothing else in 300 bytes differs.
 //
 //      want  li r11,32 ; addi r9,r1,-49 ; mr r10,r3 ; li r3,0 ; li r31,0
 //            mtctr r11 ; addi r7,r4,-1 ; li r11,0 ; stbu r11,1(r9) ; bdnz+
-//      got   li r11,32 ; addi r9,r1,-49 ; mr r10,r3 ; li r31,0 ; li r8,0
-//            mtctr r11 ; stbu r8,1(r9) ; bdnz+ ; li r3,0 ; addi r7,r4,-1
+//      got   li r11,32 ; addi r9,r1,-49 ; mr r10,r3 ; li r3,0 ; li r8,0
+//            mtctr r11 ; stbu r8,1(r9) ; bdnz+ ; addi r7,r4,-1 ; li r31,0
 //
-// -- retail hoists `count = 0` and the `ctrl - 1` induction base ABOVE the
-// clear loop and reuses r11 for the clear value; we leave both below and
-// take a fresh r8.
+// THE ASSIGNMENT AHEAD OF THE CLEAR LOOP IS `count = 0`, NOT `longest = 0`.
+// This file had `longest` there for a long time, at 69 of 75, on the strength
+// of a sweep that varied one assignment at a time; the two are not
+// interchangeable and `count` is worth one more word -- it puts `li r3,0` in
+// the target's own slot at 8215A5DC. Found by sweeping all 65 (subset, order)
+// placements of the four prologue assignments rather than one at a time.
 //
-// WHAT WAS MEASURED, and it is the interesting part: putting those
-// assignments before the clear loop in the source does NOT move them there,
-// it BREAKS THE ADDRESS FOLD. With `str = string` (or three or four
-// initialisers) ahead of the loop, MSVC stops emitting `addi r9,r1,-49` and
-// emits `addi r9,r1,-48 ; addi r11,r9,-1` instead -- one word longer, 304
-// bytes, and the whole function shifts. The two goals are in direct
-// opposition along this axis, and 22 spellings were compiled to establish
-// that:
+// WHAT IS OPPOSED, and it is a genuine trade rather than a missing spelling.
+// A SECOND assignment ahead of the clear loop does create `longest` fifth --
+// 8215A5DC and 8215A5E0 both agree -- and swaps `str` and `map-1`, which
+// renames twenty words downstream, for a net 49 of 75. Every construct that
+// executes `longest = 0` before the loop lands on that same 47..49 plateau:
+// `count = longest = 0`, the comma form, either order of two statements, the
+// `for` loop's own init clause, the assignment sunk into the loop body, and a
+// declaration initialiser. Every construct that executes it after the loop is
+// 70. There is no third position.
 //
-//   nothing before the clear loop                    300 B, 66 of 75
-//   `longest = 0` only before it                     300 B, 69 of 75  <- best
-//   `count = 0` only                                 300 B, 48
-//   `ctrl = control` only                            300 B, 47
-//   count+longest / count+longest+ctrl / six orders  300 B, 49..52
-//   any set including `str = string`                 304 B,  7  (fold broken)
-//   clear loop over `u8* m = map` with inits first   304 B,  7
-//   clear loop as a `do/while` with inits first      304 B,  7
-//   `u8* m = map - 1; *++m = 0;`                     296 B,  3  (memset call)
-//   `for (count = 0; ; count++)` on the outer loop   268 B,  1
-//   `map` declared last; `u32` clear counter         304 B,  7
-//   /O2 /Os                                          291 B,  6 of 66
+// MEASURED AND RULED OUT -- roughly 160 compiles, in five sweeps:
 //
-// So this is NOT a declaration-order problem in the ordinary sense: the
-// hoist retail performs is above a loop, and no source order tried reaches
-// it without costing the fold. Left at the 69-of-75 shape.
+//   all 65 subset/order placements of count, longest, ctrl, str
+//                                            best 70 (count alone), then 69
+//   the order of the assignments AFTER the loop, all six
+//                                            byte-identical, no information
+//   the clear loop as `for`, `while`, or `do/while` over a pointer
+//                                            byte-identical, all three
+//   seven declaration orders of the eight locals (map first, map last, str
+//     first, i first, the counters first, ...) under four placements each
+//                                            byte-identical, 28 shapes, a
+//                                            clean negative on that axis
+//   `longest` initialised in its declaration instead of assigned
+//                                            same 47 as the assignment, so
+//                                            the position is the whole of it
+//   the clear loop's zero named in a local declared late      70, unchanged
+//   the map build lifted into an inlined helper (both splits) 296 B, 49
+//   the clear loop counting down                              300 B, 1
+//   `ctrl = control - 1` with the increment written first     70, identical
+//   `u8* m = map - 1; *++m = 0;`                 296 B, 3  (a memset call)
+//   `for (count = 0; ; count++)` on the outer loop           268 B, 1
+//   all 72 flag combinations from tools/flagsweep.py: 44 give this same
+//     70-of-75 shape and 28 give 260 bytes at 8 of 75, so the level is /O2
+//     and the flag axis is exhausted
 //
 // Its sibling sub_8215A6F8 matched 78 of 78 at /O2 with the same map and the
 // same loops, so the difference is confined to these two assignments.
@@ -83,14 +107,14 @@ u32 CountTokens(const u8* string, const u8* control, u32* outLongest)
     u32 longest;
     u32 len;
     int i;
-    longest = 0;
+    count = 0;
 
     for (i = 0; i < 32; i++)
         map[i] = 0;
 
     ctrl = control;
+    longest = 0;
     str = string;
-    count = 0;
 
     do
     {

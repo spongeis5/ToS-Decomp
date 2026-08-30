@@ -261,7 +261,7 @@
       "target_path": "build/objdiff/target/chain_add48_82639C28.o",
       "base_path": "build/objdiff/base/chain_add48_82639C28.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/chain_add48.cpp",
         "progress_categories": [
           "handwritten"
@@ -2510,7 +2510,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821ADF78.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821ADF78.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2523,7 +2523,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821ADF88.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821ADF88.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2536,7 +2536,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821ADF98.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821ADF98.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2549,7 +2549,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821ADFA8.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821ADFA8.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2562,7 +2562,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821ADFB8.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821ADFB8.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2575,7 +2575,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE050.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE050.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2588,7 +2588,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE060.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE060.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -16897,14 +16897,66 @@
       }
     },
     {
-      "name": "sub_826C1480 (init12)",
-      "target_path": "build/objdiff/target/init12_826C1480.o",
-      "base_path": "build/objdiff/base/init12_826C1480.o",
+      "name": "sub_825C1D28 (mdct_init)",
+      "target_path": "build/objdiff/target/mdct_init_825C1D28.o",
+      "base_path": "build/objdiff/base/mdct_init_825C1D28.o",
       "metadata": {
         "complete": false,
-        "source_path": "src/init12.cpp",
+        "source_path": "thirdparty/ogg_vorbis_fmod/mdct_init.cpp",
         "progress_categories": [
-          "nearmiss"
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825C27F8 (mdct_clear)",
+      "target_path": "build/objdiff/target/mdct_clear_825C27F8.o",
+      "base_path": "build/objdiff/base/mdct_clear_825C27F8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis_fmod/mdct_clear.cpp",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825BF448 (vorbis_synthesis_blockin)",
+      "target_path": "build/objdiff/target/vorbis_synthesis_blockin_825BF448.o",
+      "base_path": "build/objdiff/base/vorbis_synthesis_blockin_825BF448.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis_fmod/vorbis_synthesis_blockin.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825BDFB0 (ogg_stream_pagein)",
+      "target_path": "build/objdiff/target/ogg_stream_pagein_825BDFB0.o",
+      "base_path": "build/objdiff/base/ogg_stream_pagein_825BDFB0.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis_fmod/ogg_stream_pagein.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_821ADFC8 (y1_ctor_s32_m60)",
+      "target_path": "build/objdiff/target/y1_ctor_s32_m60_821ADFC8.o",
+      "base_path": "build/objdiff/base/y1_ctor_s32_m60_821ADFC8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y1_ctor_s32_m60.cpp",
+        "progress_categories": [
+          "handwritten"
         ],
         "auto_generated": false
       }
@@ -16916,6 +16968,71 @@
       "metadata": {
         "complete": false,
         "source_path": "src/fadd_fwd.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82158E50 (l23_memcpy_globals)",
+      "target_path": "build/objdiff/target/l23_memcpy_globals_82158E50.o",
+      "base_path": "build/objdiff/base/l23_memcpy_globals_82158E50.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/l23_memcpy_globals.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82155080 (e_normalize4)",
+      "target_path": "build/objdiff/target/e_normalize4_82155080.o",
+      "base_path": "build/objdiff/base/e_normalize4_82155080.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/e_normalize4.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82578558 (y2_wave_format_ok)",
+      "target_path": "build/objdiff/target/y2_wave_format_ok_82578558.o",
+      "base_path": "build/objdiff/base/y2_wave_format_ok_82578558.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y2_wave_format_ok.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82600960 (m70_hash_until_brace)",
+      "target_path": "build/objdiff/target/m70_hash_until_brace_82600960.o",
+      "base_path": "build/objdiff/base/m70_hash_until_brace_82600960.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/m70_hash_until_brace.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_826C1480 (init12)",
+      "target_path": "build/objdiff/target/init12_826C1480.o",
+      "base_path": "build/objdiff/base/init12_826C1480.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/init12.cpp",
         "progress_categories": [
           "nearmiss"
         ],
@@ -16955,19 +17072,6 @@
       "metadata": {
         "complete": false,
         "source_path": "src/m_pick_slot.cpp",
-        "progress_categories": [
-          "nearmiss"
-        ],
-        "auto_generated": false
-      }
-    },
-    {
-      "name": "sub_82155080 (e_normalize4)",
-      "target_path": "build/objdiff/target/e_normalize4_82155080.o",
-      "base_path": "build/objdiff/base/e_normalize4_82155080.o",
-      "metadata": {
-        "complete": false,
-        "source_path": "src/e_normalize4.cpp",
         "progress_categories": [
           "nearmiss"
         ],
@@ -17326,38 +17430,12 @@
       }
     },
     {
-      "name": "sub_82158E50 (l23_memcpy_globals)",
-      "target_path": "build/objdiff/target/l23_memcpy_globals_82158E50.o",
-      "base_path": "build/objdiff/base/l23_memcpy_globals_82158E50.o",
-      "metadata": {
-        "complete": false,
-        "source_path": "src/l23_memcpy_globals.cpp",
-        "progress_categories": [
-          "nearmiss"
-        ],
-        "auto_generated": false
-      }
-    },
-    {
       "name": "sub_821FA140 (l25_set_name)",
       "target_path": "build/objdiff/target/l25_set_name_821FA140.o",
       "base_path": "build/objdiff/base/l25_set_name_821FA140.o",
       "metadata": {
         "complete": false,
         "source_path": "src/l25_set_name.cpp",
-        "progress_categories": [
-          "nearmiss"
-        ],
-        "auto_generated": false
-      }
-    },
-    {
-      "name": "sub_82600960 (m70_hash_until_brace)",
-      "target_path": "build/objdiff/target/m70_hash_until_brace_82600960.o",
-      "base_path": "build/objdiff/base/m70_hash_until_brace_82600960.o",
-      "metadata": {
-        "complete": false,
-        "source_path": "src/m70_hash_until_brace.cpp",
         "progress_categories": [
           "nearmiss"
         ],
@@ -17404,19 +17482,6 @@
       }
     },
     {
-      "name": "sub_821ADFC8 (y1_ctor_s32_m60)",
-      "target_path": "build/objdiff/target/y1_ctor_s32_m60_821ADFC8.o",
-      "base_path": "build/objdiff/base/y1_ctor_s32_m60_821ADFC8.o",
-      "metadata": {
-        "complete": false,
-        "source_path": "src/y1_ctor_s32_m60.cpp",
-        "progress_categories": [
-          "nearmiss"
-        ],
-        "auto_generated": false
-      }
-    },
-    {
       "name": "sub_821AE070 (y1_ctor_s28_m56)",
       "target_path": "build/objdiff/target/y1_ctor_s28_m56_821AE070.o",
       "base_path": "build/objdiff/base/y1_ctor_s28_m56_821AE070.o",
@@ -17449,32 +17514,6 @@
       "metadata": {
         "complete": false,
         "source_path": "src/y2_relocate_recs.cpp",
-        "progress_categories": [
-          "nearmiss"
-        ],
-        "auto_generated": false
-      }
-    },
-    {
-      "name": "sub_82578558 (y2_wave_format_ok)",
-      "target_path": "build/objdiff/target/y2_wave_format_ok_82578558.o",
-      "base_path": "build/objdiff/base/y2_wave_format_ok_82578558.o",
-      "metadata": {
-        "complete": false,
-        "source_path": "src/y2_wave_format_ok.cpp",
-        "progress_categories": [
-          "nearmiss"
-        ],
-        "auto_generated": false
-      }
-    },
-    {
-      "name": "sub_827C35F0 (y2_hsv_to_rgb)",
-      "target_path": "build/objdiff/target/y2_hsv_to_rgb_827C35F0.o",
-      "base_path": "build/objdiff/base/y2_hsv_to_rgb_827C35F0.o",
-      "metadata": {
-        "complete": false,
-        "source_path": "src/y2_hsv_to_rgb.cpp",
         "progress_categories": [
           "nearmiss"
         ],

@@ -11,7 +11,7 @@ the inventory is wrong in both directions, short where a tail call's dead
 `blr` was not counted and long where one `.pdata` row covers several
 frameless bodies.
 
-**1299 functions, 50660 bytes.** Verify all of them, plus the reconstructing
+**1307 functions, 54836 bytes.** Verify all of them, plus the reconstructing
 build and six negative controls, with one command:
 
 ```bash
@@ -22,7 +22,7 @@ Every match is also a row in `src/manifest.txt`, so `tools/build.py` compiles
 it, resolves its relocations against the retail bytes and splices it into
 `.text`. Nothing here is a match on `match.py`'s word-comparison alone.
 
-SPLIT: 448 hand-written, 34308 bytes; 818 generated, 8192 bytes; 33 upstream, 8160 bytes.
+SPLIT: 454 hand-written, 34948 bytes; 818 generated, 8192 bytes; 35 upstream, 11696 bytes.
 <!-- the line above is regenerated; edit tools/matched_table.py, not this -->
 
 The two halves are not comparable and the count should never be quoted
@@ -127,6 +127,7 @@ while and the claim was wrong.
 | `82691C50` | 156 | 18 | `e_mtx23_mul.cpp` | - | `/O2 /Os` |
 | `826A3328` | 36 | 18 | `m_init_512.cpp` | - | `/O2` |
 | `8224E7C0` | 16 | 17 | `arr_index0.cpp` | - | `/O2` |
+| `82155080` | 204 | 16 | `e_normalize4.cpp` | QuatNormalize | `/O2` |
 | `8224E080` | 20 | 16 | `vcall_f8_40.cpp` | - | `/O2` |
 | `8252BE30` | 44 | 16 | `g_out_or_err36.cpp` | - | `/O2` |
 | `82600A60` | 36 | 16 | `m_list_head.cpp` | - | `/O2` |
@@ -387,6 +388,7 @@ while and the claim was wrong.
 | `82151670` | 28 | 3 | `l31_short_not_neg1.cpp` | - | `/O2` |
 | `82156728` | 36 | 3 | `m55_push_global_list.cpp` | - | `/O2` |
 | `82157C58` | 20 | 3 | `m43_clear_rec516.cpp` | - | `/O2` |
+| `82158E50` | 24 | 3 | `l23_memcpy_globals.cpp` | - | `/O2` |
 | `8215A278` | 56 | 3 | `m66_count_set_bits.cpp` | - | `/O2` |
 | `8215A9F8` | 44 | 3 | `m62_clamp_float.cpp` | - | `/O2` |
 | `8215BCB0` | 28 | 3 | `l32_table_key.cpp` | - | `/O2` |
@@ -422,6 +424,7 @@ while and the claim was wrong.
 | `82581448` | 40 | 3 | `m60_wstrcopy_n.cpp` | - | `/O2` |
 | `825A39C8` | 372 | 3 | `y2_rate_table.cpp` | - | `/O2` |
 | `825ACB20` | 40 | 3 | `m61_clear_and_addref.cpp` | - | `/O2` |
+| `82600960` | 60 | 3 | `m70_hash_until_brace.cpp` | - | `/O2` |
 | `82606158` | 20 | 3 | `l21_global_pair_first.cpp` | - | `/O2` |
 | `82691B70` | 24 | 3 | `l29_col0_length.cpp` | - | `/O2 /Os` |
 | `82691B88` | 24 | 3 | `l30_col1_length.cpp` | - | `/O2 /Os` |
@@ -447,6 +450,7 @@ while and the claim was wrong.
 | `825492D8` | 32 | 2 | `z4_out_or_err37_b.cpp` | - | `/O2` |
 | `825FC978` | 240 | 2 | `y2_range_lookup.cpp` | RangeIdOf | `/O2` |
 | `82606F68` | 108 | 2 | `y1_arena_flip.cpp` | - | `/O2` |
+| `82639C38` | 20 | 2 | `fadd_fwd.cpp` | - | `/O2` |
 | `826779C8` | 72 | 2 | `y2_clear_slot_150.cpp` | ClearSlot150 | `/O2` |
 | `8267ACC0` | 236 | 2 | `m_hkpworld_ctor.cpp` | ??0hkpWorld@@QAA@XZ | `/O2` |
 | `826FE5B8` | 16 | 2 | `set_vtable.cpp` | SetVTableD170 | `/O2` |
@@ -455,6 +459,7 @@ while and the claim was wrong.
 | `82157C08` | 80 | 1 | `y1_clear_block.cpp` | - | `/O2` |
 | `8215BCA0` | 12 | 1 | `z4_flag_byte.cpp` | - | `/O2` |
 | `8215CCC0` | 240 | 1 | `y2_crc_table.cpp` | - | `/O2` |
+| `821ADFC8` | 132 | 1 | `y1_ctor_s32_m60.cpp` | ??0Obj821ADFC8@@QAA@XZ | `/O2` |
 | `821AE340` | 132 | 1 | `y1_ctor_m20_s100_b.cpp` | - | `/O2` |
 | `821AE3D8` | 132 | 1 | `y1_ctor_m20_s100.cpp` | - | `/O2` |
 | `821AE470` | 132 | 1 | `y1_ctor_m20_s100_c.cpp` | - | `/O2` |
@@ -484,6 +489,7 @@ while and the claim was wrong.
 | `822306D8` | 344 | 0 | `y2_bind_lazy_six.cpp` | - | `/O2` |
 | `82232420` | 324 | 0 | `y2_bind_lazy_five.cpp` | - | `/O2` |
 | `8224BCF8` | 20 | 0 | `z4_vcall6_field12.cpp` | - | `/O2` |
+| `82578558` | 200 | 0 | `y2_wave_format_ok.cpp` | CheckWaveFormat | `/O2` |
 | `82583860` | 216 | 0 | `y2_query_info3.cpp` | - | `/O2` |
 | `825E45E8` | 136 | 0 | `y1_attach_flag.cpp` | - | `/O2 /Os` |
 | `82636A58` | 88 | 0 | `y1_set_ref.cpp` | - | `/O2` |
@@ -493,7 +499,7 @@ while and the claim was wrong.
 | `826969B8` | 140 | 0 | `y1_pack_child.cpp` | - | `/O2` |
 | `82696A60` | 108 | 0 | `y1_bind_child.cpp` | - | `/O2` |
 | *(818 generated)* | 8192 | - | `vt_typeid_*`, `vt_const_*`, `vt_acc_*` | one expression each | `/O2` |
-| *(33 upstream)* | 8160 | - | `thirdparty/ogg_vorbis/` | libogg 1.1.3 + libvorbis 1.2.0, obtained not recovered | `/O2` |
+| *(35 upstream)* | 11696 | - | `thirdparty/ogg_vorbis/` | libogg 1.1.3 + libvorbis 1.2.0, obtained not recovered | `/O2` |
 ---
 
 ## How these were found

@@ -279,9 +279,26 @@ def _do_link(tag, objs, names, base, pad, entry):
     cmd += extra + objs
     r = subprocess.run(cmd, capture_output=True, text=True, cwd=str(WORK))
     if r.returncode != 0:
-        msg = [l.strip() for l in (r.stdout + r.stderr).splitlines() if l.strip()]
-        return None, "link failed: " + (msg[0][:74] if msg else
-                                        "exit %d" % r.returncode)
+        # REPORT THE ERROR, NOT THE FILENAME. This took the first 74
+        # characters of the first line, and link.exe puts the object's full
+        # path first -- so every failure was grouped and displayed as
+        # `link failed: framing_O2_Gy_GS-_fp:fast_D__BORLANDC___Ithirdparty`
+        # and the LNK code, which is the entire content of the message, fell
+        # off the end. Runs were being bucketed by which object came first
+        # rather than by why they failed.
+        lines = [l.strip() for l in (r.stdout + r.stderr).splitlines()
+                 if l.strip()]
+        best = None
+        for l in lines:
+            i = l.find("error LNK")
+            if i < 0:
+                i = l.find("fatal error LNK")
+            if i >= 0:
+                best = l[i:]
+                break
+        if best is None:
+            best = lines[0] if lines else "exit %d" % r.returncode
+        return None, "link failed: " + best[:110]
     pe = (WORK / ("run_%s.exe" % tag)).read_bytes()
     syms = parse_map((WORK / ("run_%s.map" % tag)).read_text(errors="replace"))
     return (pe, syms), None

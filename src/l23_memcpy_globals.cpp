@@ -19,40 +19,61 @@
 // own relocated pair.  So this is one global record with dst at +0, size at
 // +4 and src at +32, and the base MSVC chose to materialise is the src field.
 //
-// NOT MATCHED, and the residue is WHICH FIELD BECOMES THE BASE.  Of the six
-// words four are relocated; of the two that are compared, both differ, and
-// they differ only in that ours materialises the record's own address and
-// reads +4 and +32 from it while the target materialises the src field's
-// address and reads -28 and -32.  The emitted load order follows: ours is
-// dst, size, src (ascending), the target's is src, size, dst (descending),
-// and the first load is the one whose address becomes the base in both.
+// MATCHED at /O2, and what was wrong before was the ANCHOR, which is
+// selectable from the source once two measurements are in hand.
 //
-// Naming all three in locals in the target's order changes NOTHING -- the
-// generated code is identical to the direct spelling, so the load order is
-// not source-readable here the way declaration order was for sub_82691B70.
-// The remaining ideas all require the base symbol to sit at the src field,
-// which no C declaration of one record expresses.
+// (1) THE EMITTED LOAD ORDER IS "ANCHOR FIRST, THEN THE REMAINING ARGUMENT
+//     REGISTERS IN DESCENDING ORDER."  Measured on four layouts:
+//
+//       record dst+0 size+4 src+32   anchor dst(r3) -> r3, r5, r4
+//       three statics, size lowest   anchor size(r5) -> r5, r4, r3
+//       record src+0 dst+32 size+36  anchor src(r4) -> r4, r5, r3
+//       the image                    anchor src(r4) -> r4, r5, r3
+//
+//     So the image's order is not a scheduling accident to be steered with
+//     locals -- naming the three reads in the target's order really does
+//     change nothing, as this file used to record. It follows from which
+//     field is the anchor, and nothing else.
+//
+// (2) MSVC ANCHORS ON THE LOWEST-ADDRESSED OBJECT THE FUNCTION REFERENCES,
+//     and it will NOT fold a member offset into a symbol's own `addi`
+//     relocation -- checked eleven ways (static and extern record, a member,
+//     `&r.name[0]`, a one-element array, a char array plus a byte offset, a
+//     u32 array plus an index, with and without a named local). Every one
+//     materialises the record base and spends a SECOND `addi`.
+//
+// Together those say the record's base symbol cannot be the dst end: a
+// struct has no negative member offsets, and if the record's symbol were at
+// dst then dst would be the anchor. The symbol the compiler had is at the
+// SRC field, and the other two fields are reached BELOW it.
+//
+// Reaching them at the ACCESS is what keeps it to six instructions. Forming
+// a re-based `CopyRequest* r = (CopyRequest*)((char*)&g_copy_src - 0x20);`
+// and reading `r->dst` / `r->size` costs an extra `addi r10,r11,-32` (28
+// bytes), because MSVC then has two live addresses instead of one.
+//
+// WHAT THE BYTES DO NOT SAY: four of the six words are relocated, so the
+// spelling is under-determined -- naming `base` in a local and writing the
+// two casts out at each use are byte-identical, as is a single `u32*` view
+// used for all three fields. What is pinned is the two compared words, the
+// displacements -28 and -32, and the anchor.
 
 #include "types.h"
 #include <string.h>
 
-struct CopyRequest
-{
-    /* 0x00 */ void* dst;
-    /* 0x04 */ u32   size;
-    /* 0x08 */ char  unk0008[0x18];
-    /* 0x20 */ void* src;
-};
-ASSERT_OFFSET(CopyRequest, size, 0x04);
-ASSERT_OFFSET(CopyRequest, src,  0x20);
-
-extern CopyRequest g_copy_request;      /* 8299B854 */
+/* The record's SRC field, at 8299B874, is the symbol the compiler had.
+ * dst is 32 bytes below it and size 28 below, in the same object:
+ *
+ *      8299B854   void* dst
+ *      8299B858   u32   size
+ *      8299B85C   (0x18 bytes not known)
+ *      8299B874   void* src      <- g_copy_src
+ */
+extern void* g_copy_src;
 
 void RunPendingCopy()
 {
-    void* src = g_copy_request.src;
-    u32   n   = g_copy_request.size;
-    void* dst = g_copy_request.dst;
+    void** base = (void**)&g_copy_src;
 
-    memcpy(dst, src, n);
+    memcpy(base[-8], g_copy_src, ((const u32*)base)[-7]);
 }

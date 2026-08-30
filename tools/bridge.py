@@ -22,6 +22,24 @@ between two 168- and 364-byte runs does not add 84 bytes of linked code, it
 adds 616 -- and it can turn a real translation unit, split across three
 invented source files, into one span the linker lays out end to end.
 
+**BUT `run gain` IS A SPAN, NOT LINKED BYTES, AND A BRIDGE CAN LOSE YOU
+SOME.** Measured on 821ADFC8, ranked here at 244 bytes of gain: matching it
+merged 821ADFB8 and 821AE050 into one run at 821ADF78, and the merged run
+did not link -- `link.py` went from 12,100 linked bytes to 11,996, because
+the 104-byte run that used to link on its own was swallowed by one that
+cannot.
+
+The mechanism is that a run must resolve everything it REFERENCES, so a
+merged run inherits the UNION of both halves' outward references. 821ADFC8
+calls `BaseInit` and `InnerBase`, neither of them in the run, and the merged
+run went from linkable to "needs an address for 7 symbol(s)".
+
+This does not make the match worse -- the function is matched, `build.py`
+counts its bytes, and the merge is a step toward the whole-image link where
+every symbol is placed. It means the ranking here answers "how much span
+would join up", which is the right question for LAYOUT and the wrong one for
+"how many more bytes will link tomorrow". Do not read one as the other.
+
 The gap that matters is the one containing UNMATCHED FUNCTIONS. Adjacent
 matched functions separated by 4 bytes are already one run: that is the
 8-byte COMDAT alignment, measured 464 times out of 464, not a hole.
