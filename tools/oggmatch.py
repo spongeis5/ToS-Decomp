@@ -88,8 +88,30 @@ def all_trees():
     return ogg, vorbis
 
 
+# THE PAIR THIS TOOL ITSELF SETTLED, by the counting its docstring
+# describes: libogg 1.1.3 + libvorbis 1.2.0 identify 37 sites in the image,
+# and libogg 1.1.4 + libvorbis 1.2.2 identify 28 of the same source.
+#
+# The default used to be `sorted(...)[-1]` -- the NEWEST directory present --
+# which is 1.1.4/1.2.2 the moment anyone unpacks a second release to compare
+# against. A plain `python tools/oggmatch.py` then rebuilt
+# `build/ogg_sites.txt` from the release this tool had already excluded, said
+# nothing about having done so, and left 28 sites where 37 had been. The next
+# tool to read that file would have been reading the wrong answer.
+#
+# So the default is the MEASURED one, named. A newer release is still one
+# `--ogg`/`--vorbis` away, and `--compare` still walks every pair -- what is
+# gone is the silent substitution.
+SETTLED = ("libogg-1.1.3", "libvorbis-1.2.0")
+
+
 def trees(argv=()):
-    """-> (ogg dir, vorbis dir). `--ogg`/`--vorbis` name one explicitly."""
+    """-> (ogg dir, vorbis dir). `--ogg`/`--vorbis` name one explicitly.
+
+    Defaults to SETTLED. Falls back to the newest tree present only when the
+    settled one is absent, and `fell_back()` reports that so the caller can
+    say it out loud rather than quietly identifying against another release.
+    """
     ogg, vorbis = all_trees()
     o = v = None
     if "--ogg" in argv:
@@ -98,8 +120,20 @@ def trees(argv=()):
     if "--vorbis" in argv:
         want = argv[list(argv).index("--vorbis") + 1]
         v = next((p for p in vorbis if want in p.name), None)
+    o = o or next((p for p in ogg if p.name == SETTLED[0]), None)
+    v = v or next((p for p in vorbis if p.name == SETTLED[1]), None)
     return (o or (ogg[-1] if ogg else None),
             v or (vorbis[-1] if vorbis else None))
+
+
+def fell_back(ogg, vorbis):
+    """-> [name] for each side that is NOT the settled release."""
+    out = []
+    if ogg is not None and ogg.name != SETTLED[0]:
+        out.append((SETTLED[0], ogg.name))
+    if vorbis is not None and vorbis.name != SETTLED[1]:
+        out.append((SETTLED[1], vorbis.name))
+    return out
 
 
 def sources(ogg, vorbis):
@@ -242,6 +276,12 @@ def main(argv):
         return 1
     print("ogg    %s" % ogg.name)
     print("vorbis %s" % vorbis.name)
+    for want, got in fell_back(ogg, vorbis):
+        print("NOT THE SETTLED RELEASE: %s is what the counting chose; this"
+              % want)
+        print("run is using %s. Anything it writes -- build/ogg_sites.txt"
+              % got)
+        print("included -- is an identification against a DIFFERENT release.")
 
     srcs = sources(ogg, vorbis)
     named = sum(1 for lbl, _p in srcs if lbl in NAMED)

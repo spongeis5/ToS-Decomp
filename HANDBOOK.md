@@ -32,12 +32,12 @@ bytes identical to the retail image. Not a port, not a re-implementation.
 function starts known           30,630
 .text                           8,467,964 bytes
 
-FUNCTIONS MATCHED               1,327
+FUNCTIONS MATCHED               1,986
   read off the disassembly      474   (35,700 bytes)
-  generated from encodings      818   (8,192 bytes)
-  upstream third-party source   35   (11,696 bytes)
+  generated from encodings      1,475   (20,164 bytes)
+  upstream third-party source   37   (11,904 bytes)
 
-bytes rebuilt from source       55,588   (0.6565% of .text)
+bytes rebuilt from source       67,768   (0.8003% of .text)
 near-misses recorded            61
 vetted match candidates         4,231
 ```
@@ -171,6 +171,31 @@ things to know before fetching anything, both measured — see FINDINGS §8a:
   libogg 1.1.3 are the contemporaneous releases. Which release it really is
   should be **decided by compiling candidates and comparing**, not assumed.
 
+**It has now been decided, and the ceiling with it.** Measured at 1,986
+matched, against both release pairs unpacked under `SDKFiles/`:
+
+* **the release**: libogg 1.1.3 + libvorbis 1.2.0 identify **37** sites;
+  1.1.4 + 1.2.2 identify **28** of the same source. Settled by counting, as
+  intended. `oggmatch.py` used to DEFAULT to the newest tree present, so a
+  plain run silently identified against the excluded pair and rewrote
+  `build/ogg_sites.txt` with the worse answer; it now defaults to the
+  measured pair and says so when told to use another.
+* **the flags**: `--sweep` puts `/O2 /fp:fast` at 37 and every other set at
+  37 or fewer (`/O2 /Os` collapses to 7, `/O1` to 8). Flags are not what is
+  holding the rest back.
+* **the remainder**: `oggpair.py` pairs unmatched functions in the two bands
+  against compiled upstream ones BY LENGTH -- a fingerprint the masked scan
+  does not use -- and puts every pair through `match.py`. **2 matched of 340
+  pairs tested over 59 unmatched functions**, 208 bytes: `oggpack_look` and
+  `ogg_stream_packetout`, both invisible to the scan.
+
+So six NAMED files (`res0`, `floor0`, `mapping0`, `smallft`, `psy`,
+`envelope`) compile 88 functions between them and match **zero**, and that
+is now a measurement rather than a gap: not the release, not the flags, not
+the scan. What is left in those bands is FMOD's own code and FMOD's edits to
+vorbis, and it has to be READ. `thirdparty/ogg_vorbis_fmod/` is where the
+reconstructed ones go, and it already holds four.
+
 **Bink is not in scope for the percentage at all.** It lives at
 `82913600..82923098`, which starts four bytes after `.text` ends — a
 different section, outside the denominator. `src/outofscope/two_null_guards.cpp`
@@ -219,7 +244,7 @@ contiguous **run** of matched functions, hands it the retail order through
 emits against the image byte for byte.
 
 ```
-123 of 181 runs, 12,160 of the 31,628 bytes those runs span
+226 of 298 runs, 17,432 of the 38,988 bytes those runs span
 ```
 
 laid out by the linker rather than by us, at the addresses the image gives
@@ -636,6 +661,7 @@ broken one pops a modal dialog that blocks until someone clicks OK.
 | `candidates.py` | Find good first targets for byte-matching |
 | `libmatch.py` | Match XDK library code against the retail image |
 | `oggmatch.py` | Compile a libogg/libvorbis release with the XDK compiler and find it in the image |
+| `oggpair.py` | Find Ogg/Vorbis functions the masked scan cannot, by pairing on LENGTH |
 | `ogg_rows.py` | Turn identified Ogg/Vorbis sites into VERIFIED manifest rows |
 | `compid.py` | Read the `@comp.id` stamp out of COFF objects |
 | `objcode.py` | Extract and disassemble the PowerPC code a COFF object contains |
@@ -659,6 +685,7 @@ broken one pops a modal dialog that blocks until someone clicks OK.
 | `category.py` | What kind of work a matched function represents. One definition |
 | `build.py` | **the reconstructing build**: compile, resolve relocations, hash `.text` |
 | `link.py` | **the real link**: `link.exe` places a contiguous run at its retail address |
+| `scale_link.py` | Measure link.exe 9.00.8153 at whole-image COMDAT counts |
 | `matched_table.py` | Regenerate the function table in MATCHED.md from src/manifest.txt |
 | `readme_stats.py` | Regenerate the figures in README.md and HANDBOOK.md from the repository |
 | `tool_table.py` | Regenerate HANDBOOK.md's tool inventory from the tools themselves |
@@ -691,7 +718,6 @@ broken one pops a modal dialog that blocks until someone clicks OK.
 | `pemanifest.py` | Find which XDK tools will die with R6034, WITHOUT running them |
 | `fix_manifests.py` | Repair the XDK tools that ship without a VC90 activation context |
 | `verify_ghidra.py` | **superseded**; kept as a worked example of a vacuous check |
-| `scale_link.py` | Measure link.exe 9.00.8153 at whole-image COMDAT counts |
 ---
 
 ## Rules this project paid for
@@ -1355,7 +1381,7 @@ in particular has not once survived contact with a new lever.
    merged with the 6,453 `lib` matches.
 6. ~~**A build system and a progress dashboard.**~~ **PARTLY DONE.**
    `tools/build.py` is the build, `tools/objdiff_export.py` gives the
-   dashboard, and `tools/link.py` links 123 contiguous runs — 12,160 bytes —
+   dashboard, and `tools/link.py` links 226 contiguous runs — 17,432 bytes —
    with the retail linker, each at its retail address, ordering and padding
    included. What is still missing is a link that spans **more than one run**:
    26 runs cannot be linked because something in them relocates against a

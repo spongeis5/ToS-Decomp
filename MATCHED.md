@@ -11,7 +11,7 @@ the inventory is wrong in both directions, short where a tail call's dead
 `blr` was not counted and long where one `.pdata` row covers several
 frameless bodies.
 
-**1327 functions, 55588 bytes.** Verify all of them, plus the reconstructing
+**1986 functions, 67768 bytes.** Verify all of them, plus the reconstructing
 build and six negative controls, with one command:
 
 ```bash
@@ -22,7 +22,7 @@ Every match is also a row in `src/manifest.txt`, so `tools/build.py` compiles
 it, resolves its relocations against the retail bytes and splices it into
 `.text`. Nothing here is a match on `match.py`'s word-comparison alone.
 
-SPLIT: 474 hand-written, 35700 bytes; 818 generated, 8192 bytes; 35 upstream, 11696 bytes.
+SPLIT: 474 hand-written, 35700 bytes; 1475 generated, 20164 bytes; 37 upstream, 11904 bytes.
 <!-- the line above is regenerated; edit tools/matched_table.py, not this -->
 
 The two halves are not comparable and the count should never be quoted
@@ -37,7 +37,7 @@ half does, however much larger it gets. (The counts live in the SPLIT line
 above, which is regenerated; repeating them here is how a document comes to
 contradict itself two commits later.)
 
-**The retail build did NOT use one optimisation level everywhere.** 141 of
+**The retail build did NOT use one optimisation level everywhere.** 192 of
 these need `/O2 /Os`; the rest need plain `/O2`. See "Flags are a property of
 the translation unit" below -- this was claimed the other way round for a
 while and the claim was wrong.
@@ -518,8 +518,8 @@ while and the claim was wrong.
 | `82696938` | 116 | 0 | `y1_count_children.cpp` | - | `/O2` |
 | `826969B8` | 140 | 0 | `y1_pack_child.cpp` | - | `/O2` |
 | `82696A60` | 108 | 0 | `y1_bind_child.cpp` | - | `/O2` |
-| *(818 generated)* | 8192 | - | `vt_typeid_*`, `vt_const_*`, `vt_acc_*` | one expression each | `/O2` |
-| *(35 upstream)* | 11696 | - | `thirdparty/ogg_vorbis/` | libogg 1.1.3 + libvorbis 1.2.0, obtained not recovered | `/O2` |
+| *(1475 generated)* | 20164 | - | `vt_typeid_*`, `vt_const_*`, `vt_acc_*` | one expression each | `/O2` |
+| *(37 upstream)* | 11904 | - | `thirdparty/ogg_vorbis/` | libogg 1.1.3 + libvorbis 1.2.0, obtained not recovered | `/O2` |
 ---
 
 ## How these were found
@@ -1313,6 +1313,37 @@ order, even when it is not address order. `sub_82649240` writes 64, 68, then
 0; `sub_82548F10` writes 20 then 4, 8, 12, 16; `sub_82202BC8` interleaves an
 integer store between the fourth and fifth float stores. Each was written in
 the target's own order and matched.
+
+### Load SCHEDULE is source structure, and the encoding says which
+
+Store order is source order; the loads that feed those stores carry a second
+fact, and it is one the disassembly hands over for free. A field copy appears
+in the image two ways:
+
+```
+lfs f0,8(r4) ; lfs f13,4(r4) ; lfs f12,0(r4)        loads BATCHED
+stfs f12,0(r3) ; stfs f13,4(r3) ; stfs f0,8(r3)
+
+lwz r11,8(r4) ; stw r11,8(r3) ; lwz r11,4(r4) ...   loads INTERLEAVED
+```
+
+`*dst = *src;` three times running compiles to the SECOND. The first needs
+every source read into a local before any store, in the order the image
+loads them:
+
+```c
+float t0 = src[2], t1 = src[1], t2 = src[0];
+dst[0] = t2; dst[1] = t1; dst[2] = t0;
+```
+
+Fourteen generated bodies failed on that difference and nothing else --
+"6 of 9 words differ", every one of them a load or a store in the wrong
+place. The lever is not that one spelling is better: it is that **which
+spelling produced the image is READABLE, because a load appearing after the
+first store cannot have been batched.** `sym_eval` in `gen_accessors.py`
+records it as `batched` and picks the spelling from it rather than trying
+both. Same fact as store order, one level up: the schedule is structure, not
+the compiler's whim.
 
 ### Flags are a property of the translation unit
 

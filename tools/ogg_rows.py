@@ -25,6 +25,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SITES = ROOT / "build/ogg_sites.txt"
+PAIRS = ROOT / "build/ogg_pairs.txt"
 MANIFEST = ROOT / "src/manifest.txt"
 VENDOR = "thirdparty/ogg_vorbis"
 
@@ -52,6 +53,17 @@ def manifest_addrs():
     return out
 
 
+def read_sites(path):
+    out = []
+    for line in path.read_text().splitlines():
+        if line.startswith("#"):
+            continue
+        f = line.split(None, 3)
+        if len(f) >= 4:
+            out.append((int(f[0], 16), int(f[1]), f[2], f[3].strip()))
+    return out
+
+
 def main(argv):
     if not SITES.exists():
         print("%s is missing -- run `python tools/oggmatch.py` first."
@@ -59,13 +71,18 @@ def main(argv):
         return 1
     have = manifest_addrs()
 
-    sites = []
-    for line in SITES.read_text().splitlines():
-        if line.startswith("#"):
-            continue
-        f = line.split(None, 3)
-        if len(f) >= 4:
-            sites.append((int(f[0], 16), int(f[1]), f[2], f[3].strip()))
+    sites = read_sites(SITES)
+    # tools/oggpair.py finds sites the masked scan cannot -- it pairs on
+    # LENGTH instead of on a key, so it sees a function the scan lost to one
+    # differing word. Its file is separate because the two tools own their
+    # own output; both are put through match.py here, which is the only
+    # thing that decides whether a row may be written.
+    if PAIRS.exists():
+        extra = [s for s in read_sites(PAIRS)
+                 if s[0] not in set(x[0] for x in sites)]
+        print("%d site(s) from %s (paired by length, not identified)"
+              % (len(extra), PAIRS.relative_to(ROOT).as_posix()))
+        sites += extra
 
     print("%d identified site(s); %d already in the manifest"
           % (len(sites), sum(1 for a, _s, _f, _y in sites if a in have)))
