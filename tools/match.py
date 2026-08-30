@@ -87,19 +87,19 @@ def _switch_tables():
     """
     global _SWITCH_TABLES
     if _SWITCH_TABLES is None:
-        _SWITCH_TABLES = []
-        p = Path("build/switch_tables.txt")
-        if not p.exists():
+        # ONE reader, tools/switchtab.py. This had its own, which skipped
+        # any entry recording a length of 0 -- and 106 of 437 do, because
+        # that is how switches.py writes "the case count could not be
+        # recovered". Those tables were not excluded at all. Four other
+        # tools read the same file four other ways; one of them parsed the
+        # length as hexadecimal.
+        import switchtab
+        from peimage import Image as _Image
+        t = switchtab.Tables(_Image())
+        if t.missing:
             print("  (build/switch_tables.txt is missing -- run "
                   "tools/switches.py; jump tables will not be excluded)")
-        else:
-            for line in p.read_text().splitlines():
-                if line.startswith("#") or not line.strip():
-                    continue
-                f = line.split()
-                start, n = int(f[0], 16), int(f[1])
-                if n:
-                    _SWITCH_TABLES.append((start, start + n))
+        _SWITCH_TABLES = t.ranges
     return _SWITCH_TABLES
 
 

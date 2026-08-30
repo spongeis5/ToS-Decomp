@@ -155,34 +155,13 @@ def _address_run(img, a0, limit=4096):
 def switch_table_ranges(img):
     """-> ([(lo, hi)], how many had no recorded length).
 
-    ONE implementation, because two tools need it and they must agree. A
-    jump table is DATA sitting in `.text`: it is preceded by the `bctr` that
-    reads it and pointed at from the code that builds its base, so it looks
-    like a function start from every angle either tool measures.
-    `addrtaken.py` had this wrong in the other direction -- it excluded
-    switch CASE BODIES and not table BASES, so 331 of its 1,252 "address-
-    taken function starts" were tables.
+    Kept as the name two tools already import; the reader itself is
+    tools/switchtab.py, because FIVE tools needed this and all five had
+    their own version. See that module for what they disagreed about.
     """
-    tables, unknown = [], 0
-    sw = ROOT / "build/switch_tables.txt"
-    if not sw.exists():
-        return tables, 0
-    for line in sw.read_text().splitlines():
-        line = line.split("#")[0].strip()
-        if not line:
-            continue
-        f = line.split()
-        if len(f) < 2:
-            continue
-        try:
-            a0, n = int(f[0], 16), int(f[1])
-        except ValueError:
-            continue
-        if n == 0:
-            unknown += 1
-            n = _address_run(img, a0)
-        tables.append((a0, a0 + n))
-    return tables, unknown
+    import switchtab
+    t = switchtab.Tables(img)
+    return list(t.ranges), t.unknown
 
 
 def find(img, inv):

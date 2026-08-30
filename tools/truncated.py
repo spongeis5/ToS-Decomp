@@ -44,24 +44,15 @@ CANDIDATES = ROOT / "build/candidates.txt"
 
 
 def switch_tables():
-    """[(lo, hi)] for every jump table switches.py identified."""
-    out = []
-    if not SWITCHES.exists():
-        return out
-    for line in SWITCHES.read_text().splitlines():
-        line = line.split("#")[0].strip()
-        if not line:
-            continue
-        f = line.split()
-        if len(f) < 2:
-            continue
-        try:
-            lo = int(f[0], 16)
-            n = int(f[1], 16) if f[1].lower().startswith("0x") else int(f[1])
-        except ValueError:
-            continue
-        out.append((lo, lo + n))
-    return out
+    """[(lo, hi)] for every jump table switches.py identified.
+
+    This was the only one of five readers that parsed the length correctly,
+    and it still read a recorded 0 as an empty range rather than as "the
+    case count could not be recovered". One reader now, tools/switchtab.py.
+    """
+    import switchtab
+    from peimage import Image as _Image
+    return switchtab.Tables(_Image()).ranges
 
 
 def main(argv):

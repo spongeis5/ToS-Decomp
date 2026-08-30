@@ -41,7 +41,8 @@ HEADER = "| tool | what it does |"
 ORDER = [
     "xex.py", "flatten_pe.py", "verify_mapping.py", "pdata.py",
     "inventory.py", "peimage.py", "ppcdis.py", "disasm.py",
-    "discover.py", "addrtaken.py", "switches.py", "truncated.py",
+    "discover.py", "addrtaken.py", "switches.py", "switchtab.py",
+    "truncated.py",
     "interior.py", "rtti.py", "vtables.py", "xeximports.py", "srcfiles.py",
     "profnames.py", "strings.py", "xref.py", "tunits.py", "segment.py",
     "attribute.py", "candidates.py", "libmatch.py", "oggmatch.py",

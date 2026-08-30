@@ -573,6 +573,7 @@ broken one pops a modal dialog that blocks until someone clicks OK.
 | `discover.py` | Find function starts and call edges from the image alone, without Ghidra |
 | `addrtaken.py` | Function starts whose address is TAKEN IN CODE |
 | `switches.py` | Decode MSVC PowerPC switch dispatch, and say what the targets are |
+| `switchtab.py` | Where the jump tables are. ONE reader for build/switch_tables.txt |
 | `truncated.py` | Which inventory rows are TRUNCATED by a jump table sitting inside them? |
 | `interior.py` | Function starts hidden INSIDE another inventory row, and unreachable |
 | `rtti.py` | Recover classes and vtables from MSVC RTTI |

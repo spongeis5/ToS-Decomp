@@ -57,19 +57,17 @@ def callers():
 
 
 def switch_tables():
-    """Inventory rows that are jump TABLES, not functions. Never candidates."""
-    out = []
-    p = ROOT / "build/switch_tables.txt"
-    if not p.exists():
-        return out
-    for line in p.read_text().splitlines():
-        f = line.split()
-        if len(f) >= 2 and not line.startswith("#"):
-            try:
-                out.append((int(f[0], 16), int(f[1], 16)))
-            except ValueError:
-                pass
-    return out
+    """Inventory rows that are jump TABLES, not functions. Never candidates.
+
+    THIS PARSED THE LENGTH AS HEXADECIMAL. The file writes decimal, so `94`
+    became 0x94 and `880` became 2176: 329 of 437 entries over-read, 24,714
+    bytes over-excluded. This tool is what ranks the next function to work
+    on, so it had been silently dropping candidates sitting after a table.
+    One reader now, tools/switchtab.py.
+    """
+    import switchtab
+    from peimage import Image as _Image
+    return switchtab.Tables(_Image()).ranges
 
 
 def analyse():
