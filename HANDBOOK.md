@@ -32,13 +32,13 @@ bytes identical to the retail image. Not a port, not a re-implementation.
 function starts known           30,630
 .text                           8,467,964 bytes
 
-FUNCTIONS MATCHED               1,322
-  read off the disassembly      469   (35,608 bytes)
+FUNCTIONS MATCHED               1,327
+  read off the disassembly      474   (35,700 bytes)
   generated from encodings      818   (8,192 bytes)
   upstream third-party source   35   (11,696 bytes)
 
-bytes rebuilt from source       55,496   (0.6554% of .text)
-near-misses recorded            44
+bytes rebuilt from source       55,588   (0.6565% of .text)
+near-misses recorded            61
 vetted match candidates         4,231
 ```
 The three parts of the match count are never added up without
@@ -219,7 +219,7 @@ contiguous **run** of matched functions, hands it the retail order through
 emits against the image byte for byte.
 
 ```
-122 of 178 runs, 12,088 of the 31,392 bytes those runs span
+123 of 181 runs, 12,160 of the 31,628 bytes those runs span
 ```
 
 laid out by the linker rather than by us, at the addresses the image gives
@@ -1355,7 +1355,7 @@ in particular has not once survived contact with a new lever.
    merged with the 6,453 `lib` matches.
 6. ~~**A build system and a progress dashboard.**~~ **PARTLY DONE.**
    `tools/build.py` is the build, `tools/objdiff_export.py` gives the
-   dashboard, and `tools/link.py` links 122 contiguous runs — 12,088 bytes —
+   dashboard, and `tools/link.py` links 123 contiguous runs — 12,160 bytes —
    with the retail linker, each at its retail address, ordering and padding
    included. What is still missing is a link that spans **more than one run**:
    26 runs cannot be linked because something in them relocates against a

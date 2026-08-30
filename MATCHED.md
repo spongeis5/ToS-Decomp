@@ -11,7 +11,7 @@ the inventory is wrong in both directions, short where a tail call's dead
 `blr` was not counted and long where one `.pdata` row covers several
 frameless bodies.
 
-**1322 functions, 55496 bytes.** Verify all of them, plus the reconstructing
+**1327 functions, 55588 bytes.** Verify all of them, plus the reconstructing
 build and six negative controls, with one command:
 
 ```bash
@@ -22,7 +22,7 @@ Every match is also a row in `src/manifest.txt`, so `tools/build.py` compiles
 it, resolves its relocations against the retail bytes and splices it into
 `.text`. Nothing here is a match on `match.py`'s word-comparison alone.
 
-SPLIT: 469 hand-written, 35608 bytes; 818 generated, 8192 bytes; 35 upstream, 11696 bytes.
+SPLIT: 474 hand-written, 35700 bytes; 818 generated, 8192 bytes; 35 upstream, 11696 bytes.
 <!-- the line above is regenerated; edit tools/matched_table.py, not this -->
 
 The two halves are not comparable and the count should never be quoted
@@ -436,10 +436,12 @@ while and the claim was wrong.
 | `825A39C8` | 372 | 3 | `y2_rate_table.cpp` | - | `/O2` |
 | `825ACB20` | 40 | 3 | `m61_clear_and_addref.cpp` | - | `/O2` |
 | `825F4740` | 48 | 3 | `w4_sentinel_a.cpp` | - | `/O2 /Os` |
+| `825FC7E0` | 20 | 3 | `w6_fourargs.cpp` | - | `/O2` |
 | `82600960` | 60 | 3 | `m70_hash_until_brace.cpp` | - | `/O2` |
 | `82606158` | 20 | 3 | `l21_global_pair_first.cpp` | - | `/O2` |
 | `8261A3D8` | 12 | 3 | `w4_get12.cpp` | - | `/O2` |
 | `8262FE90` | 16 | 3 | `w4_store_g8.cpp` | - | `/O2` |
+| `82676F40` | 4 | 3 | `w6_empty4.cpp` | - | `/O2` |
 | `82691B70` | 24 | 3 | `l29_col0_length.cpp` | - | `/O2 /Os` |
 | `82691B88` | 24 | 3 | `l30_col1_length.cpp` | - | `/O2 /Os` |
 | `82698E08` | 60 | 3 | `l43_store_quad.cpp` | SetRow | `/O2` |
@@ -481,8 +483,11 @@ while and the claim was wrong.
 | `821AE548` | 132 | 1 | `z3_ctor_inner_20.cpp` | - | `/O2` |
 | `821C1D58` | 240 | 1 | `y2_enable_slot.cpp` | - | `/O2` |
 | `821D9A78` | 100 | 1 | `y1_ctor_s1340.cpp` | ??0Obj821D9A78@@QAA@XZ | `/O2` |
+| `8224EA08` | 12 | 1 | `w6_storef12.cpp` | - | `/O2` |
+| `82252F20` | 36 | 1 | `w6_richpresence.cpp` | - | `/O2` |
 | `82524E90` | 256 | 1 | `y2_query_info.cpp` | - | `/O2` |
 | `825FEF80` | 72 | 1 | `z3_set_contains.cpp` | - | `/O2` |
+| `825FF490` | 20 | 1 | `w6_eqone.cpp` | - | `/O2` |
 | `82691928` | 124 | 1 | `y1_mtx23_lerp.cpp` | - | `/O2 /Os` |
 | `826DD438` | 104 | 1 | `y1_slot_detach.cpp` | ?SlotDetach@@YAXPAUDOwner@@PAUDItem@@@Z | `/O2` |
 | `82712E28` | 88 | 1 | `y1_msg_send.cpp` | - | `/O2 /Os` |

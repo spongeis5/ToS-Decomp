@@ -1332,3 +1332,8 @@ src/w5_chain4null.cpp       821FF818
 src/w5_3guard2tail.cpp      821F0108
 src/w5_init52.cpp           82543D08
 src/w5_aca90.cpp            825ACA90
+src/w6_fourargs.cpp       825FC7E0
+src/w6_empty4.cpp         82676F40
+src/w6_eqone.cpp          825FF490
+src/w6_richpresence.cpp   82252F20
+src/w6_storef12.cpp       8224EA08

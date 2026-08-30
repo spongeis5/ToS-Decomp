@@ -10,7 +10,7 @@ The goal is C++ that, compiled with the title's own 2008 Xbox 360 XDK
 compiler (XDK 8276), produces bytes **identical** to the retail image. Not a port, not a
 re-implementation, not an emulator.
 
-**1,322 functions matched** — 469 written by hand from the disassembly, 818 generated from their own encodings, 35 upstream libogg/libvorbis — reproducing 55,496 of the 8,467,964 bytes in `.text`, 0.6554%.
+**1,327 functions matched** — 474 written by hand from the disassembly, 818 generated from their own encodings, 35 upstream libogg/libvorbis — reproducing 55,588 of the 8,467,964 bytes in `.text`, 0.6565%.
 
 Those three parts are deliberately never added up without being split.
 
@@ -61,7 +61,7 @@ to the retail linker itself, has it place them at their retail addresses, and
 compares what it emits against the image:
 
 ```
-122 of 178 runs, 12,088 bytes — placed, ordered and padded by link.exe
+123 of 181 runs, 12,160 bytes — placed, ordered and padded by link.exe
 ```
 
 That tests three things a splice cannot, because a splice writes each function

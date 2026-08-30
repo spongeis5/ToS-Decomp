@@ -14379,7 +14379,7 @@
       "target_path": "build/objdiff/target/n5_set_bit_pair_825FF468.o",
       "base_path": "build/objdiff/base/n5_set_bit_pair_825FF468.o",
       "metadata": {
-        "complete": false,
+        "complete": true,
         "source_path": "src/n5_set_bit_pair.cpp",
         "progress_categories": [
           "handwritten"
@@ -17222,6 +17222,71 @@
       }
     },
     {
+      "name": "sub_825FC7E0 (w6_fourargs)",
+      "target_path": "build/objdiff/target/w6_fourargs_825FC7E0.o",
+      "base_path": "build/objdiff/base/w6_fourargs_825FC7E0.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w6_fourargs.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82676F40 (w6_empty4)",
+      "target_path": "build/objdiff/target/w6_empty4_82676F40.o",
+      "base_path": "build/objdiff/base/w6_empty4_82676F40.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w6_empty4.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_825FF490 (w6_eqone)",
+      "target_path": "build/objdiff/target/w6_eqone_825FF490.o",
+      "base_path": "build/objdiff/base/w6_eqone_825FF490.o",
+      "metadata": {
+        "complete": true,
+        "source_path": "src/w6_eqone.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82252F20 (w6_richpresence)",
+      "target_path": "build/objdiff/target/w6_richpresence_82252F20.o",
+      "base_path": "build/objdiff/base/w6_richpresence_82252F20.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w6_richpresence.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_8224EA08 (w6_storef12)",
+      "target_path": "build/objdiff/target/w6_storef12_8224EA08.o",
+      "base_path": "build/objdiff/base/w6_storef12_8224EA08.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w6_storef12.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
       "name": "sub_826C1480 (init12)",
       "target_path": "build/objdiff/target/init12_826C1480.o",
       "base_path": "build/objdiff/base/init12_826C1480.o",
@@ -17787,6 +17852,227 @@
       "metadata": {
         "complete": false,
         "source_path": "src/w5_biginit208.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_8276A778 (w6_flagpick)",
+      "target_path": "build/objdiff/target/w6_flagpick_8276A778.o",
+      "base_path": "build/objdiff/base/w6_flagpick_8276A778.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w6_flagpick.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_822CEC98 (w6_utf8)",
+      "target_path": "build/objdiff/target/w6_utf8_822CEC98.o",
+      "base_path": "build/objdiff/base/w6_utf8_822CEC98.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w6_utf8.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82608010 (w6_push64)",
+      "target_path": "build/objdiff/target/w6_push64_82608010.o",
+      "base_path": "build/objdiff/base/w6_push64_82608010.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w6_push64.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_8216B040 (w6_rot3hash)",
+      "target_path": "build/objdiff/target/w6_rot3hash_8216B040.o",
+      "base_path": "build/objdiff/base/w6_rot3hash_8216B040.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w6_rot3hash.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_8221D200 (w6_guard176)",
+      "target_path": "build/objdiff/target/w6_guard176_8221D200.o",
+      "base_path": "build/objdiff/base/w6_guard176_8221D200.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w6_guard176.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_822542D8 (w6_vecreflect)",
+      "target_path": "build/objdiff/target/w6_vecreflect_822542D8.o",
+      "base_path": "build/objdiff/base/w6_vecreflect_822542D8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w6_vecreflect.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82156E58 (w6_shuffle227)",
+      "target_path": "build/objdiff/target/w6_shuffle227_82156E58.o",
+      "base_path": "build/objdiff/base/w6_shuffle227_82156E58.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w6_shuffle227.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82526340 (w6_mixinit276)",
+      "target_path": "build/objdiff/target/w6_mixinit276_82526340.o",
+      "base_path": "build/objdiff/base/w6_mixinit276_82526340.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w6_mixinit276.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_8276DCA8 (w6_djb2)",
+      "target_path": "build/objdiff/target/w6_djb2_8276DCA8.o",
+      "base_path": "build/objdiff/base/w6_djb2_8276DCA8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w6_djb2.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82152300 (w6_vec3x3)",
+      "target_path": "build/objdiff/target/w6_vec3x3_82152300.o",
+      "base_path": "build/objdiff/base/w6_vec3x3_82152300.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w6_vec3x3.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82528530 (w6_walk3736)",
+      "target_path": "build/objdiff/target/w6_walk3736_82528530.o",
+      "base_path": "build/objdiff/base/w6_walk3736_82528530.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w6_walk3736.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82807180 (w6_tagdispatch)",
+      "target_path": "build/objdiff/target/w6_tagdispatch_82807180.o",
+      "base_path": "build/objdiff/base/w6_tagdispatch_82807180.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w6_tagdispatch.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_8226C2D8 (w6_loop60)",
+      "target_path": "build/objdiff/target/w6_loop60_8226C2D8.o",
+      "base_path": "build/objdiff/base/w6_loop60_8226C2D8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w6_loop60.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82155938 (w6_ctor48)",
+      "target_path": "build/objdiff/target/w6_ctor48_82155938.o",
+      "base_path": "build/objdiff/base/w6_ctor48_82155938.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w6_ctor48.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_825FA618 (w6_tagthunk)",
+      "target_path": "build/objdiff/target/w6_tagthunk_825FA618.o",
+      "base_path": "build/objdiff/base/w6_tagthunk_825FA618.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w6_tagthunk.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_827EE530 (w6_guardvcall)",
+      "target_path": "build/objdiff/target/w6_guardvcall_827EE530.o",
+      "base_path": "build/objdiff/base/w6_guardvcall_827EE530.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w6_guardvcall.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_821F7238 (w6_floatscale)",
+      "target_path": "build/objdiff/target/w6_floatscale_821F7238.o",
+      "base_path": "build/objdiff/base/w6_floatscale_821F7238.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/w6_floatscale.cpp",
         "progress_categories": [
           "nearmiss"
         ],
