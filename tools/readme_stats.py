@@ -195,8 +195,19 @@ def main(argv):
                  new)
 
     # The front page's one headline sentence.
+    #
+    # A MISSING LINE IS A FAILURE, NOT A PASS. This used to substitute only
+    # `if FRONT_RE.search(front)` and leave `front_new` equal to `front`
+    # otherwise -- so editing the headline, or deleting it outright, made
+    # `--check` compare a file to itself and report "up to date". The check
+    # that exists because the front page was once wrong by six times could be
+    # silenced by removing the sentence it maintains.
+    #
+    # Found by planting exactly that: changing "functions matched**" to
+    # "functions matched?**" was NOT CAUGHT.
     front = FRONT.read_text(encoding="utf-8") if FRONT.exists() else None
     front_new = front
+    front_missing = False
     if front is not None:
         line = ("**%s functions matched** — %s written by hand from the "
                 "disassembly, %s generated from their own encodings, %s "
@@ -208,6 +219,18 @@ def main(argv):
                    s["pct"]))
         if FRONT_RE.search(front):
             front_new = FRONT_RE.sub(lambda _m: line, front, count=1)
+        else:
+            front_missing = True
+
+    if front_missing:
+        print("%s HAS NO HEADLINE LINE for this tool to maintain." % FRONT.name)
+        print("Expected a line matching:  %s" % FRONT_RE.pattern)
+        print("")
+        print("This is a failure, not a no-op. Without that line the figures")
+        print("check compares the file to itself and reports success, which")
+        print("is how the front page came to be wrong by six times before.")
+        print("Restore a line of that shape; its contents are regenerated.")
+        return 1
 
     if "--check" in argv:
         same = (new == doc) and (front_new == front)

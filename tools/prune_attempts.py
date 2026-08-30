@@ -51,6 +51,14 @@ def addresses(path):
 
 
 def main(argv):
+    """`--check` makes this usable as a gate as well as a fix.
+
+    A fixer that always exits 0 cannot be run in CI, and a check with no
+    remedy gets worked around -- this is both. `verify.py` owns the same
+    question and fails on it; running `--check` here answers it in a second
+    instead of five minutes, and gave the control that proved the gate has
+    power.
+    """
     matched = addresses(MANIFEST)
     raw = ATTEMPTS.read_bytes()
     nl = b"\r\n" if b"\r\n" in raw else b"\n"
@@ -78,6 +86,11 @@ def main(argv):
     if not dropped:
         print("  none -- nothing to do")
         return 0
+    if "--check" in argv:
+        print("")
+        print("--check: %d row(s) would be dropped, so the tree is in the")
+        print("state verify.py refuses. Run without --check to fix it.")
+        return 1
     if "--write" not in argv:
         print("")
         print("nothing written; pass --write")

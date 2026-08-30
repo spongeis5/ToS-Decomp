@@ -329,6 +329,15 @@ def main():
     # unrunnable for some time, invisible because nothing imports it.
     results.append(check("HANDBOOK tool table lists every tool, and each parses",
                          ["tools/tool_table.py", "--check"]))
+    # The four --check guards above all report "up to date" on a clean tree,
+    # which says nothing on its own. This plants each violation and requires a
+    # refusal. It found readme_stats.py substituting the front-page headline
+    # only when the regex matched: editing or deleting that sentence made
+    # --check compare the file to itself and pass, so the guard that exists
+    # because the front page was wrong by six times could be silenced by
+    # removing the sentence it maintains.
+    results.append(check("doc guards refuse what they claim, 11 cases",
+                         ["tools/test_doc_guards.py"]))
     results.append(check("backslash-heredoc hook, 7 cases",
                          [".claude/hooks/test_no_backslash_heredoc.py"]))
     results.append(check("reconstructing build (.text reproduces)",

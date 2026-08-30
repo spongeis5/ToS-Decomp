@@ -1,0 +1,163 @@
+"""The documentation guards must FAIL on what they claim to catch.
+
+    python tools/test_doc_guards.py
+
+`readme_stats.py --check`, `matched_table.py --check`, `tool_table.py --check`
+and `prune_attempts.py --check` all report "up to date" on a clean tree. That
+tells you nothing on its own -- a check that cannot fail reports success for
+the same reason a working one does, and this repository has deleted two such
+checks already.
+
+So each is handed the violation it exists to catch, and required to refuse.
+
+ONE OF THEM WAS ALREADY VACUOUS when this was written. `readme_stats.py`
+substituted the front page's headline only `if FRONT_RE.search(front)`, and
+left the text untouched otherwise -- so editing that sentence, or deleting it,
+made `--check` compare the file to itself and report success. The check that
+exists *because the front page was once wrong by six times* could be silenced
+by removing the sentence it maintains. It fails on a missing headline now, and
+the control below is what found it.
+
+Everything is restored byte for byte in a `finally`, and the last check is
+that the tree is exactly as it was found -- because a test that plants
+violations has to prove it took them all back out.
+"""
+
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+RESULTS = []
+
+
+def run(args):
+    r = subprocess.run([sys.executable] + args, cwd=str(ROOT),
+                       capture_output=True, text=True)
+    return r.returncode, r.stdout + r.stderr
+
+
+def check(name, ok, detail=""):
+    RESULTS.append(ok)
+    print("  %-4s %s%s" % ("ok" if ok else "FAIL", name,
+                           ("  -- " + detail) if detail else ""))
+
+
+def clean_passes(name, cmd):
+    rc, _out = run(cmd)
+    check(name, rc == 0, "" if rc == 0 else "fails on a CLEAN tree")
+
+
+def control(name, path, mutate, cmd, want_in_output=None):
+    """Corrupt one fact, require `cmd` to refuse, restore the bytes."""
+    p = ROOT / path
+    orig = p.read_bytes()
+    try:
+        p.write_bytes(mutate(orig))
+        rc, out = run(cmd)
+        ok = rc != 0
+        if ok and want_in_output:
+            ok = want_in_output in out
+    finally:
+        p.write_bytes(orig)
+    check(name, ok, "" if ok else "NOT CAUGHT")
+
+
+def first_manifest_address():
+    for line in (ROOT / "src/manifest.txt").read_text(
+            encoding="utf-8").splitlines():
+        s = line.split("#")[0].strip()
+        if s and len(s.split()) >= 2:
+            return s.split()[1]
+    return None
+
+
+def nl_of(b):
+    return b"\r\n" if b"\r\n" in b else b"\n"
+
+
+def main():
+    print("documentation guards -- each must refuse what it claims to catch")
+    print("")
+    before = {p: (ROOT / p).read_bytes()
+              for p in ("README.md", "HANDBOOK.md", "MATCHED.md",
+                        "src/manifest.txt", "src/attempts.txt")}
+
+    clean_passes("tool table passes on a clean tree",
+                 ["tools/tool_table.py", "--check"])
+    clean_passes("MATCHED.md passes on a clean tree",
+                 ["tools/matched_table.py", "--check"])
+    clean_passes("README figures pass on a clean tree",
+                 ["tools/readme_stats.py", "--check"])
+    clean_passes("no matched address is also a near-miss",
+                 ["tools/prune_attempts.py", "--check"])
+
+    # A NEW TOOL must make the inventory stale. The table is built by
+    # enumerating tools/*.py, so this is the case it cannot miss -- and the
+    # one that matters, since the inventory reached 27 of 77 missing.
+    probe = ROOT / "tools/zzz_probe_tool.py"
+    try:
+        probe.write_text('"""A probe tool, written by test_doc_guards."""\n',
+                         encoding="utf-8")
+        rc, _o = run(["tools/tool_table.py", "--check"])
+        check("a NEW tool makes the table stale", rc != 0)
+    finally:
+        if probe.exists():
+            probe.unlink()
+
+    # A tool that DOES NOT PARSE must be named as such, not reported as
+    # merely undocumented. vmx128_intrinsics.py was unrunnable for some time
+    # and this tool called it "no docstring" -- a benign cause given for a
+    # serious one.
+    broken = ROOT / "tools/zzz_broken_tool.py"
+    try:
+        broken.write_bytes(b'"""Unterminated.\n\nx = "oops\n')
+        rc, out = run(["tools/tool_table.py", "--check"])
+        check("a tool that DOES NOT PARSE is named as such",
+              rc != 0 and "DOES NOT PARSE" in out)
+    finally:
+        if broken.exists():
+            broken.unlink()
+
+    control("a changed manifest makes MATCHED.md stale",
+            "src/manifest.txt",
+            lambda b: b + nl_of(b) + b"src/zzz_probe.cpp 82540728 StrLen",
+            ["tools/matched_table.py", "--check"])
+
+    # THE ONE THAT WAS VACUOUS. Breaking the headline must fail, not pass.
+    control("an EDITED headline makes the figures stale",
+            "README.md",
+            lambda b: b.replace(b"functions matched**",
+                                b"functions matched?**", 1),
+            ["tools/readme_stats.py", "--check"])
+    control("a DELETED headline is a failure, not a no-op",
+            "README.md",
+            lambda b: b"\n".join(
+                l for l in b.split(b"\n")
+                if b"functions matched**" not in l),
+            ["tools/readme_stats.py", "--check"],
+            want_in_output="HAS NO HEADLINE LINE")
+
+    addr = first_manifest_address()
+    control("an address in BOTH manifest and attempts",
+            "src/attempts.txt",
+            lambda b: b + nl_of(b)
+            + ("src/zzz_probe.cpp %s" % addr).encode() + nl_of(b),
+            ["tools/prune_attempts.py", "--check"])
+
+    same = all((ROOT / p).read_bytes() == b for p, b in before.items())
+    check("every planted file is byte-identical to how it was found", same,
+          "" if same else "SOMETHING WAS LEFT CORRUPTED -- see git diff")
+
+    print("")
+    bad = RESULTS.count(False)
+    print("%d of %d check(s) passed" % (len(RESULTS) - bad, len(RESULTS)))
+    if bad:
+        print("")
+        print("A guard that cannot fail is worse than no guard: it reports")
+        print("success for the same reason a working one does.")
+    return 1 if bad else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

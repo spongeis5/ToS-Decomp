@@ -55,7 +55,7 @@ ORDER = [
     "dashhistory.py", "dashboard.py", "dumptext.py", "verify.py",
     "test_shrink.py", "test_coffreloc.py", "test_permute.py",
     "test_mutations.py", "test_lock.py", "test_xdkcc_cache.py",
-    "test_privacy.py", "test_privacy_guard.py",
+    "test_privacy.py", "test_privacy_guard.py", "test_doc_guards.py",
     "vmx128_check.py", "vmx128_oracle.py", "vmx128_table.py",
     "vmx128_intrinsics.py", "rich.py", "rich_calibrate.py",
     "pemanifest.py", "fix_manifests.py", "verify_ghidra.py",

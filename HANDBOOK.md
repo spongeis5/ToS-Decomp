@@ -626,6 +626,7 @@ broken one pops a modal dialog that blocks until someone clicks OK.
 | `test_xdkcc_cache.py` | The compile memo must never serve a result from different source text |
 | `test_privacy.py` | Refuse to let identifying information reach a public repository |
 | `test_privacy_guard.py` | The privacy check must FAIL on each thing it claims to catch |
+| `test_doc_guards.py` | The documentation guards must FAIL on what they claim to catch |
 | `vmx128_check.py` | Mark the VMX128 decoder against Biallas's independent bit tables |
 | `vmx128_oracle.py` | Mark the VMX128 decoder against MICROSOFT'S OWN ENCODER |
 | `vmx128_table.py` | Exhaustive VMX128 table check: binutils vs the documentation vs MSVC |
@@ -739,6 +740,17 @@ control is in the middle of corrupting — and **the privacy check caught the
 comment written to explain the bug**, which spelled the account name out. It
 is meant to.
 
+**A `--check` that reports "up to date" on a clean tree has told you
+nothing.** `readme_stats.py` substituted the front page's headline only
+`if FRONT_RE.search(front)` and left the text alone otherwise — so editing
+that sentence, or deleting it, made `--check` compare the file to itself and
+pass. **The guard that exists because the front page was once wrong by six
+times could be silenced by deleting the sentence it maintains.** It fails on
+a missing headline now, and `tools/test_doc_guards.py` plants that violation
+and ten others on every `verify.py` run. Two of this project's checks have
+already been deleted for being vacuous; this one was found before it cost
+anything, by asking the question directly rather than trusting a green line.
+
 **One rule, one implementation — and a cross-check only works on an input
 that can tell the copies apart.** Five tools each had their own way of finding
 the function a manifest row names, and two of them omitted the exact-name test
@@ -785,12 +797,12 @@ was reached rather than presenting the bound as an answer.
 python tools/verify.py
 ```
 
-32 checks: the tool self-tests, the whole manifest rebuilt and hashed, the
+33 checks: the tool self-tests, the whole manifest rebuilt and hashed, the
 real link over every contiguous run, and the negative controls -- which each
 corrupt one fact and require the thing they guard to FAIL. A failing negative
 control is the serious kind: it means a check reports success without being
 able to detect the failure it exists to detect. `verify.py` checks that this
-number is still 32, so it cannot rot the way it did when it said 12.
+number is still 33, so it cannot rot the way it did when it said 12.
 
 ### Four ways to choose what to match next
 
