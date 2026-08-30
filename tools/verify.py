@@ -75,7 +75,10 @@ def restore_if_interrupted():
     print("A PREVIOUS RUN WAS KILLED while a negative control had a file")
     print("corrupted. Restoring before doing anything else:")
     for rel, text in saved.items():
-        (ROOT / rel).write_text(text, encoding="utf-8")
+        # write_bytes, for the same reason negative() reads bytes: text mode
+        # would translate the line endings and hand back a file that differs
+        # from the one taken away.
+        (ROOT / rel).write_bytes(text.encode("utf-8"))
         print("  restored %s" % rel)
     SENTINEL.unlink()
     print("")
@@ -89,21 +92,30 @@ def negative(label, path, old, new, expect_substr=None, also=None):
     forced through the byte comparison instead of tripping C2118 first.
     """
     p = ROOT / path
-    orig = p.read_text()
-    if old not in orig or (also and also[0] not in orig):
+    # BYTES, not text. `read_text` then `write_text` translates line endings
+    # on Windows, so restoring a CRLF file rewrote every line of it. The
+    # content came back right and the BYTES did not, which is invisible in a
+    # diff of the content and fatal to anything that digests the file:
+    # build/linked.txt records the digest of the manifest it was measured
+    # against, and a verify run silently invalidated it, so the next report
+    # said complete_code was unmeasured. Second time this exact translation
+    # has caused a bug here today -- see tools/test_privacy_guard.py.
+    orig = p.read_bytes()
+    orig_text = orig.decode("utf-8")
+    if old not in orig_text or (also and also[0] not in orig_text):
         print("  %-42s FAIL (pattern absent, test is invalid)" % label)
         return False
-    text = orig.replace(old, new, 1)
+    text = orig_text.replace(old, new, 1)
     if also:
         text = text.replace(also[0], also[1], 1)
     import json
     SENTINEL.parent.mkdir(parents=True, exist_ok=True)
-    SENTINEL.write_text(json.dumps({path: orig}), encoding="utf-8")
-    p.write_text(text)
+    SENTINEL.write_text(json.dumps({path: orig_text}), encoding="utf-8")
+    p.write_bytes(text.encode("utf-8"))
     try:
         rc, out = run(["tools/build.py"])
     finally:
-        p.write_text(orig)
+        p.write_bytes(orig)
         if SENTINEL.exists():
             SENTINEL.unlink()
     ok = rc != 0
@@ -255,6 +267,40 @@ def main():
     # noticing green rows in objdiff. That is not a detection mechanism.
     results.append(check("no near-miss secretly matches",
                          ["tools/sweep.py", "--attempts", "--check"]))
+
+    # NO ADDRESS IN BOTH src/manifest.txt AND src/attempts.txt. It happens the
+    # moment a function is matched by a NEW source while an older near-miss
+    # source for the same address is still on record -- 825409E8 was matched
+    # by z1_memcmp_n.cpp with l45_cmp_bytes_n.cpp still listed at 13 of 16.
+    #
+    # `sweep.py --attempts --check` cannot see it: that fires when an
+    # attempt's OWN source starts matching, and this one still does not.
+    # Meanwhile report.py reads both files, so the address becomes two units
+    # and is counted twice, and attempts.txt overstates what resists.
+    def _addr_map(name):
+        out = {}
+        for line in (ROOT / "src" / name).read_text().splitlines():
+            s = line.split("#")[0].strip()
+            if not s:
+                continue
+            f = s.split()
+            if len(f) >= 2:
+                try:
+                    out.setdefault(int(f[1], 16), []).append(f[0])
+                except ValueError:
+                    pass
+        return out
+    _m, _a = _addr_map("manifest.txt"), _addr_map("attempts.txt")
+    _both = sorted(set(_m) & set(_a))
+    print("  %-42s %s%s"
+          % ("no address is both matched and a near-miss",
+             "ok" if not _both else "FAIL",
+             "" if not _both else
+             "  " + ", ".join("%08X" % x for x in _both[:4])))
+    for _x in _both:
+        print("      %08X matched by %s, still a near-miss in %s"
+              % (_x, ",".join(_m[_x]), ",".join(_a[_x])))
+    results.append(not _both)
     # This repository is meant to be published. Four commits carried a
     # personal email as author and committer, and eight tracked files
     # carried an account name inside hardcoded absolute paths -- found by
@@ -286,7 +332,7 @@ def main():
     # padding between them is wrong, or that the order is unreachable. Its
     # controls run first -- an ordering check that cannot see a wrong order is
     # the same shape of nothing as a hash over bytes already proven equal.
-    results.append(check("link.py controls, 6 cases (5 must differ)",
+    results.append(check("link.py controls, 10 cases (5 must differ)",
                          ["tools/link.py", "--selftest"]))
     results.append(check("real link: runs placed, ordered, padded",
                          ["tools/link.py"]))
@@ -332,7 +378,17 @@ def main():
     if m2:
         figures["report.py"] = int(m2.group(1))
     cli = ROOT / "build/report_cli.json"
-    if cli.exists():
+    # STALENESS IS A FAILURE, not a pass. This file is written by
+    # tools/publish_report.py and read here; for a day nothing regenerated it,
+    # so a check named "build, report and objdiff-cli agree" was comparing two
+    # live numbers against a constant measured once. It passed the whole time.
+    # A third opinion that cannot change is not a third opinion.
+    if cli.exists() and cli.stat().st_mtime < (ROOT / "src/manifest.txt").stat().st_mtime:
+        print("      build/report_cli.json is OLDER than src/manifest.txt --")
+        print("      run `python tools/publish_report.py`; it is not a third")
+        print("      opinion until it has been regenerated.")
+        figures["objdiff-cli(STALE)"] = -1
+    elif cli.exists():
         try:
             figures["objdiff-cli"] = int(
                 _json.loads(cli.read_text())["measures"]["matched_code"])
@@ -349,6 +405,92 @@ def main():
     print("  %-42s %s" % ("no symbol resolves to two addresses",
                           "ok" if linkable else "FAIL -- see build.py output"))
     results.append(linkable)
+
+    # THE DENOMINATORS MUST BE RECONCILED, not just the numerator. The check
+    # above compares matched_code three ways and found them equal for months
+    # while report.py divided by 8,467,964 and objdiff-cli by 8,368,632 --
+    # a 99,332-byte difference nothing looked at, giving two different
+    # headline percentages for one project.
+    #
+    # They are not the same question and neither is wrong. report.py's
+    # denominator is the whole of .text, which is what "how much of this
+    # section is reproduced" means. objdiff-cli can only count the units it
+    # is given, and a unit is a function, so its denominator is the sum of
+    # known function extents. The difference is exactly the .text bytes that
+    # belong to no function: inter-function alignment padding and the data
+    # blob at the tail.
+    #
+    # So this does not force them equal. It computes the gap INDEPENDENTLY,
+    # from the image and the inventory, and requires the difference between
+    # the two reports to be accounted for by it. An unexplained residue is
+    # the failure -- that is the shape of the drift, not the size of it.
+    gap_ok, gap_detail = True, ""
+    try:
+        import sys as _sys
+        _sys.path.insert(0, str(ROOT / "tools"))
+        from peimage import Image as _Image, load_inventory as _load_inv
+        _img = _Image()
+        _t = next(s for s in _img.sections if s["name"] == ".text")
+        _lo = _t["va"]
+        _size = _t["vsize"] or _t["rawsz"]
+        _hi = _lo + _size
+        # load_inventory() returns a LIST of (address, size), not a mapping.
+        # Calling .items() on it raised, and the check reported "could not
+        # reconcile" -- which is the right answer to give when it cannot
+        # look, and the reason it says that rather than passing.
+        _rows = sorted((a, n) for a, n in _load_inv()
+                       if _lo <= a < _hi and n > 0)
+        _cov, _cur = 0, _lo
+        for _a, _n in _rows:
+            if _a > _cur:
+                _cov += _a - _cur
+            _cur = max(_cur, _a + _n)
+        if _cur < _hi:
+            _cov += _hi - _cur
+        m3 = _re.search(r"matched_code\s+\d+ of (\d+)", out2)
+        rep_total = int(m3.group(1)) if m3 else None
+        cli_total = None
+        if cli.exists():
+            try:
+                cli_total = int(_json.loads(cli.read_text())
+                                ["measures"]["total_code"])
+            except (ValueError, KeyError, TypeError):
+                pass
+        # objdiff-cli's denominator must be EXACTLY what objdiff_export.py
+        # handed it. Inferring it from the inventory instead came out 2,568
+        # bytes short, for two reasons neither of which is visible from here:
+        # the inventory overlaps itself in places, and the export reconciles
+        # a unit's recorded size with can_extend/can_shrink. So the export
+        # writes down its own total and this compares against that -- an
+        # equality, with nothing to model and no tolerance to argue about.
+        # A unit silently dropped from the export shows up here immediately,
+        # which is what shrinks a denominator and flatters a percentage.
+        tot_p = ROOT / "build/objdiff_totals.json"
+        emitted = None
+        if tot_p.exists():
+            try:
+                emitted = int(_json.loads(tot_p.read_text())["total_bytes"])
+            except (ValueError, KeyError, TypeError):
+                pass
+        if rep_total is None or cli_total is None or emitted is None:
+            gap_ok = False
+            gap_detail = "  could not read the denominators"
+        else:
+            gap_ok = (cli_total == emitted)
+            # `_cov` is the .text bytes belonging to no inventory row at all
+            # -- alignment padding and the data blob at the tail. It is why
+            # the two reports quote different percentages, and it is printed
+            # so the difference is explained rather than merely tolerated.
+            gap_detail = ("  objdiff %d == emitted %d; .text %d is %d more, "
+                          "of which %d belong to no function"
+                          % (cli_total, emitted, rep_total,
+                             rep_total - cli_total, _cov))
+    except Exception as _e:                    # noqa: BLE001
+        gap_ok = False
+        gap_detail = "  could not reconcile: %s" % _e
+    print("  %-42s %s%s" % ("the two denominators reconcile",
+                            "ok" if gap_ok else "FAIL", gap_detail))
+    results.append(gap_ok)
 
     print("")
     print("MATCHES -- %d function(s)\n" % len(MATCHES))

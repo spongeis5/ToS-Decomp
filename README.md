@@ -1,13 +1,16 @@
+Truth or slop. SpongeBob's 10 sloppiest slopments. Sloppy sloppens, hooray! 
+Funneling the game through claude over and over until it produces exact an exact C++ binary accurate decomp. I'll merge just about anything using any method as long as it works and compiles and gets us closer, I don't really care. Slop through it. 
+
 # ToS-Decomp
 
 A **byte-matching decompilation** of *SpongeBob's Truth or Square* (Xbox 360,
 Heavy Iron Studios / THQ, 2009).
 
 The goal is C++ that, compiled with the title's own 2008 Xbox 360 XDK
-compiler, produces bytes **identical** to the retail image. Not a port, not a
+compiler (XDK 8276), produces bytes **identical** to the retail image. Not a port, not a
 re-implementation, not an emulator.
 
-**1,200 functions matched** — 382 written by hand from the disassembly, 818 generated from their own encodings — reproducing 34,096 of the 8,467,964 bytes in `.text`, 0.4026%.
+**1,215 functions matched** — 397 written by hand from the disassembly, 818 generated from their own encodings — reproducing 35,276 of the 8,467,964 bytes in `.text`, 0.4166%.
 
 Those two halves are deliberately never added up without being split. The
 generated ones are a single expression each — a constant return, a field
@@ -36,7 +39,7 @@ result into `.text`, hashes the section, and runs the tool self-tests:
 python tools/verify.py
 ```
 
-29 checks. Several are **negative controls**: they corrupt one fact
+31 checks. Several are **negative controls**: they corrupt one fact
 — a struct offset, a switch case mapping, a manifest address, the order two
 functions are linked in — and require the result to *fail*. A control that
 stops failing is the serious result, because it means a check reports success
@@ -52,7 +55,7 @@ to the retail linker itself, has it place them at their retail addresses, and
 compares what it emits against the image:
 
 ```
-124 of 152 runs, 10,472 bytes — placed, ordered and padded by link.exe
+123 of 160 runs, 10,988 bytes — placed, ordered and padded by link.exe
 ```
 
 That tests three things a splice cannot, because a splice writes each function
@@ -60,10 +63,25 @@ at the address it was told: whether the functions **pack**, what is in the
 **padding** between them, and whether the **order** is reachable at all — our
 objects do not even hold them in retail order.
 
-The 28 runs it cannot link are counted, not omitted. 26 of them call a
-function nobody has written yet, and the linker will not resolve a call to a
-symbol that has no section — so the next structural step is a link that spans
-more than one run. `HANDBOOK.md` says what that needs.
+The 37 runs it cannot link are counted, not omitted. Most call a function
+nobody has written yet, and the linker will not resolve a call to a symbol
+that has no section — so the next structural step is a link that spans more
+than one run. `HANDBOOK.md` says what that needs.
+
+### `complete` means linked, not matched
+
+decomp.dev shows a matched percentage and a separate **complete** one, and in
+objdiff's schema `complete` means the object is *linked*. This project reports
+it that way: a unit counts as complete only when its object defines no
+function the manifest does not name **and** every one of them was placed by
+`link.exe` at its retail address, byte-identical. `tools/link.py` owns that
+question and the report imports the answer.
+
+It was not always right. The flag used to be set to "this function's bytes
+match", so the published report claimed every matched byte was linked while
+`build.py` printed *this is a SPLICE, not yet a LINK* on every run. `FINDINGS.md`
+§7z has the whole account, including the three other counting errors the same
+cross-check turned up in an hour.
 
 ## Browsing it
 

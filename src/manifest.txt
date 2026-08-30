@@ -1210,3 +1210,18 @@ src/m_ctor_94.cpp                825FE880
 src/s5_kind_adjust_call.cpp      8224BCA0
 src/t3_init_defaults.cpp         825E0118  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
 src/u5_ctor_str.cpp              827007F8  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/z2_handle_acquire.cpp        82662EA0  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/z2_child_id_is.cpp           82806CB0  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/z2_release_four.cpp          827FE818  ReleaseFour
+src/z4_table_second.cpp          8215BCD0
+src/z4_flag_byte.cpp             8215BCA0
+src/z4_out_or_err37_b.cpp        825492D8
+src/z4_vcall6_field12.cpp        8224BCF8
+src/z1_strcat_n.cpp             825407D0
+src/z1_strupr.cpp               82540838
+src/z1_memcmp_n.cpp             825409E8
+src/z4_speed_check_a.cpp         8219FCA8
+src/z4_speed_check_b.cpp         822553D8
+src/z3_set_state.cpp            821F6B70
+src/z3_ctor_inner_20.cpp        821AE548
+src/z3_set_contains.cpp         825FEF80

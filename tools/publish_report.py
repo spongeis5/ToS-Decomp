@@ -68,9 +68,21 @@ def main():
     run([sys.executable, "tools/objdiff_export.py"],
         stdout=subprocess.DEVNULL)
 
-    print("3/3  progress report")
+    print("3/4  progress report")
     run([str(cli), "report", "generate", "-p", ".", "-o", str(OUT),
          "-f", "proto"])
+
+    # 4/4  THE SAME REPORT AS JSON, for verify.py's three-way cross-check.
+    #
+    # That check reads build/report_cli.json and nothing regenerated it. It
+    # sat unchanged for a day while the manifest grew, so "build, report and
+    # objdiff-cli agree" was comparing two live numbers against a stale
+    # constant -- and it PASSED, because the constant happened to still be
+    # right. A cross-check against a file nobody refreshes is a check against
+    # a number someone typed once.
+    print("4/4  the same report as JSON, for verify.py's cross-check")
+    run([str(cli), "report", "generate", "-p", ".",
+         "-o", str(ROOT / "build/report_cli.json"), "-f", "json"])
 
     size = OUT.stat().st_size
     print("")

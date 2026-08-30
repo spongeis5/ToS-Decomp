@@ -32,12 +32,12 @@ bytes identical to the retail image. Not a port, not a re-implementation.
 function starts known           30,630
 .text                           8,467,964 bytes
 
-FUNCTIONS MATCHED               1,200
-  read off the disassembly      382   (25,904 bytes)
+FUNCTIONS MATCHED               1,215
+  read off the disassembly      397   (27,084 bytes)
   generated from encodings      818   (8,192 bytes)
 
-bytes rebuilt from source       34,096   (0.4026% of .text)
-near-misses recorded            42
+bytes rebuilt from source       35,276   (0.4166% of .text)
+near-misses recorded            43
 vetted match candidates         4,231
 ```
 The two halves of the match count are never added up without being
@@ -175,7 +175,7 @@ contiguous **run** of matched functions, hands it the retail order through
 emits against the image byte for byte.
 
 ```
-124 of 152 runs, 10,472 of the 13,116 bytes those runs span
+123 of 160 runs, 10,988 of the 15,808 bytes those runs span
 ```
 
 laid out by the linker rather than by us, at the addresses the image gives
@@ -538,7 +538,8 @@ broken one pops a modal dialog that blocks until someone clicks OK.
 | `attribute.py` | merge every signal into one scope picture |
 | `candidates.py` | vetted match targets: leaf, unattributed, outside XDK, sound |
 | `build.py` | **the reconstructing build**: compile, resolve relocations, hash `.text` |
-| `link.py` | **the real link**: `link.exe` lays out a contiguous run, padding and all; `--selftest` is its four controls |
+| `link.py` | **the real link**: `link.exe` places a contiguous run at its retail address; `--units` says which files are COMPLETE; `--selftest` is its ten controls |
+| `bridge.py` | which unmatched function would MERGE two linked runs — ranked by the span it would unlock, not its own size |
 | `coffwrite.py` | write the two COFF objects no compiler produces — absolutes, and sized padding |
 | `coffreloc.py` | COFF functions with their relocation records |
 | `discover.py` | function starts and the call graph, from the image alone |
@@ -670,6 +671,24 @@ control is in the middle of corrupting — and **the privacy check caught the
 comment written to explain the bug**, which spelled the account name out. It
 is meant to.
 
+**A restore reads and writes BYTES.** Python's text mode translates line
+endings on Windows, so `read_text` then `write_text` gives back a file whose
+content is right and whose bytes are not. That happened twice in one session:
+`test_privacy_guard.py` left its victim file rewritten, and `verify.py`'s
+negative controls did it to `src/manifest.txt`, silently invalidating
+`build/linked.txt` — which records the digest of the manifest it was measured
+against precisely so it can refuse to answer for a different one. It refused,
+correctly, and the report read `complete_code` as unmeasured until the cause
+was found.
+
+**Cross-check the DENOMINATOR, not just the numerator.** `verify.py` compared
+`matched_code` three ways for months while `report.py` divided by 8,467,964
+and objdiff-cli by 8,368,632 — two headline percentages for one project, and
+nothing looked. Worse, the file objdiff-cli's figure was read from was written
+once and never regenerated, so a third opinion had become a constant someone
+typed. Both are checks now, and the denominator one is an equality against
+what the exporter says it handed over rather than a model of it.
+
 **State the denominator.** Not "24 draws" but "24 draws of 59 walked". Every
 count here names its population, and a bounded search reports when its bound
 was reached rather than presenting the bound as an answer.
@@ -684,22 +703,38 @@ was reached rather than presenting the bound as an answer.
 python tools/verify.py
 ```
 
-29 checks: the tool self-tests, the whole manifest rebuilt and hashed, the
+31 checks: the tool self-tests, the whole manifest rebuilt and hashed, the
 real link over every contiguous run, and the negative controls -- which each
 corrupt one fact and require the thing they guard to FAIL. A failing negative
 control is the serious kind: it means a check reports success without being
 able to detect the failure it exists to detect. `verify.py` checks that this
-number is still 29, so it cannot rot the way it did when it said 12.
+number is still 31, so it cannot rot the way it did when it said 12.
 
-### Three ways to choose what to match next
+### Four ways to choose what to match next
 
 They answer different questions and none of them replaces the others.
 
 ```bash
 python tools/batch.py 40 --no-vmx   # by CALLER COUNT -- throughput
+python tools/bridge.py              # by what it would LINK -- completeness
 python tools/climb.py               # by what is ALREADY KNOWN -- structure
 python tools/layout.py              # by how much LAYOUT it would pin
 ```
+
+**`bridge.py` is the one that moves `complete_code`.** Every other picker
+ranks by a property of the function; this one ranks by its NEIGHBOURHOOD,
+because a run is what gets linked. A function sitting between two matched
+runs does not add its own bytes to the linked total, it adds the merged span.
+
+Measured, first time it was used: three string routines totalling 228 bytes
+turned a 168-byte run and a 364-byte run into **one 768-byte run of 11
+functions across 8 source files** — the string translation unit `flagpairs.py`
+had identified by adjacency, now reconstructed and laid out end to end by
+`link.exe` at `82540728..82540A28`. That is what a completed unit looks like.
+
+Its three classes, in the order it ranks them: a **bridge** merges two runs,
+an **extension** lengthens one, a **seed** makes a new run of two. 60 bridges
+exist today.
 
 **`batch.py` is the throughput loop**, and it runs at roughly 70% on the
 first attempt. Ranking by caller count rather than by size or address is the

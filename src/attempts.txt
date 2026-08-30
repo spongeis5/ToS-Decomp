@@ -60,4 +60,5 @@ src/l23_memcpy_globals.cpp       82158E50
 src/l25_set_name.cpp             821FA140
 src/m70_hash_until_brace.cpp    82600960  ?LookupName@@YAIPBD@Z
 src/m72_upper_in_place.cpp      8215A8F0  ?UpperInPlace@@YAXPAE@Z
-src/l45_cmp_bytes_n.cpp          825409E8
+src/z4_chain_nth_fwd.cpp         826C0FB8
+src/z3_ctor_inner_vt.cpp        821AE070

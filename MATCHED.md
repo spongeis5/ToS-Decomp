@@ -11,7 +11,7 @@ the inventory is wrong in both directions, short where a tail call's dead
 `blr` was not counted and long where one `.pdata` row covers several
 frameless bodies.
 
-**1200 functions, 34096 bytes.** Verify all of them, plus the reconstructing
+**1215 functions, 35276 bytes.** Verify all of them, plus the reconstructing
 build and six negative controls, with one command:
 
 ```bash
@@ -22,7 +22,7 @@ Every match is also a row in `src/manifest.txt`, so `tools/build.py` compiles
 it, resolves its relocations against the retail bytes and splices it into
 `.text`. Nothing here is a match on `match.py`'s word-comparison alone.
 
-SPLIT: 382 hand-written, 25904 bytes; 818 generated, 8192 bytes.
+SPLIT: 397 hand-written, 27084 bytes; 818 generated, 8192 bytes.
 <!-- the line above is regenerated; edit tools/matched_table.py, not this -->
 
 The two halves are not comparable and the count should never be quoted
@@ -37,7 +37,7 @@ half does, however much larger it gets. (The counts live in the SPLIT line
 above, which is regenerated; repeating them here is how a document comes to
 contradict itself two commits later.)
 
-**The retail build did NOT use one optimisation level everywhere.** 117 of
+**The retail build did NOT use one optimisation level everywhere.** 119 of
 these need `/O2 /Os`; the rest need plain `/O2`. See "Flags are a property of
 the translation unit" below -- this was claimed the other way round for a
 while and the claim was wrong.
@@ -54,9 +54,11 @@ while and the claim was wrong.
 | `82806FD0` | 84 | 220 | `chunked_at.cpp` | - | `/O2 /Os` |
 | `8262F5D0` | 136 | 206 | `m_bin_free.cpp` | BinAlloc | `/O2` |
 | `82667EE0` | 152 | 180 | `m_vector_reserve.cpp` | VectorGrow | `/O2` |
+| `82662EA0` | 124 | 161 | `z2_handle_acquire.cpp` | - | `/O2 /Os` |
 | `8215A420` | 64 | 147 | `c_hash_upper.cpp` | - | `/O2` |
 | `82600BD8` | 16 | 135 | `global_field.cpp` | - | `/O2` |
 | `82667E58` | 136 | 132 | `m_vector_reserve.cpp` | VectorReserve | `/O2` |
+| `82806CB0` | 88 | 132 | `z2_child_id_is.cpp` | - | `/O2 /Os` |
 | `82806D08` | 20 | 132 | `a_report_badthis.cpp` | - | `/O2` |
 | `8217E808` | 76 | 116 | `m_tree_lookup.cpp` | - | `/O2` |
 | `821A4628` | 28 | 108 | `ctor_vt.cpp` | - | `/O2` |
@@ -105,6 +107,7 @@ while and the claim was wrong.
 | `82677040` | 20 | 25 | `owner_clear.cpp` | ClearAndHandleOther | `/O2` |
 | `82545348` | 48 | 24 | `m_span_out.cpp` | - | `/O2` |
 | `82724A68` | 44 | 24 | `m_tls_reserve.cpp` | - | `/O2` |
+| `827FE818` | 136 | 24 | `z2_release_four.cpp` | ReleaseFour | `/O2` |
 | `82540770` | 40 | 23 | `string_utils.cpp` | StrCopyN | `/O2` |
 | `825408B0` | 68 | 21 | `m_strcmp_n.cpp` | - | `/O2` |
 | `825408F8` | 108 | 20 | `m_stricmp.cpp` | StrCompareI | `/O2` |
@@ -209,12 +212,14 @@ while and the claim was wrong.
 | `8215E6D0` | 84 | 7 | `s5_find_pair64.cpp` | - | `/O2` |
 | `82167A18` | 76 | 7 | `s5_linked_leaf.cpp` | HasLinkedLeaf | `/O2` |
 | `8219EBB8` | 84 | 7 | `s5_bucket_free_slot.cpp` | - | `/O2` |
+| `8219FCA8` | 48 | 7 | `z4_speed_check_a.cpp` | - | `/O2` |
 | `821A5378` | 20 | 7 | `eq2_208.cpp` | - | `/O2` |
 | `821AAFA8` | 92 | 7 | `s5_registry_find.cpp` | - | `/O2` |
 | `821BCA48` | 44 | 7 | `m_ctor_7zero.cpp` | - | `/O2` |
 | `821C77A8` | 28 | 7 | `m_enqueue12.cpp` | Enqueue | `/O2` |
 | `821FAE48` | 48 | 7 | `r4_init_const.cpp` | - | `/O2` |
 | `8224BCA0` | 88 | 7 | `s5_kind_adjust_call.cpp` | - | `/O2` |
+| `822553D8` | 48 | 7 | `z4_speed_check_b.cpp` | - | `/O2` |
 | `82265D30` | 20 | 7 | `set0_255.cpp` | - | `/O2` |
 | `82540798` | 56 | 7 | `r6_strcat.cpp` | - | `/O2` |
 | `82548F10` | 28 | 7 | `zero5_20first.cpp` | - | `/O2` |
@@ -319,6 +324,7 @@ while and the claim was wrong.
 | `8219ED88` | 84 | 4 | `l9_deep_ready_a.cpp` | IsReadyKind7 | `/O2` |
 | `821A5390` | 40 | 4 | `n7_state2_or_flag.cpp` | - | `/O2` |
 | `821A93E0` | 24 | 4 | `l7_sub_kind2.cpp` | - | `/O2` |
+| `821F6B70` | 208 | 4 | `z3_set_state.cpp` | - | `/O2` |
 | `821F7B18` | 40 | 4 | `n8_reset_two_floats.cpp` | - | `/O2` |
 | `821FC180` | 128 | 4 | `n18_flag_move_notify.cpp` | - | `/O2` |
 | `821FE858` | 24 | 4 | `l8_store_then_vcall0.cpp` | - | `/O2` |
@@ -335,6 +341,7 @@ while and the claim was wrong.
 | `822D2550` | 24 | 4 | `m21_table_byte.cpp` | - | `/O2` |
 | `822D3E60` | 36 | 4 | `n3_arg_kind_1or2.cpp` | - | `/O2` |
 | `822E0D80` | 16 | 4 | `k6_swap_forward.cpp` | - | `/O2` |
+| `82540838` | 64 | 4 | `z1_strupr.cpp` | - | `/O2` |
 | `82542518` | 124 | 4 | `m39_ensure_config.cpp` | - | `/O2` |
 | `82547880` | 116 | 4 | `m32_list_find_key48.cpp` | - | `/O2` |
 | `825492B8` | 32 | 4 | `m25_out_or_err37.cpp` | - | `/O2` |
@@ -403,6 +410,7 @@ while and the claim was wrong.
 | `822D2510` | 20 | 3 | `m48_table_elem.cpp` | - | `/O2` |
 | `822D91C8` | 20 | 3 | `m49_guard_flag_call.cpp` | - | `/O2` |
 | `822DF630` | 52 | 3 | `m63_sum_below_limit.cpp` | - | `/O2` |
+| `825409E8` | 64 | 3 | `z1_memcmp_n.cpp` | - | `/O2` |
 | `825476F8` | 64 | 3 | `l46_count_list.cpp` | - | `/O2` |
 | `82581448` | 40 | 3 | `m60_wstrcopy_n.cpp` | - | `/O2` |
 | `825ACB20` | 40 | 3 | `m61_clear_and_addref.cpp` | - | `/O2` |
@@ -420,12 +428,19 @@ while and the claim was wrong.
 | `82807B50` | 44 | 3 | `l41_kind_filter.cpp` | - | `/O2` |
 | `8283F298` | 52 | 3 | `m65_clear_eight_slots.cpp` | - | `/O2` |
 | `82897128` | 20 | 3 | `l22_release_handle_8.cpp` | - | `/O2` |
+| `8215BCD0` | 32 | 2 | `z4_table_second.cpp` | - | `/O2` |
 | `82216918` | 304 | 2 | `m_line_of_sight.cpp` | TtCheckLineOfSight | `/O2` |
 | `822607F0` | 120 | 2 | `grid_indices.cpp` | - | `/O2` |
+| `825407D0` | 100 | 2 | `z1_strcat_n.cpp` | - | `/O2` |
+| `825492D8` | 32 | 2 | `z4_out_or_err37_b.cpp` | - | `/O2` |
 | `8267ACC0` | 236 | 2 | `m_hkpworld_ctor.cpp` | ??0hkpWorld@@QAA@XZ | `/O2` |
 | `826FE5B8` | 16 | 2 | `set_vtable.cpp` | SetVTableD170 | `/O2` |
 | `826FE5C8` | 16 | 2 | `set_vtable.cpp` | SetVTableD180 | `/O2` |
+| `8215BCA0` | 12 | 1 | `z4_flag_byte.cpp` | - | `/O2` |
+| `821AE548` | 132 | 1 | `z3_ctor_inner_20.cpp` | - | `/O2` |
+| `825FEF80` | 72 | 1 | `z3_set_contains.cpp` | - | `/O2` |
 | `8289FA50` | 268 | 1 | `m_mixer_clear.cpp` | - | `/O2` |
+| `8224BCF8` | 20 | 0 | `z4_vcall6_field12.cpp` | - | `/O2` |
 | *(818 generated)* | 8192 | - | `vt_typeid_*`, `vt_const_*`, `vt_acc_*` | one expression each | `/O2` |
 ---
 

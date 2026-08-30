@@ -12,13 +12,33 @@ known to this repository.
 TWO PLACES WHERE THE HONEST ANSWER IS NOT THE FLATTERING ONE, and both are
 worth stating because a report is read by people who cannot check it.
 
-  `complete_code` IS ZERO. decomp.dev shows a "decompiled" percentage and a
-  separate "fully linked" one, and `complete` in objdiff means the object is
-  LINKED, not that its bytes match. tools/build.py says what this project
-  actually does, every run: "This is a SPLICE, not yet a LINK. The
-  undecompiled code is copied rather than assembled from objects." Reporting
-  0.4% linked would be false. Matched code is reported as matched; linked is
-  reported as zero until there is a link.
+  `complete_code` MEANS LINKED, NOT MATCHED. decomp.dev shows a "decompiled"
+  percentage and a separate "fully linked" one, and `complete` in objdiff is
+  the second of those. It was hardcoded to zero for as long as that was the
+  truth -- `tools/build.py` splices, and reporting 0.4% linked would have been
+  false.
+
+  It is no longer hardcoded. `tools/link.py` hands contiguous runs of matched
+  functions to the retail `link.exe` 9.00.8153, places them at their retail
+  addresses and compares byte for byte, and it owns the question of which
+  units that leaves complete:
+
+      a unit is complete when its object defines no function the manifest
+      does not name, AND every one of those functions is in a run link.py
+      linked, placed and found identical.
+
+  Both clauses do work. The first excludes 61 of 406 units whose file defines
+  a helper written to shape the caller's codegen and never compared to
+  anything -- the splice never notices, because it only writes the named
+  function, but a link takes the whole object. The second is the difference
+  between matched and linked.
+
+  This file does not decide it. It imports `link.complete_sources()`, because
+  four earlier tools reimplemented a comparison another tool owned and all
+  four disagreed with the owner in the direction that gets believed.
+
+  When the link has not been run, `complete_code` is reported as 0 AND SAID
+  TO BE UNMEASURED. Nothing linked and never asked are different states.
 
   A UNIT IS A SOURCE FILE, not a function. objdiff.json lists one unit per
   function because that is the useful granularity for a visual diff, but a
@@ -101,7 +121,7 @@ def compiled_sizes(all_rows):
 
 
 def measures(total_code, matched_code, total_fn, matched_fn,
-             total_units, complete_units, fuzzy):
+             total_units, complete_units, fuzzy, complete_code=0):
     return {
         "fuzzy_match_percent": round(fuzzy, 4),
         "total_code": total_code,
@@ -115,9 +135,12 @@ def measures(total_code, matched_code, total_fn, matched_fn,
         "matched_functions": matched_fn,
         "matched_functions_percent": round(
             100.0 * matched_fn / total_fn if total_fn else 0.0, 4),
-        # Zero, and deliberately. See the module docstring: nothing links yet.
-        "complete_code": 0,
-        "complete_code_percent": 0.0,
+        # `complete` means LINKED, not matched -- see the module docstring.
+        # It was hardcoded 0 for as long as nothing was linked; it is now
+        # supplied by tools/link.py, which is the tool that owns the question.
+        "complete_code": complete_code,
+        "complete_code_percent": round(
+            100.0 * complete_code / total_code if total_code else 0.0, 4),
         "complete_data": 0,
         "complete_data_percent": 0.0,
         "total_units": total_units,
@@ -144,9 +167,20 @@ def main(argv):
     for src, addr, _s, _f in attempts:
         by_file[src].append((addr, False))
 
+    # WHICH UNITS ARE COMPLETE is link.py's question, not this file's. It is
+    # the tool that runs link.exe, so it is the only thing that knows whether
+    # a unit's functions were actually laid out at their retail addresses.
+    # Deciding it here would be the fifth tool in this project to reimplement
+    # a comparison another tool owns, and the previous four all disagreed with
+    # the owner in the direction that gets believed.
+    import link as linker
+    complete_src, why_not, link_err = linker.complete_sources()
+    if link_err:
+        complete_src = set()
+
     units = []
     cat_tot = defaultdict(lambda: [0, 0, 0, 0])   # code, matched, fn, mfn
-    matched_code = matched_fn = 0
+    matched_code = matched_fn = complete_code = 0
     complete_units = 0
 
     for src in sorted(by_file):
@@ -171,8 +205,10 @@ def main(argv):
                 "metadata": {"virtual_address": addr},
             })
         all_ok = (u_ok == len(fns))
-        if all_ok:
+        is_complete = src in complete_src
+        if is_complete:
             complete_units += 1
+            complete_code += u_code
         matched_code += u_matched
         matched_fn += u_ok
         c = cat_tot[cat]
@@ -184,13 +220,17 @@ def main(argv):
         units.append({
             "name": Path(src).stem,
             "measures": measures(u_code, u_matched, len(fns), u_ok, 1,
-                                 1 if all_ok else 0,
-                                 100.0 * u_matched / u_code if u_code else 0),
+                                 1 if is_complete else 0,
+                                 100.0 * u_matched / u_code if u_code else 0,
+                                 u_code if is_complete else 0),
             "sections": [],
             "functions": fns,
             "metadata": {
-                # `complete` here would mean LINKED. Nothing is.
-                "complete": False,
+                # `complete` means LINKED: every function this file defines is
+                # matched AND was laid out by link.exe at its retail address,
+                # byte-identical. tools/link.py decides it; see its
+                # complete_sources().
+                "complete": is_complete,
                 "source_path": src.replace("\\", "/"),
                 "progress_categories": [cat],
                 "auto_generated": gen,
@@ -201,7 +241,8 @@ def main(argv):
     report = {
         "version": 1,
         "measures": measures(total_code, matched_code, total_fn, matched_fn,
-                             len(units), complete_units, fuzzy),
+                             len(units), complete_units, fuzzy,
+                             complete_code),
         "units": units,
         "categories": [
             {"id": cid, "name": name,
@@ -224,7 +265,29 @@ def main(argv):
     print("  matched_code      %d of %d  (%.4f%%)"
           % (matched_code, total_code, fuzzy))
     print("  matched_functions %d of %d" % (matched_fn, total_fn))
-    print("  complete_code     0  -- nothing is LINKED yet; build.py splices")
+    # The term that reconciles this denominator with objdiff-cli's. objdiff
+    # can only count the units it is given and a unit is a function, so its
+    # total is the sum of unit sizes: COMPILED lengths where a source exists,
+    # inventory extents elsewhere. Ours is the whole section. The two differ
+    # by the .text bytes belonging to no function, plus this -- the inventory
+    # being wrong about the functions we do have. Printed so verify.py can
+    # reconcile them exactly instead of allowing a vague tolerance.
+    sourced_delta = sum(inv.get(a, 0) - csize.get(a, inv.get(a, 0))
+                        for a in set(a for _s, a, _y, _f in matched + attempts))
+    print("  inventory extent minus compiled length, over sourced "
+          "functions: %d" % sourced_delta)
+    if link_err:
+        print("  complete_code     NOT MEASURED -- %s" % link_err)
+        print("                    reported as 0, which is a floor and not a")
+        print("                    finding. Run the link and read it again.")
+    else:
+        print("  complete_code     %d of %d  (%.4f%%) in %d complete unit(s)"
+              % (complete_code, total_code,
+                 100.0 * complete_code / total_code if total_code else 0.0,
+                 complete_units))
+        print("                    complete = every function the file defines")
+        print("                    is matched AND was placed by link.exe at")
+        print("                    its retail address, byte-identical")
     for cid, name in CATEGORIES:
         c = cat_tot[cid]
         print("  %-12s %d function(s), %d byte(s) matched"

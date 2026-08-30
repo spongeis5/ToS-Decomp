@@ -22,12 +22,14 @@ points at do not, and they are where the knowledge is.
 ## The loop
 
 ```bash
-python tools/verify.py                 29 checks; ~5 min. Run it first.
+python tools/verify.py                 31 checks; ~5 min. Run it first.
 python tools/batch.py 40 --no-vmx      candidates, ranked by CALLER COUNT
 python tools/match.py <src> <addr>     compile one and compare
 python tools/sweep.py                  recover work whose row was never written
 python tools/sweep.py --attempts       live near-miss scores, both flag levels
+python tools/bridge.py                 which unmatched function would MERGE two runs
 python tools/link.py --list            which adjacent runs the real linker can take
+python tools/link.py --units           which source files are COMPLETE (= linked)
 ```
 
 Parallel agents work well on batches. Give each a distinct filename prefix —
@@ -39,8 +41,18 @@ function at the address the manifest names, so it cannot see whether two
 functions PACK, what is in the PADDING between them, or whether the ORDER is
 reachable — our objects do not even hold them in retail order. `link.py` hands
 contiguous runs to the retail `link.exe`, placed at their retail addresses.
-Matching two ADJACENT functions is therefore worth more than matching two
-scattered ones: it is what creates a run.
+
+**So adjacency is worth more than isolated matches, and `bridge.py` ranks by
+it.** A function between two matched runs does not add its own bytes, it adds
+the merged span: three string routines worth 228 bytes turned a 168- and a
+364-byte run into one 768-byte run covering a whole translation unit.
+
+**`complete` means LINKED, not matched** — it is a separate figure in
+objdiff's schema and on decomp.dev, and it was reported wrong in the
+flattering direction for months. A unit is complete when its object defines
+no function the manifest does not name AND every one of them is in a linked,
+placed, byte-identical run. `link.py` owns that question; `report.py` and
+`objdiff_export.py` import the answer rather than deciding it.
 
 ## Rules that are not negotiable
 

@@ -428,6 +428,125 @@ TLS slot 48, and an entry is `{ const char* name; u32 stamp; u32 unk; }`.
 
 ---
 
+## 7z. `complete_code` was never zero, and it was wrong in the flattering direction
+
+*measured 2026-08-29*
+
+`tools/report.py` hardcoded `complete_code` to 0 and said so at length: in
+objdiff's schema `complete` means the object is LINKED, `build.py` splices,
+and claiming 0.4% linked would have been false. All correct.
+
+**But `tools/report.py` is not what decomp.dev reads.** The published
+artefact is `report.bin`, and `tools/publish_report.py` generates it with
+
+```
+objdiff-cli report generate -p . -o report.bin -f proto
+```
+
+which reads `objdiff.json`, not `build/report.json`. And `objdiff_export.py`
+was writing each unit's flag as
+
+```python
+"complete": patched == tbytes,          # i.e. THE BYTES MATCH
+```
+
+so the report actually being published said:
+
+```
+complete_code    34096          complete_units   1200
+```
+
+34,096 bytes reported as LINKED at a time when nothing whatever was linked
+and `build.py` printed "This is a SPLICE, not yet a LINK" on every run. The
+one number the project had gone out of its way to report honestly was being
+overstated by the tool downstream of it, because two files used the same word
+for two different things and nothing compared them.
+
+**What found it.** Not a check -- there was none. Someone asked how to raise
+`complete_code` from zero, and reading `report_cli.json` to see the starting
+point showed it was 34,096.
+
+**The fix.** `tools/link.py` owns the question now, and both consumers import
+the answer instead of deciding it:
+
+    a unit is COMPLETE when its object defines no function the manifest does
+    not name, AND every one of those functions lies in a run link.py linked,
+    placed at its retail address, and found byte-identical.
+
+Clause one is not a formality: 52 of 403 units fail it. The file defines a
+helper written to shape the caller's codegen that is compared to nothing --
+invisible to a splice, which only writes the named function, but a link takes
+the whole object and those bytes would occupy real addresses.
+
+Four controls now guard it, in `link.py --selftest`: nothing linked must give
+nothing complete; the run linked must give some; dropping one address must
+drop its unit; and with *every* matched address declared linked, some units
+must still be held back by clause one.
+
+### A denominator was drifting too, under the same blind spot
+
+`verify.py` compared `matched_code` three ways -- build.py, report.py,
+objdiff-cli -- and they agreed on 34,096. Nothing compared the DENOMINATOR,
+and it differed:
+
+```
+report.py     8,467,964     the whole of .text
+objdiff-cli   8,368,632     the sum of the units it was given
+```
+
+99,332 bytes apart, so two different headline percentages for one project
+(0.4026% and 0.4074%). Neither is wrong: objdiff can only count units, and a
+unit is a function, so its total is the sum of known function extents. The
+difference is the `.text` bytes belonging to no function -- **101,504 bytes
+in 15,373 gaps, of which 14,819 are exactly 4 bytes**, the COMDAT alignment
+padding measured in 7y -- plus the inventory being wrong about the sizes of
+the functions we do have.
+
+`verify.py` now requires objdiff-cli's `total_code` to equal exactly what
+`objdiff_export.py` wrote down handing it over. Modelling it from the
+inventory instead was 2,568 bytes out, for two reasons neither visible from
+outside that file: **the inventory overlaps itself by 2,332 bytes in `.text`**,
+and the export reconciles a unit's recorded size with `can_extend`/
+`can_shrink`. An equality against the exporter's own total has nothing to
+model and no tolerance to argue about, and a unit silently dropped from the
+export -- which is what shrinks a denominator and flatters a percentage --
+fails it immediately.
+
+### Three more, all found by the same cross-check in one hour
+
+**A four-byte function nobody had verified was in the published numerator.**
+`objdiff_export.py` decided "matched" as `patched == tbytes`. Where EVERY
+compared word carries a relocation, `relocate` copies the image's bits into
+all of them and equality is guaranteed by construction. `match.py` has
+refused that since the `can_shrink` hole ("all 1 word(s) are relocated, so
+nothing was actually verified"); this file had no such refusal, and
+`826C0FB8` -- four bytes, one instruction, a tail call whose whole body is a
+linker-supplied displacement -- was counted. It is in `attempts.txt`, not the
+manifest. Labelling it differently was not enough: **objdiff-cli does not
+read our categories to compute `matched_code`, it diffs the two object files**,
+so the base has to be written UNPATCHED. build.py and report.py said 35,072
+and objdiff-cli said 35,076. Two counters would have agreed and been wrong
+together.
+
+**A cross-check was reading a file nothing regenerated.** `verify.py` compared
+`matched_code` three ways, and `build/report_cli.json` was written once by
+hand and never again. For a day the check compared two live numbers against a
+constant, and passed. `publish_report.py` now writes it as a fourth step, and
+`verify.py` fails if it is older than `src/manifest.txt`. A third opinion that
+cannot change is not a third opinion.
+
+**`read_text` + `write_text` cost a day's worth of confusion, twice, in one
+session.** Python's text mode translates line endings on Windows, so restoring
+a CRLF file rewrites every line of it. `verify.py`'s negative controls did
+that to `src/manifest.txt` -- content correct, bytes different -- which
+silently invalidated `build/linked.txt`, whose whole purpose is to refuse to
+answer against a manifest it was not measured on. It refused, correctly, and
+`complete_code` read as unmeasured until the cause was found. The same
+translation had corrupted `tools/test_privacy_guard.py`'s victim file an hour
+earlier. **A restore reads and writes BYTES.**
+
+---
+
 ## 7y. The first real LINK — and four facts about `link.exe` 9.00.8153
 
 *measured 2026-08-29*
