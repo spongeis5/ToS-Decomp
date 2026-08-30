@@ -168,6 +168,50 @@ def unmasked_runs(mask):
     return runs
 
 
+def pick_function(fns, sym):
+    """The one function a manifest row names. -> (entry, None) or (None, why).
+
+    `fns` is [(name, code, anything)] from coff_functions or
+    functions_with_relocs; only the name is examined.
+
+    THE ORDER OF THE THREE TESTS IS LORE, and the exact-match step in the
+    middle is the one that matters. C symbols are not mangled, so `?name@@`
+    never matches them, and the substring test alone is wrong for any name
+    that is a prefix of another:
+
+        "vorbis_book_decode" in "vorbis_book_decodev_add"   -> True
+
+    `matched_table.compiled_size` had the mangled test and the substring test
+    with no exact test between them, then took `max` by length of whatever
+    survived. So `vorbis_book_decode` -- 100 bytes -- was measured as 572,
+    the length of `vorbis_book_decodev_add`. Four rows were wrong that way and
+    the reported total was inflated by 488 bytes, which is what made build.py
+    and report.py disagree.
+
+    REFUSING is the other half. build.py has always refused an ambiguous row
+    ("picking the largest silently builds the wrong function the moment a
+    translation unit grows a second one") and match.py now does too. This is
+    that rule in one place, so the fourth tool cannot re-derive it wrongly.
+    """
+    if sym:
+        for cand in ([f for f in fns if ("?" + sym + "@@") in f[0]],
+                     [f for f in fns if f[0] == sym],
+                     [f for f in fns if sym in f[0]]):
+            if len(cand) == 1:
+                return cand[0], None
+            if len(cand) > 1:
+                return None, ("%r matches %d functions: %s"
+                              % (sym, len(cand),
+                                 ", ".join(f[0][:40] for f in cand[:4])))
+        return None, "%r matches no function in the object" % sym
+    if len(fns) == 1:
+        return fns[0], None
+    if not fns:
+        return None, "no function in the object"
+    return None, ("%d functions in the object and the row names none: %s"
+                  % (len(fns), ", ".join(f[0][:40] for f in fns[:4])))
+
+
 def indexable(code, mask, min_bytes=MIN_UNMASKED):
     """-> (key, (code, unmasked, runs)) or (None, why not).
 

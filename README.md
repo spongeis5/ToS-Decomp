@@ -10,14 +10,20 @@ The goal is C++ that, compiled with the title's own 2008 Xbox 360 XDK
 compiler (XDK 8276), produces bytes **identical** to the retail image. Not a port, not a
 re-implementation, not an emulator.
 
-**1,215 functions matched** — 397 written by hand from the disassembly, 818 generated from their own encodings — reproducing 35,276 of the 8,467,964 bytes in `.text`, 0.4166%.
+**1,297 functions matched** — 448 written by hand from the disassembly, 818 generated from their own encodings, 31 upstream libogg/libvorbis — reproducing 49,820 of the 8,467,964 bytes in `.text`, 0.5883%.
 
-Those two halves are deliberately never added up without being split. The
-generated ones are a single expression each — a constant return, a field
-accessor, a vtable forwarder — written by script from the instructions
-themselves. They are real matches and a link will need every one, but they
-say far less than the hand-written ones about how much of this game has
-actually been read.
+Those three parts are deliberately never added up without being split.
+
+The **generated** ones are a single expression each — a constant return, a
+field accessor, a vtable forwarder — written by script from the instructions
+themselves. The **upstream** ones are libogg 1.1.3 and libvorbis 1.2.0,
+obtained rather than recovered: the game's audio middleware vendored them, and
+the release pair was identified by compiling candidates and counting what the
+image contains.
+
+Both reproduce the image exactly — the compiler does not care where source
+came from, and a link needs every one. Only the hand-written count says
+anything about how much of this game has actually been *read*.
 
 ## What is here, and what is not
 
@@ -55,7 +61,7 @@ to the retail linker itself, has it place them at their retail addresses, and
 compares what it emits against the image:
 
 ```
-123 of 160 runs, 10,988 bytes — placed, ordered and padded by link.exe
+124 of 181 runs, 12,100 bytes — placed, ordered and padded by link.exe
 ```
 
 That tests three things a splice cannot, because a splice writes each function
@@ -63,10 +69,14 @@ at the address it was told: whether the functions **pack**, what is in the
 **padding** between them, and whether the **order** is reachable at all — our
 objects do not even hold them in retail order.
 
-The 37 runs it cannot link are counted, not omitted. Most call a function
+The 57 runs it cannot link are counted, not omitted. Most call a function
 nobody has written yet, and the linker will not resolve a call to a symbol
 that has no section — so the next structural step is a link that spans more
 than one run. `HANDBOOK.md` says what that needs.
+
+Note the blocked count grows as matching does, and that is expected: a new
+match can join a clean run to one that calls outside itself, and the merged
+run is then blocked. Linked bytes and blocked runs both go up.
 
 ### `complete` means linked, not matched
 
@@ -87,8 +97,8 @@ cross-check turned up in an hour.
 
 [objdiff](https://github.com/encounter/objdiff) opens this directory
 directly — `objdiff.json` is generated and lists every unit, with
-hand-written, generated, near-miss and not-yet-started tracked as separate
-progress categories.
+hand-written, generated, upstream, near-miss and not-yet-started tracked as
+separate progress categories.
 
 ## Documentation
 
@@ -109,10 +119,18 @@ project actually knows.
 
 A measurement of what the compiler did is evidence. A conclusion that
 *nothing can be done about it* has, so far, always turned out to be wrong —
-both of this project's "provably impossible" claims fell, along with three
+both of this project's "provably impossible" claims fell, along with **seven**
 stalls that had a recorded mechanism explaining why they could not be solved.
 The measurements were right every time; the conclusions drawn from them were
-not.
+not. Nothing has ever fallen the other way.
+
+The clearest of the seven: two arena allocators resisted because the target
+reads a global's base *before* a guard, and every way of reading it early kept
+a value live across the branch, which made the compiler merge two tails that
+must stay duplicated. True, and not a bound — the read does not have to
+*survive*. Writing the capacity test as a pointer difference reads the base
+twice and then folds both reads away entirely, leaving nothing live and the
+operand order set. One line, and its twin took the identical change untouched.
 
 So a function recorded as stuck, with a reason, is not finished. It is the
 more promising target, because the reason tells you which lever to reach for.
@@ -120,5 +138,7 @@ more promising target, because the reason tells you which lever to reach for.
 ## License
 
 MIT, for the tools, build system, documentation and sources written here.
-It cannot and does not grant any right to the game, to the middleware it
-links against, or to `thirdparty/disasm/` (GNU binutils, GPL). See `LICENSE`.
+It cannot and does not grant any right to the game or to the middleware it
+links against. Two vendored trees carry their own terms and are not covered:
+`thirdparty/disasm/` (GNU binutils, GPL) and `thirdparty/ogg_vorbis/`
+(Xiph.Org libogg/libvorbis, BSD 3-clause, unmodified). See `LICENSE`.

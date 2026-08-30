@@ -23,7 +23,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from libmatch import coff_functions, trim_padding
+from libmatch import coff_functions, trim_padding, pick_function
 
 import xdkcc
 
@@ -82,14 +82,19 @@ def compiled_size(src, sym, flags, addr):
                                   use, work)
     if blob is None:
         return None
-    fns = coff_functions(blob)
-    if sym:
-        picked = [f for f in fns if ("?" + sym + "@@") in f[0]] \
-            or [f for f in fns if sym in f[0]]
-        fns = picked or fns
-    if not fns:
+    # ONE picker, in libmatch. This used to try the mangled name, then a
+    # SUBSTRING, then fall back to every function in the object and take the
+    # largest -- three guesses in a row, none of them announced. It reported
+    # `vorbis_book_decode` (100 bytes) as 572, the length of
+    # `vorbis_book_decodev_add`, because the first name is a prefix of the
+    # second and there was no exact-match test between them. Four rows were
+    # wrong and the headline byte count was 488 too high, which is how
+    # build.py and report.py came to disagree.
+    got, why = pick_function(coff_functions(blob), sym)
+    if got is None:
+        print("  %-34s %08X  %s" % (src, addr, why), file=sys.stderr)
         return None
-    _n, code, mask = max(fns, key=lambda f: len(f[1]))
+    _n, code, mask = got
     code, _m = trim_padding(code, mask)
     return len(code)
 
@@ -100,11 +105,7 @@ def compiled_size(src, sym, flags, addr):
 # them alongside 217 hand-written functions would make the headline count say
 # something false about how much of this game has been read. So they are
 # summarised on their own line and kept out of the table.
-GENERATED = ("vt_typeid_", "vt_const_", "vt_acc_")
-
-
-def is_generated(src):
-    return Path(src).name.startswith(GENERATED)
+from category import is_generated, is_upstream, category      # noqa: E402
 
 
 def build_table():
@@ -119,6 +120,8 @@ def build_table():
     failed = []
     gen_n = 0
     gen_bytes = 0
+    up_n = 0
+    up_bytes = 0
     for src, addr, sym, flags in rows():
         n = compiled_size(src, sym, flags, addr)
         if n is None:
@@ -128,6 +131,17 @@ def build_table():
         if is_generated(src):
             gen_n += 1
             gen_bytes += n
+            continue
+        # UPSTREAM is summarised rather than listed, for the same reason the
+        # generated stubs are: this table is a record of what has been READ
+        # off the disassembly, ranked by how much of the image calls it.
+        # libvorbis's mdct_backward is 832 real bytes of the image and it was
+        # obtained, not recovered; listing it beside functions someone worked
+        # out from their register discipline would make the table say
+        # something false about both.
+        if is_upstream(src):
+            up_n += 1
+            up_bytes += n
             continue
         body.append((cg.get(addr, 0), addr, n, src, sym, flags))
     if failed:
@@ -148,11 +162,15 @@ def build_table():
         lines.append("| *(%d generated)* | %d | - | `vt_typeid_*`, "
                      "`vt_const_*`, `vt_acc_*` | one expression each | `/O2` |"
                      % (gen_n, gen_bytes))
-    return "\n".join(lines), len(body), total, gen_n, gen_bytes
+    if up_n:
+        lines.append("| *(%d upstream)* | %d | - | `thirdparty/ogg_vorbis/` | "
+                     "libogg 1.1.3 + libvorbis 1.2.0, obtained not recovered "
+                     "| `/O2` |" % (up_n, up_bytes))
+    return "\n".join(lines), len(body), total, gen_n, gen_bytes, up_n, up_bytes
 
 
 def main(argv):
-    table, count, total, gen_n, gen_bytes = build_table()
+    table, count, total, gen_n, gen_bytes, up_n, up_bytes = build_table()
     doc = DOC.read_text(encoding="utf-8")
     i = doc.index(HEADER)
     j = doc.index("\n---", i)
@@ -166,14 +184,18 @@ def main(argv):
     # exactly the token it maintains and nothing adjacent to it.
     import re
     new = re.sub(r"\*\*\d+ functions, \d+ bytes\.\*\*",
-                 "**%d functions, %d bytes.**" % (count + gen_n, total),
-                 new, count=1)
+                 "**%d functions, %d bytes.**"
+                 % (count + gen_n + up_n, total), new, count=1)
     # The headline count alone would be true and misleading in one breath, so
     # the split is maintained beside it rather than left to drift by hand.
+    # Three ways now: upstream code reproduces the image exactly and says
+    # nothing about how much of the game has been read.
     new = re.sub(r"SPLIT: \d+ hand-written, \d+ bytes; \d+ generated, "
-                 r"\d+ bytes\.",
-                 "SPLIT: %d hand-written, %d bytes; %d generated, %d bytes."
-                 % (count, total - gen_bytes, gen_n, gen_bytes),
+                 r"\d+ bytes(?:; \d+ upstream, \d+ bytes)?\.",
+                 "SPLIT: %d hand-written, %d bytes; %d generated, %d bytes; "
+                 "%d upstream, %d bytes."
+                 % (count, total - gen_bytes - up_bytes, gen_n, gen_bytes,
+                    up_n, up_bytes),
                  new, count=1)
     n_os = sum(1 for r in rows() if r[3] and "/Os" in r[3])
     new = re.sub(r"\*\*The retail build did NOT use one optimisation level "
@@ -183,17 +205,18 @@ def main(argv):
 
     if "--check" in argv:
         same = (new == doc)
-        print("MATCHED.md is %s (%d hand-written + %d generated "
+        print("MATCHED.md is %s (%d hand-written + %d generated + %d upstream "
               "= %d function(s), %d bytes)"
               % ("up to date" if same else "STALE -- run without --check",
-                 count, gen_n, count + gen_n, total))
+                 count, gen_n, up_n, count + gen_n + up_n, total))
         return 0 if same else 1
 
     DOC.write_text(new, encoding="utf-8")
     print("MATCHED.md: %d hand-written (%d bytes) + %d generated (%d bytes)"
-          % (count, total - gen_bytes, gen_n, gen_bytes))
+          % (count, total - gen_bytes - up_bytes, gen_n, gen_bytes))
+    print("            + %d upstream (%d bytes)" % (up_n, up_bytes))
     print("            = %d function(s), %d bytes, %d at /O2 /Os"
-          % (count + gen_n, total, n_os))
+          % (count + gen_n + up_n, total, n_os))
     return 0
 
 

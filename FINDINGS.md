@@ -428,6 +428,70 @@ TLS slot 48, and an entry is `{ const char* name; u32 stamp; u32 unk; }`.
 
 ---
 
+## 8b. FIVE tools picked a function from an object, and two picked the wrong one
+
+*measured 2026-08-29*
+
+Given a manifest row naming a symbol, something has to find that function in
+the compiled object. Five tools did it, each with its own copy of the rule,
+and the copies had drifted:
+
+```
+build.py             mangled, then EXACT, then substring; REFUSES if >1   correct
+link.py              same three, returns None if >1                       correct
+sweep.py             ranks by closeness to the target's size              correct
+match.py             warned, then took the LARGEST                        WRONG
+matched_table.py     mangled, then substring, then ALL; took the LARGEST  WRONG
+objdiff_export.py    mangled, then substring                              WRONG
+```
+
+**The missing exact-name test is what did the damage.** C symbols are not
+mangled, so `?name@@` never matches one, and the substring test alone is
+wrong for any name that is a prefix of another:
+
+```
+"vorbis_book_decode" in "vorbis_book_decodev_add"   -> True
+```
+
+`matched_table.compiled_size` therefore measured `vorbis_book_decode` -- 100
+bytes -- as **572**, the length of `vorbis_book_decodev_add`. Four rows were
+wrong the same way and **the reported total was 488 bytes too high**: 50,308
+against build.py's 49,820, and a headline of 0.5941% against the true
+0.5883%.
+
+`match.py` failed differently and more quietly. Given no symbol it printed
+"using the largest" and did that; where a `static` helper is both inlined and
+emitted as its own COMDAT the object holds two functions of EQUAL length, so
+`max` broke the tie arbitrarily and reported **12 of 15 for the helper** while
+the function being worked on was 11 of 14. A near-miss score is what decides
+the next target.
+
+### What caught it, and what did not
+
+Not a check -- `verify.py`'s three-way agreement compared build.py, report.py
+and objdiff-cli on `matched_code` and they had agreed for weeks. It only fired
+once the upstream Ogg rows arrived, because until then no tracked source had
+two functions whose names were prefixes of one another. **The check was right
+and had simply never been given an input that could distinguish the tools.**
+
+The rule now lives once, in `libmatch.pick_function`, and all four consumers
+import it. `objdiff_export` keeps its documented largest-function fallback for
+rows with NO symbol, because near-miss rows rarely carry one and a near-miss
+missing from objdiff defeats the point of objdiff -- but that path cannot
+affect the numerator, since a near-miss unit is never counted as matched.
+
+### And the same afternoon, in the same file
+
+`objdiff_export.py` crashed with `NameError: ROOT is not defined` in a digest
+line added an hour earlier -- that module has no `ROOT`. `publish_report.py`
+called it through a helper that exits on failure, so the pipeline was
+correct; what hid it was reading the output through `| grep`, which reports
+grep's status. The stale `report_cli.json` that resulted then looked like a
+fourth counting bug rather than a crashed step. **`set -o pipefail` is in the
+operating notes for exactly this shape and it still cost twenty minutes.**
+
+---
+
 ## 8a. The Ogg/Vorbis in this image is FMOD's vendored copy, and its version is NOT stamped
 
 *measured 2026-08-29*

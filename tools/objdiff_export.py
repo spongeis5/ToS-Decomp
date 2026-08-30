@@ -40,7 +40,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from peimage import Image, load_inventory
-from libmatch import trim_padding
+from libmatch import trim_padding, pick_function
 from match import can_shrink, can_extend
 from coffreloc import functions_with_relocs
 import build as buildmod
@@ -183,8 +183,18 @@ def main(argv):
             continue
         fns = functions_with_relocs(blob)
         if want_sym:
-            picked = [f for f in fns if ("?" + want_sym + "@@") in f[0]] or \
-                     [f for f in fns if want_sym in f[0]]
+            # THE SHARED PICKER, because this was a fifth copy of the rule and
+            # carried the same defect as matched_table's: mangled name, then
+            # SUBSTRING, with no exact-name test between them. C symbols are
+            # not mangled and `vorbis_book_decode` is a prefix of
+            # `vorbis_book_decodev_add`, so four upstream rows resolved to
+            # several functions each. Here that means the units objdiff-cli
+            # diffs are the wrong ones, and its matched_code is what decomp.dev
+            # publishes.
+            got, why = pick_function(fns, want_sym)
+            picked = [got] if got is not None else []
+            if got is None:
+                print("  %-28s %08X  %s" % (src.name, target, why))
         else:
             # No symbol column: take the LARGEST function, which is exactly
             # what match.py does in the same situation. Failing instead
@@ -298,10 +308,12 @@ def main(argv):
         #
         # `source_path` makes each unit click through to its .cpp, which is
         # the thing you want the moment a diff shows you something.
-        gen = src.name.startswith(("vt_typeid_", "vt_const_", "vt_acc_"))
-        cat = "generated" if gen else (
-            "handwritten" if (patched == tbytes and verified_word)
-            else "nearmiss")
+        # The split comes from tools/category.py, the one place that defines
+        # it -- this file used to carry its own copy of the prefix tuple.
+        import category as _cat
+        kind = _cat.category(src)
+        gen = (kind != "handwritten")
+        cat = kind if (patched == tbytes and verified_word) else "nearmiss"
         units.append({
             "name": "%s (%s)" % (sym, src.stem),
             "target_path": "build/objdiff/target/%s.o" % unit,
@@ -375,6 +387,7 @@ def main(argv):
         "progress_categories": [
             {"id": "handwritten", "name": "Hand-written from disassembly"},
             {"id": "generated", "name": "Generated from encodings"},
+            {"id": "upstream", "name": "Upstream third-party source"},
             {"id": "nearmiss", "name": "Near-miss"},
             {"id": "undecompiled", "name": "No source yet"},
         ],
@@ -398,7 +411,7 @@ def main(argv):
     # past guards.
     import hashlib
     digest = hashlib.sha256(
-        (ROOT / "src/manifest.txt").read_bytes()).hexdigest()[:16]
+        Path("src/manifest.txt").read_bytes()).hexdigest()[:16]
     (Path("build") / "objdiff_totals.json").write_text(json.dumps({
         "sourced_bytes": emitted_sourced,
         "coverage_bytes": emitted_coverage,

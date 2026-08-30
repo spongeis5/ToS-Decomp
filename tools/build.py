@@ -43,7 +43,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from peimage import Image, load_inventory
-from libmatch import trim_padding
+from libmatch import trim_padding, pick_function
 import coffreloc
 import xdkcc
 from coffreloc import (functions_with_relocs, type_name, solve_address,
@@ -276,36 +276,21 @@ def main(argv):
                   % (src.name, target))
             failures += 1
             continue
-        if want_sym:
-            # Anchor on the mangled form first: MSVC emits `?Name@@YA...`, so
-            # "?Name@@" pins the whole name. A plain substring would make
-            # `ClearAndHandle` also match `ClearAndHandleOther`.
-            picked = [f for f in fns if ("?" + want_sym + "@@") in f[0]]
-            if not picked:
-                picked = [f for f in fns if f[0] == want_sym]
-            if not picked:
-                picked = [f for f in fns if want_sym in f[0]]
-            if len(picked) != 1:
-                print("  %-26s %08X  symbol %r matches %d function(s); the"
-                      % (src.name, target, want_sym, len(picked)))
-                print("      manifest needs one that is unique. Present:")
-                for n, c, _r in fns:
-                    print("        %-56s %d B" % (n[:56], len(c)))
-                failures += 1
-                continue
-            name, code, relocs = picked[0]
-        elif len(fns) != 1:
-            # Picking "the largest" silently builds the wrong function the
-            # moment a translation unit grows a second one. Refuse instead.
-            print("  %-26s %08X  %d functions in the object and the manifest"
-                  % (src.name, target, len(fns)))
-            print("      line names none. Add a symbol column to choose:")
+        # The rule lives in libmatch.pick_function -- mangled name, then EXACT
+        # name, then substring, refusing whenever more than one survives.
+        # This was that rule's original home and three other tools grew their
+        # own copy; one of them omitted the exact-name step and measured
+        # `vorbis_book_decode` as the length of `vorbis_book_decodev_add`.
+        got, why = pick_function(fns, want_sym)
+        if got is None:
+            print("  %-26s %08X  %s" % (src.name, target, why))
+            print("      the manifest row needs a symbol that names exactly"
+                  " one. Present:")
             for n, c, _r in fns:
                 print("        %-56s %d B" % (n[:56], len(c)))
             failures += 1
             continue
-        else:
-            name, code, relocs = fns[0]
+        name, code, relocs = got
         code, _m = trim_padding(code, bytes([1]) * len(code))
         relocs = [r for r in relocs if r.off < len(code)]
 

@@ -59,6 +59,33 @@
 // its second parameter; and the clamp writing into a second variable so the
 // product and the clamped value are separate vregs that coalesce.
 //
+// TWO MORE, both byte-identical to the baseline with the same eleven-word
+// transposition:
+//
+//   * the 60.0f as an `extern const f32` rather than a literal, written
+//     `(dt * rate) * g_k60`. The point was that a genuine global load cannot
+//     be folded or sunk to its use the way a materialised literal can, so
+//     PRE might hoist it to the entry and create its value first. It does
+//     not: the emitted `lis`/`lfs` pair is in the same place and f13 still
+//     holds it. (Both `lis` words are relocated either way, so this costs
+//     nothing in the score.)
+//   * `s` declared before `m`, leaving `m` as the last declaration. The
+//     earlier measurements moved `v` and `m` relative to `t`, but not `s`
+//     relative to `m`. No change.
+//
+// SAID AS TWO WEBS, which is the shortest true statement of what is left.
+// The volatile FP registers go f0, f13, f12, f11, f10 to the values as they
+// are created, and there are two long webs:
+//
+//      W1 = { 60.0f, m, the stored sum }      W2 = { dt*rate, t, s }
+//
+// The image gives f0 to W1 and f13 to W2; we give f0 to W2 and f13 to W1,
+// and everything else -- f12 for 1.0f then *p, f11 for dt*limit, f10 for
+// target-*p -- agrees. `(dt * rate) * 60.0f` creates W2's first member
+// before W1's because the product is the LEFT operand of the outer multiply,
+// and every spelling that puts the constant first either reassociates under
+// /fp:fast or is canonicalised back to this one.
+//
 // THE FLAG AXIS IS EXHAUSTED, not merely untried: `tools/flagsweep.py`
 // compiles all 72 combinations, 0 failed, and the best is this one.
 //

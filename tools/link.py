@@ -58,7 +58,7 @@ import coffwrite
 import matched_table
 import xdkcc
 from coffreloc import functions_with_relocs, COMPANION
-from libmatch import trim_padding
+from libmatch import trim_padding, pick_function
 from peimage import Image
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -136,16 +136,13 @@ def obj_for(src, flags):
 
 
 def pick(blob, sym):
-    """The one function a manifest row names, by the same rule build.py uses."""
-    fns = functions_with_relocs(blob)
-    if not sym:
-        return fns[0] if len(fns) == 1 else None
-    for cand in ([f for f in fns if ("?" + sym + "@@") in f[0]],
-                 [f for f in fns if f[0] == sym],
-                 [f for f in fns if sym in f[0]]):
-        if len(cand) == 1:
-            return cand[0]
-    return None
+    """The one function a manifest row names. -> entry or None.
+
+    The rule itself lives in `libmatch.pick_function`, because four tools had
+    their own copy of it and one of them got it wrong -- see that docstring.
+    """
+    got, _why = pick_function(functions_with_relocs(blob), sym)
+    return got
 
 
 def undefined_externals(blob):

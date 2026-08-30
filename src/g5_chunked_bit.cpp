@@ -43,23 +43,47 @@
 // for the mask against `w`, and 37 of 38 with `w` first.  Leaving the mask
 // inside the arms duplicates it, +12 bytes.
 //
-// NEAR MISS: 37 of 38 words, at the exact size.  The one word is 8216C2A0,
-// `or r8,r7,r9` against our `or r8,r9,r7` -- the mask is in the rS field in
-// the target and the loaded word is there in ours.  The registers are right
-// on both sides; only the two source fields are exchanged.
+// MATCHED, 38 of 38 words at /O2.  Nothing is relocated, so all 38 are
+// compared.  The last word to fall was 8216C2A0,
 //
-// SOURCE OPERAND ORDER OF `or` IS NOT READABLE, which is a new entry for
-// MATCHED.md's list: it belongs with `mullw` and the commutative float
-// operators, not with `add` and `subf`.  Sixteen spellings compile to the
-// identical instruction -- `|=`, `w = w | bit`, `w = bit | w`, the word in a
-// local either way round, the element's address in a local either way round,
-// both arms through locals, the mask through a second local, `s32` against
-// `u32` for the mask and for the array element in all three combinations,
-// two helpers taking the operands in opposite orders, and a helper taking
-// the element's address -- and so do all 72 flag combinations
-// `tools/flagsweep.py` builds (44 give 37 of 38, 28 give 1 of 38 at 164
-// bytes).  The `andc` in the other arm is already right, and it is not
-// commutative, which is why only this one word is exposed.
+//      want  or r8,r7,r9      the MASK in rS, the loaded word in rB
+//      got   or r8,r9,r7      the loaded word in rS
+//
+// and it came out of the INDEX, not the operator.  `p->words[r & 0x3FFFFFFF]`
+// in both arms is 38 of 38.
+//
+// SOURCE OPERAND ORDER OF `or` IS STILL NOT READABLE, and that earlier
+// measurement stands -- it was the conclusion drawn from it that was wrong.
+// Every spelling of the OR itself gives the identical instruction: `|=`,
+// `w = w | bit`, `w = bit | w`, the word in a local either way round, the
+// element's address in a local either way round, both arms through locals,
+// the mask through a second local, `s32` against `u32` in all three
+// combinations, two helpers with the operands swapped, a helper taking the
+// element's address, a const view of the block either way round, a longer
+// chain for the loaded word, and `u32* wp = p->words;` either way round.  All
+// 72 flag combinations agree as well (44 give 37 of 38, 28 give 1 of 38 at
+// 164 bytes).  So the operand order genuinely carries no information -- but
+// it is not the only thing that sets it.
+//
+// WHY THE MASK REACHES IT.  MATCHED.md's AND-mask lever is recorded for
+// `lwzx` and `stwx` operand order: MSVC matches `base + (index << scale)` as
+// an addressing mode, a masked index misses that pattern, and the mask itself
+// is absorbed into the `rlwinm` the `* 4` already needed.  Here both indexed
+// accesses were ALREADY index-first and correct, so there was nothing to flip
+// there -- what changed is that the missed addressing-mode pattern rebuilds
+// the expression tree around the load, and the commutative `or` comes out of
+// the rebuilt tree with its operands the other way round.  The scaling word
+// `rlwinm r10,r8,2,0,29` is byte-identical either way, and no other word in
+// the function moves.
+//
+// The mask changes nothing the function computes, and here that is exact
+// rather than incidental: `(r & 0x3FFFFFFF) << 2` and `r << 2` are the same
+// 32-bit value for EVERY r, because the two bits the mask clears are the two
+// the shift discards.  So this is not the sub_826DD4A0 case where the mask
+// happened to wrap to the same address on one path -- it is an identity.
+//
+// The `andc` in the other arm is not commutative, which is why only the one
+// word was ever exposed.
 
 #include "types.h"
 
@@ -91,7 +115,7 @@ void ChunkedSetBit(ChunkedSet* s, s32 index, bool on)
         Block* p = s->head;
         for (s32 i = q; i != 0; i--)
             p = p->next;
-        p->words[r] |= bit;
+        p->words[r & 0x3FFFFFFF] |= bit;
     }
     else
     {
@@ -100,6 +124,6 @@ void ChunkedSetBit(ChunkedSet* s, s32 index, bool on)
         Block* p = s->head;
         for (s32 i = q; i != 0; i--)
             p = p->next;
-        p->words[r] &= ~bit;
+        p->words[r & 0x3FFFFFFF] &= ~bit;
     }
 }

@@ -1,5 +1,5 @@
 // sub_826973C8 -- byte string compare. 44 bytes, 47 callers.
-// NOT MATCHED: 9 of 11 words at /O2 /Os. See the bottom of this file.
+// NOT MATCHED: 9 of 11 words at /O2 /Os, 7 of 11 at /O2. See the bottom.
 //
 //      mr      r11,r3          keep the first pointer; r3 becomes the result
 //  L:  lbz     r10,0(r11)
@@ -34,42 +34,74 @@
 //      /O2 /Os   cmpwi r10,0 / beqlr           correct GPRs, WRONG CR field
 //                lbz r10 / lbz r9              (cr0, target uses cr6)
 //
-// The two properties are coupled to the optimisation level and no flag
-// separates them. tools/flagsweep.py --full compiled 2304 distinct
-// combinations against this source: 864 score 9/11, 1440 score 7/11, none
-// scores more. Undocumented spellings tried by hand on top of that
-// (/Ou-, /Oz, /Oc, /J, /Zp1, /Og /Oi /Ot /Oy) all score 7/11.
+// Every one of the eleven instructions is otherwise correct at both levels,
+// in the right order, at the right size. At /O2 four words differ (the two
+// `lbz` destinations and the two instructions that read them); at /O2 /Os
+// two differ (the `cmpwi`'s CR field and the `beqlr`'s).
 //
-// Source shape does not move it either. Eleven loop shapes were compiled at
-// both levels -- do/while, for(;;) with two returns, while(1) with breaks,
-// post-increment deref, both bytes in locals, an explicit local copy of the
-// first pointer, an unused third parameter, and three shapes written to put
-// the `d == 0` test EARLIER in source order than the `c == 0` test on the
-// theory that /Os hands cr0 to whichever comparison it meets first. Every
-// shape that keeps the loop unpeeled gives r8/r7 at /O2 and cr0 at /Os;
-// every shape that gets r10/r9 at /O2 does so by PEELING the first
+// MEASURED THIS SESSION, and the first item is new evidence rather than one
+// more failed shape:
+//
+// **The split is exactly the /Os bit, and it is reachable from SOURCE.**
+// `#pragma optimize("s", on)` in the file, compiled at plain /O2, gives the
+// /Os answer -- 9 of 11, r10/r9 with cr0. `#pragma optimize("t", on)`
+// compiled at /O2 /Os gives the /O2 answer -- 7 of 11, r8/r7 with cr6. So
+// the two properties are not merely correlated with a command-line flag that
+// a sweep might have mis-covered; they are two consequences of one internal
+// size-versus-speed decision, and a per-function source knob moves them
+// together in both directions. `#pragma optimize` with "g" off is 104 B and
+// 0 of 11; with "a" or "w" it is identical to the baseline.
+//
+// **59 source shapes, at both levels** (11 of them also at /O1, which is the
+// /Os answer): every one reproduces the same split, and every 44-byte one
+// gives exactly r8/r7+cr6 at /O2 and r10/r9+cr0 at /Os. They were chosen to
+// attack the two properties separately:
+//
+//   for the CR FIELD at /Os -- the byte un-named and spelled `*a` at both
+//   uses (this is sub_825E35E0's naming lever, which moves cr6/cr0 there and
+//   does nothing here), `(int)*a` casts, `a[0]`, `!c`, `0 == c`, `c < 1`,
+//   a `zero` local, `(c | 0)`, `break` instead of the early return, the
+//   guard written positively with the body in the `if` and the return in the
+//   `else`, a `continue` form, a `goto` loop, `while (!d)`, both bytes named
+//   in either declaration order, and `unsigned c` with casts;
+//
+//   for the GPR PAIR at /O2 -- an extra dead local, a dead pointer, a copy
+//   of both parameters, an unused third parameter, a third parameter whose
+//   use folds away, an index walk, post-increment dereference, `+= 1`,
+//   `const u8*` versus `const char*` with `(u8)` casts, `__restrict` on both
+//   parameters, a `struct Bytes` element type, and THREE MEMBER-FUNCTION
+//   forms (`this` walked as `data`, as `&first`, and as a cast) -- the
+//   member-function lever from sub_826C0FC8, which does not apply here;
+//
+//   and the FOLDED-READ lever that cracked the arena twins this session --
+//   `a[a - a]`, `*a - *a + *a`, `*(a + (b - b))`, `c + (d - d)` in the NUL
+//   test, `d + (c - c)` in the loop test, `if (a != a) return 0;` before and
+//   inside the loop, and `a = a + (n - n);`. On the arena that lever moved an
+//   `add`'s operand order because a read position survives the folding; here
+//   nothing about register or CR-field allocation moves with it, in any of
+//   the seven placements. That is worth recording as a LIMIT: the folded-read
+//   lever reaches operand SELECTION, not register or CR-field ASSIGNMENT.
+//
+// Every shape that gets r10/r9 at /O2 does so by PEELING the first
 // iteration, which costs 12 to 20 extra bytes and cannot be the target.
 //
-// So under /Os the compiler assigns cr0 to the comparison feeding the
-// conditional return and cr6 to the one feeding the loop-back branch,
-// independently of the order they are written in. That is a scheduling or
-// CR-allocation property, the same class of thing as the six stalls in
-// MATCHED.md, and nothing reachable from source order or flags changes it.
+// **136 flag combinations beyond flagsweep's own 2304.** 44 further options
+// from `cl /?` -- /GX /EHsc /EHa /GR /Zi /Z7 /GF /Gm /Oz /Oc /J /Zp1 /Zp2
+// /Zp4 /Zp8 /Zp16 /Oi /Oi- /Ou /Ob0 /Ob1 /Ob2 /Ot /openmp /Zc:wchar_t- /GS
+// /Gy- /H8 /vmg /vd0 /vd2 /Zl /TC /TP /analyze /Wall /W4 -- each crossed
+// with /O2 and with /O2 /Os. Only /Ot moves anything, and only by cancelling
+// /Os. (/Za, /GL, /RTCu, /u, /Zg and /bigobj do not compile here.)
 //
-// STILL 9 of 11 words. Sixteen more shapes were compiled at BOTH levels and
-// every one reproduces the same split -- r8/r7 with cr6 at /O2, r10/r9 with
-// cr0 at /Os: declaration order of `c` and `d` in both orders; a local copy
-// of the first pointer declared before and after the ints; the second byte
-// named, declared first and second; the increments in either order and
-// written as `+= 1`; a goto loop; `const unsigned char*` parameters;
-// `break` instead of the early return; the difference written
-// `-(int)*b + c`; a dead extra local pointer carrying the increment; and
-// top-level `const` on the parameters with the walk on copies (which
-// instead triggers a loop-invariant-delta transform, `lbzx r8,r10,r11`).
-// The two peeling shapes get r10/r9 at /O2 and cost 12 to 20 bytes.
-//
-// The GPR pair and the CR field are properties of the optimisation level
-// and not of the source, and they disagree about which level is right.
+// So the two properties are coupled to one optimisation decision, they
+// disagree about which way that decision went, and neither the flag axis nor
+// any source shape yet tried separates them. What has NOT been tried, and is
+// where the next attempt should go, is a lever that changes what the
+// register allocator SEES rather than what it is asked to compute -- the
+// note in MATCHED.md that tools/permuter.py's mutations do not reach
+// register allocation is about exactly this gap, and this function is the
+// cleanest test case for a mutation that changes register pressure, because
+// only two registers and one CR field are in question and every other word
+// is already right.
 
 #include "types.h"
 

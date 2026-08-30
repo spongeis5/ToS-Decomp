@@ -72,12 +72,11 @@ from peimage import Image, load_inventory
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "build/report.json"
-GENERATED = ("vt_typeid_", "vt_const_", "vt_acc_")
-
-CATEGORIES = [
-    ("handwritten", "Hand-written from disassembly"),
-    ("generated", "Generated from encodings"),
-]
+# ONE definition of the split, in tools/category.py. Four tools carried their
+# own copy of the generated-prefix tuple, which is how a split silently stops
+# agreeing; adding a third category to four places separately would have been
+# the fifth time this project paid for that.
+from category import category as _category, CATEGORIES
 
 
 def rows(path):
@@ -184,8 +183,8 @@ def main(argv):
     complete_units = 0
 
     for src in sorted(by_file):
-        gen = Path(src).name.startswith(GENERATED)
-        cat = "generated" if gen else "handwritten"
+        cat = _category(src)
+        gen = (cat != "handwritten")      # objdiff's "not worth a human's eye"
         fns = []
         u_code = u_matched = 0
         u_ok = 0

@@ -66,10 +66,42 @@
 //     ; beqlr` proves the second test survives, which only the two-conjunct
 //     spelling produces;
 //   * /O2 /Os -- 0 of 15, the whole body shifts.
+//   * the same two conjuncts written with implicit bool conversions,
+//     `(g_level_dirty && !on) || (on && !g_level_dirty)` -- a different AST
+//     for the same tests, and BYTE-IDENTICAL, same 10 of 15.
+//   * the POSITIVE form, `if (!(...)) { work }` with the four stores inside
+//     the guard instead of an early return -- byte-identical, same 10 of 15.
+//     So the polarity of the outer statement carries nothing here.
+//   * a ternary with the false arm laid out first,
+//     `if (g_level_dirty == 0 ? (on != 0 && g_level_dirty == 0) : (on == 0))`
+//     -- chosen because that IS the target's block order, and much worse:
+//     76 bytes, 0 of 19, one flag compare instead of two and `bnelr` where
+//     the image has a pair. A `?:` cannot produce this function: the SECOND
+//     `cmplwi cr6,r11,0` in the image is the fingerprint of two conjuncts.
 //
 // So the source shape is settled by the instructions and only the block
 // placement is open, which is the class of difference MATCHED.md warns is
 // sometimes not source-reachable.
+//
+// THE BLOCK ORDER, named precisely, so the next reader is not re-deriving
+// it. Write T1 = `flag != 0`, T2 = `on == 0`, T3 = `on != 0`, T4 =
+// `flag == 0`; the source is (T1 && T2) || (T3 && T4).
+//
+//      target   [T1] [T3 T4] [T2] [work]      entry bne- to T2
+//      ours     [T1] [T2] [T3 T4] [work]      entry beq- to T3
+//
+// MSVC lays blocks in the order the expression creates them -- T1, T2, T3,
+// T4 -- which is ours, and no rewriting of one `||` expression reorders
+// that without also changing which term is tested at the entry (the
+// conjuncts swapped is 0 of 15, with `on` at the entry).
+//
+// One thing in the target is NOT explained by any layout of ours, and is
+// the strongest clue left: the target's T2 block ends `beqlr` and falls
+// straight into the work, so its FALSE edge goes to the work rather than to
+// conjunct 2 -- which means MSVC folded conjunct 2 away on the `flag != 0`
+// edge. Yet it did NOT fold the `cmplwi cr6,r11,0 ; beqlr` in the T4 block,
+// which is always true on its only predecessor. A shape that gets one fold
+// without the other is what is missing.
 
 #include "types.h"
 

@@ -43,6 +43,13 @@ IT DOES NOT COVER, AND CANNOT GRANT ANY RIGHT TO:
     which is GPL-licensed and carries its own terms. It is vendored for
     disassembly only and is not part of the MIT-licensed work above.
 
+  * `thirdparty/ogg_vorbis/`, unmodified upstream libogg 1.1.3 and libvorbis
+    1.2.0 from the Xiph.Org Foundation, which are BSD 3-clause licensed and
+    carry their own terms in `ogg/COPYING` and `vorbis/COPYING`. They are
+    vendored because the title's audio middleware links them and the matches
+    that reproduce those bytes have to be rebuildable from a clone. They are
+    not part of the MIT-licensed work above, and no claim is made over them.
+
 Disassembly listings appear in comments throughout `src/` because a matching
 decompilation is unreadable without them. They are excerpts of the original
 program, quoted to document what each function must reproduce, and they are

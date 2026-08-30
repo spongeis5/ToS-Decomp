@@ -22,6 +22,10 @@
       "name": "Generated from encodings"
     },
     {
+      "id": "upstream",
+      "name": "Upstream third-party source"
+    },
+    {
       "id": "nearmiss",
       "name": "Near-miss"
     },
@@ -2064,7 +2068,7 @@
       "target_path": "build/objdiff/target/i_canon_switch_821A99F8.o",
       "base_path": "build/objdiff/base/i_canon_switch_821A99F8.o",
       "metadata": {
-        "complete": false,
+        "complete": true,
         "source_path": "src/i_canon_switch.cpp",
         "progress_categories": [
           "handwritten"
@@ -2597,7 +2601,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE100.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE100.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2610,7 +2614,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE110.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE110.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2623,7 +2627,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE120.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE120.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2636,7 +2640,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE130.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE130.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2649,7 +2653,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE140.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE140.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2662,7 +2666,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE150.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE150.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2675,7 +2679,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE160.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE160.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2688,7 +2692,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE170.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE170.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2701,7 +2705,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE180.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE180.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2714,7 +2718,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE190.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE190.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2727,7 +2731,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE1A0.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE1A0.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2740,7 +2744,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE1B0.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE1B0.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2753,7 +2757,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE1C0.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE1C0.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2766,7 +2770,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE1D0.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE1D0.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2779,7 +2783,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE1E0.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE1E0.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2792,7 +2796,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE1F0.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE1F0.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2805,7 +2809,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE200.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE200.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2818,7 +2822,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE210.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE210.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2831,7 +2835,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE220.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE220.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2844,7 +2848,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE230.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE230.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2857,7 +2861,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE240.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE240.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2870,7 +2874,7 @@
       "target_path": "build/objdiff/target/vt_typeid_01_821AE250.o",
       "base_path": "build/objdiff/base/vt_typeid_01_821AE250.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_01.cpp",
         "progress_categories": [
           "generated"
@@ -2883,7 +2887,7 @@
       "target_path": "build/objdiff/target/vt_typeid_02_821AE260.o",
       "base_path": "build/objdiff/base/vt_typeid_02_821AE260.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_02.cpp",
         "progress_categories": [
           "generated"
@@ -2896,7 +2900,7 @@
       "target_path": "build/objdiff/target/vt_typeid_02_821AE270.o",
       "base_path": "build/objdiff/base/vt_typeid_02_821AE270.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_02.cpp",
         "progress_categories": [
           "generated"
@@ -2909,7 +2913,7 @@
       "target_path": "build/objdiff/target/vt_typeid_02_821AE280.o",
       "base_path": "build/objdiff/base/vt_typeid_02_821AE280.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_02.cpp",
         "progress_categories": [
           "generated"
@@ -2922,7 +2926,7 @@
       "target_path": "build/objdiff/target/vt_typeid_02_821AE290.o",
       "base_path": "build/objdiff/base/vt_typeid_02_821AE290.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_02.cpp",
         "progress_categories": [
           "generated"
@@ -2935,7 +2939,7 @@
       "target_path": "build/objdiff/target/vt_typeid_02_821AE2A0.o",
       "base_path": "build/objdiff/base/vt_typeid_02_821AE2A0.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_02.cpp",
         "progress_categories": [
           "generated"
@@ -2948,7 +2952,7 @@
       "target_path": "build/objdiff/target/vt_typeid_02_821AE2B0.o",
       "base_path": "build/objdiff/base/vt_typeid_02_821AE2B0.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_02.cpp",
         "progress_categories": [
           "generated"
@@ -2961,7 +2965,7 @@
       "target_path": "build/objdiff/target/vt_typeid_02_821AE2C0.o",
       "base_path": "build/objdiff/base/vt_typeid_02_821AE2C0.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_02.cpp",
         "progress_categories": [
           "generated"
@@ -2974,7 +2978,7 @@
       "target_path": "build/objdiff/target/vt_typeid_02_821AE2D0.o",
       "base_path": "build/objdiff/base/vt_typeid_02_821AE2D0.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_02.cpp",
         "progress_categories": [
           "generated"
@@ -2987,7 +2991,7 @@
       "target_path": "build/objdiff/target/vt_typeid_02_821AE2E0.o",
       "base_path": "build/objdiff/base/vt_typeid_02_821AE2E0.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_02.cpp",
         "progress_categories": [
           "generated"
@@ -3000,7 +3004,7 @@
       "target_path": "build/objdiff/target/vt_typeid_02_821AE2F0.o",
       "base_path": "build/objdiff/base/vt_typeid_02_821AE2F0.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_02.cpp",
         "progress_categories": [
           "generated"
@@ -3013,7 +3017,7 @@
       "target_path": "build/objdiff/target/vt_typeid_02_821AE300.o",
       "base_path": "build/objdiff/base/vt_typeid_02_821AE300.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_02.cpp",
         "progress_categories": [
           "generated"
@@ -3026,7 +3030,7 @@
       "target_path": "build/objdiff/target/vt_typeid_02_821AE310.o",
       "base_path": "build/objdiff/base/vt_typeid_02_821AE310.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_02.cpp",
         "progress_categories": [
           "generated"
@@ -3039,7 +3043,7 @@
       "target_path": "build/objdiff/target/vt_typeid_02_821AE320.o",
       "base_path": "build/objdiff/base/vt_typeid_02_821AE320.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_02.cpp",
         "progress_categories": [
           "generated"
@@ -3052,7 +3056,7 @@
       "target_path": "build/objdiff/target/vt_typeid_02_821AE330.o",
       "base_path": "build/objdiff/base/vt_typeid_02_821AE330.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_02.cpp",
         "progress_categories": [
           "generated"
@@ -4651,7 +4655,7 @@
       "target_path": "build/objdiff/target/vt_typeid_06_821D9A10.o",
       "base_path": "build/objdiff/base/vt_typeid_06_821D9A10.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_06.cpp",
         "progress_categories": [
           "generated"
@@ -4664,7 +4668,7 @@
       "target_path": "build/objdiff/target/vt_typeid_06_821D9A20.o",
       "base_path": "build/objdiff/base/vt_typeid_06_821D9A20.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_06.cpp",
         "progress_categories": [
           "generated"
@@ -4677,7 +4681,7 @@
       "target_path": "build/objdiff/target/vt_typeid_06_821D9A38.o",
       "base_path": "build/objdiff/base/vt_typeid_06_821D9A38.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_06.cpp",
         "progress_categories": [
           "generated"
@@ -4690,7 +4694,7 @@
       "target_path": "build/objdiff/target/vt_typeid_06_821D9A48.o",
       "base_path": "build/objdiff/base/vt_typeid_06_821D9A48.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_06.cpp",
         "progress_categories": [
           "generated"
@@ -4703,7 +4707,7 @@
       "target_path": "build/objdiff/target/vt_typeid_06_821D9A58.o",
       "base_path": "build/objdiff/base/vt_typeid_06_821D9A58.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_06.cpp",
         "progress_categories": [
           "generated"
@@ -4716,7 +4720,7 @@
       "target_path": "build/objdiff/target/vt_typeid_06_821D9A68.o",
       "base_path": "build/objdiff/base/vt_typeid_06_821D9A68.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_06.cpp",
         "progress_categories": [
           "generated"
@@ -4729,7 +4733,7 @@
       "target_path": "build/objdiff/target/vt_typeid_06_821D9AE0.o",
       "base_path": "build/objdiff/base/vt_typeid_06_821D9AE0.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_06.cpp",
         "progress_categories": [
           "generated"
@@ -4742,7 +4746,7 @@
       "target_path": "build/objdiff/target/vt_typeid_06_821D9AF0.o",
       "base_path": "build/objdiff/base/vt_typeid_06_821D9AF0.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_typeid_06.cpp",
         "progress_categories": [
           "generated"
@@ -7680,7 +7684,7 @@
       "target_path": "build/objdiff/target/vt_acc_01_82103000.o",
       "base_path": "build/objdiff/base/vt_acc_01_82103000.o",
       "metadata": {
-        "complete": false,
+        "complete": true,
         "source_path": "src/vt_acc_01.cpp",
         "progress_categories": [
           "generated"
@@ -7693,7 +7697,7 @@
       "target_path": "build/objdiff/target/vt_acc_01_82103020.o",
       "base_path": "build/objdiff/base/vt_acc_01_82103020.o",
       "metadata": {
-        "complete": false,
+        "complete": true,
         "source_path": "src/vt_acc_01.cpp",
         "progress_categories": [
           "generated"
@@ -7706,7 +7710,7 @@
       "target_path": "build/objdiff/target/vt_acc_01_82103040.o",
       "base_path": "build/objdiff/base/vt_acc_01_82103040.o",
       "metadata": {
-        "complete": false,
+        "complete": true,
         "source_path": "src/vt_acc_01.cpp",
         "progress_categories": [
           "generated"
@@ -7719,7 +7723,7 @@
       "target_path": "build/objdiff/target/vt_acc_01_82103060.o",
       "base_path": "build/objdiff/base/vt_acc_01_82103060.o",
       "metadata": {
-        "complete": false,
+        "complete": true,
         "source_path": "src/vt_acc_01.cpp",
         "progress_categories": [
           "generated"
@@ -7732,7 +7736,7 @@
       "target_path": "build/objdiff/target/vt_acc_01_82103080.o",
       "base_path": "build/objdiff/base/vt_acc_01_82103080.o",
       "metadata": {
-        "complete": false,
+        "complete": true,
         "source_path": "src/vt_acc_01.cpp",
         "progress_categories": [
           "generated"
@@ -7745,7 +7749,7 @@
       "target_path": "build/objdiff/target/vt_acc_01_821030A0.o",
       "base_path": "build/objdiff/base/vt_acc_01_821030A0.o",
       "metadata": {
-        "complete": false,
+        "complete": true,
         "source_path": "src/vt_acc_01.cpp",
         "progress_categories": [
           "generated"
@@ -7784,7 +7788,7 @@
       "target_path": "build/objdiff/target/vt_acc_01_82103310.o",
       "base_path": "build/objdiff/base/vt_acc_01_82103310.o",
       "metadata": {
-        "complete": false,
+        "complete": true,
         "source_path": "src/vt_acc_01.cpp",
         "progress_categories": [
           "generated"
@@ -7797,7 +7801,7 @@
       "target_path": "build/objdiff/target/vt_acc_01_82103350.o",
       "base_path": "build/objdiff/base/vt_acc_01_82103350.o",
       "metadata": {
-        "complete": false,
+        "complete": true,
         "source_path": "src/vt_acc_01.cpp",
         "progress_categories": [
           "generated"
@@ -7810,7 +7814,7 @@
       "target_path": "build/objdiff/target/vt_acc_01_82103390.o",
       "base_path": "build/objdiff/base/vt_acc_01_82103390.o",
       "metadata": {
-        "complete": false,
+        "complete": true,
         "source_path": "src/vt_acc_01.cpp",
         "progress_categories": [
           "generated"
@@ -7862,7 +7866,7 @@
       "target_path": "build/objdiff/target/vt_acc_01_82103938.o",
       "base_path": "build/objdiff/base/vt_acc_01_82103938.o",
       "metadata": {
-        "complete": false,
+        "complete": true,
         "source_path": "src/vt_acc_01.cpp",
         "progress_categories": [
           "generated"
@@ -7875,7 +7879,7 @@
       "target_path": "build/objdiff/target/vt_acc_01_821039D0.o",
       "base_path": "build/objdiff/base/vt_acc_01_821039D0.o",
       "metadata": {
-        "complete": false,
+        "complete": true,
         "source_path": "src/vt_acc_01.cpp",
         "progress_categories": [
           "generated"
@@ -7888,7 +7892,7 @@
       "target_path": "build/objdiff/target/vt_acc_01_82103A68.o",
       "base_path": "build/objdiff/base/vt_acc_01_82103A68.o",
       "metadata": {
-        "complete": false,
+        "complete": true,
         "source_path": "src/vt_acc_01.cpp",
         "progress_categories": [
           "generated"
@@ -7901,7 +7905,7 @@
       "target_path": "build/objdiff/target/vt_acc_01_82103B00.o",
       "base_path": "build/objdiff/base/vt_acc_01_82103B00.o",
       "metadata": {
-        "complete": false,
+        "complete": true,
         "source_path": "src/vt_acc_01.cpp",
         "progress_categories": [
           "generated"
@@ -7927,7 +7931,7 @@
       "target_path": "build/objdiff/target/vt_acc_01_82103C90.o",
       "base_path": "build/objdiff/base/vt_acc_01_82103C90.o",
       "metadata": {
-        "complete": false,
+        "complete": true,
         "source_path": "src/vt_acc_01.cpp",
         "progress_categories": [
           "generated"
@@ -7940,7 +7944,7 @@
       "target_path": "build/objdiff/target/vt_acc_01_82103CC0.o",
       "base_path": "build/objdiff/base/vt_acc_01_82103CC0.o",
       "metadata": {
-        "complete": false,
+        "complete": true,
         "source_path": "src/vt_acc_01.cpp",
         "progress_categories": [
           "generated"
@@ -7953,7 +7957,7 @@
       "target_path": "build/objdiff/target/vt_acc_01_82103CF0.o",
       "base_path": "build/objdiff/base/vt_acc_01_82103CF0.o",
       "metadata": {
-        "complete": false,
+        "complete": true,
         "source_path": "src/vt_acc_01.cpp",
         "progress_categories": [
           "generated"
@@ -7966,7 +7970,7 @@
       "target_path": "build/objdiff/target/vt_acc_01_82103D18.o",
       "base_path": "build/objdiff/base/vt_acc_01_82103D18.o",
       "metadata": {
-        "complete": false,
+        "complete": true,
         "source_path": "src/vt_acc_01.cpp",
         "progress_categories": [
           "generated"
@@ -7979,7 +7983,7 @@
       "target_path": "build/objdiff/target/vt_acc_01_82103D48.o",
       "base_path": "build/objdiff/base/vt_acc_01_82103D48.o",
       "metadata": {
-        "complete": false,
+        "complete": true,
         "source_path": "src/vt_acc_01.cpp",
         "progress_categories": [
           "generated"
@@ -8616,7 +8620,7 @@
       "target_path": "build/objdiff/target/vt_acc_02_821D9A08.o",
       "base_path": "build/objdiff/base/vt_acc_02_821D9A08.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_acc_02.cpp",
         "progress_categories": [
           "generated"
@@ -8629,7 +8633,7 @@
       "target_path": "build/objdiff/target/vt_acc_02_821D9A30.o",
       "base_path": "build/objdiff/base/vt_acc_02_821D9A30.o",
       "metadata": {
-        "complete": true,
+        "complete": false,
         "source_path": "src/vt_acc_02.cpp",
         "progress_categories": [
           "generated"
@@ -15827,6 +15831,1072 @@
       }
     },
     {
+      "name": "sub_8279B6B0 (y2_handler_id)",
+      "target_path": "build/objdiff/target/y2_handler_id_8279B6B0.o",
+      "base_path": "build/objdiff/base/y2_handler_id_8279B6B0.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y2_handler_id.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82691928 (y1_mtx23_lerp)",
+      "target_path": "build/objdiff/target/y1_mtx23_lerp_82691928.o",
+      "base_path": "build/objdiff/base/y1_mtx23_lerp_82691928.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y1_mtx23_lerp.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82696938 (y1_count_children)",
+      "target_path": "build/objdiff/target/y1_count_children_82696938.o",
+      "base_path": "build/objdiff/base/y1_count_children_82696938.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y1_count_children.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_826969B8 (y1_pack_child)",
+      "target_path": "build/objdiff/target/y1_pack_child_826969B8.o",
+      "base_path": "build/objdiff/base/y1_pack_child_826969B8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y1_pack_child.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82696A60 (y1_bind_child)",
+      "target_path": "build/objdiff/target/y1_bind_child_82696A60.o",
+      "base_path": "build/objdiff/base/y1_bind_child_82696A60.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y1_bind_child.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_825A39C8 (y2_rate_table)",
+      "target_path": "build/objdiff/target/y2_rate_table_825A39C8.o",
+      "base_path": "build/objdiff/base/y2_rate_table_825A39C8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y2_rate_table.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_825A8868 (vorbisfile)",
+      "target_path": "build/objdiff/target/vorbisfile_825A8868.o",
+      "base_path": "build/objdiff/base/vorbisfile_825A8868.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/vorbisfile.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825A98E0 (vorbisfile)",
+      "target_path": "build/objdiff/target/vorbisfile_825A98E0.o",
+      "base_path": "build/objdiff/base/vorbisfile_825A98E0.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/vorbisfile.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825AA548 (vorbisfile)",
+      "target_path": "build/objdiff/target/vorbisfile_825AA548.o",
+      "base_path": "build/objdiff/base/vorbisfile_825AA548.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/vorbisfile.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825AA568 (vorbisfile)",
+      "target_path": "build/objdiff/target/vorbisfile_825AA568.o",
+      "base_path": "build/objdiff/base/vorbisfile_825AA568.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/vorbisfile.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825AA5C8 (vorbisfile)",
+      "target_path": "build/objdiff/target/vorbisfile_825AA5C8.o",
+      "base_path": "build/objdiff/base/vorbisfile_825AA5C8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/vorbisfile.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825AB588 (info)",
+      "target_path": "build/objdiff/target/info_825AB588.o",
+      "base_path": "build/objdiff/base/info_825AB588.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/info.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825BD920 (framing)",
+      "target_path": "build/objdiff/target/framing_825BD920.o",
+      "base_path": "build/objdiff/base/framing_825BD920.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/ogg/src/framing.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825BD940 (framing)",
+      "target_path": "build/objdiff/target/framing_825BD940.o",
+      "base_path": "build/objdiff/base/framing_825BD940.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/ogg/src/framing.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825BD950 (framing)",
+      "target_path": "build/objdiff/target/framing_825BD950.o",
+      "base_path": "build/objdiff/base/framing_825BD950.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/ogg/src/framing.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825BDB38 (framing)",
+      "target_path": "build/objdiff/target/framing_825BDB38.o",
+      "base_path": "build/objdiff/base/framing_825BDB38.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/ogg/src/framing.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825BDD78 (framing)",
+      "target_path": "build/objdiff/target/framing_825BDD78.o",
+      "base_path": "build/objdiff/base/framing_825BDD78.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/ogg/src/framing.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825BE400 (framing)",
+      "target_path": "build/objdiff/target/framing_825BE400.o",
+      "base_path": "build/objdiff/base/framing_825BE400.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/ogg/src/framing.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825BE968 (synthesis)",
+      "target_path": "build/objdiff/target/synthesis_825BE968.o",
+      "base_path": "build/objdiff/base/synthesis_825BE968.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/synthesis.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825BFDF0 (block)",
+      "target_path": "build/objdiff/target/block_825BFDF0.o",
+      "base_path": "build/objdiff/base/block_825BFDF0.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/block.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825BFE78 (block)",
+      "target_path": "build/objdiff/target/block_825BFE78.o",
+      "base_path": "build/objdiff/base/block_825BFE78.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/block.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825BFFB8 (bitwise)",
+      "target_path": "build/objdiff/target/bitwise_825BFFB8.o",
+      "base_path": "build/objdiff/base/bitwise_825BFFB8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/ogg/src/bitwise.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825C02B8 (floor1)",
+      "target_path": "build/objdiff/target/floor1_825C02B8.o",
+      "base_path": "build/objdiff/base/floor1_825C02B8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/floor1.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825C14C0 (codebook)",
+      "target_path": "build/objdiff/target/codebook_825C14C0.o",
+      "base_path": "build/objdiff/base/codebook_825C14C0.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/codebook.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825C1698 (codebook)",
+      "target_path": "build/objdiff/target/codebook_825C1698.o",
+      "base_path": "build/objdiff/base/codebook_825C1698.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/codebook.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825C1700 (codebook)",
+      "target_path": "build/objdiff/target/codebook_825C1700.o",
+      "base_path": "build/objdiff/base/codebook_825C1700.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/codebook.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825C18D8 (codebook)",
+      "target_path": "build/objdiff/target/codebook_825C18D8.o",
+      "base_path": "build/objdiff/base/codebook_825C18D8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/codebook.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825C1B18 (codebook)",
+      "target_path": "build/objdiff/target/codebook_825C1B18.o",
+      "base_path": "build/objdiff/base/codebook_825C1B18.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/codebook.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825C1C20 (codebook)",
+      "target_path": "build/objdiff/target/codebook_825C1C20.o",
+      "base_path": "build/objdiff/base/codebook_825C1C20.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/codebook.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825C1FF0 (mdct)",
+      "target_path": "build/objdiff/target/mdct_825C1FF0.o",
+      "base_path": "build/objdiff/base/mdct_825C1FF0.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/mdct.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825C21F0 (mdct)",
+      "target_path": "build/objdiff/target/mdct_825C21F0.o",
+      "base_path": "build/objdiff/base/mdct_825C21F0.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/mdct.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825C2428 (mdct)",
+      "target_path": "build/objdiff/target/mdct_825C2428.o",
+      "base_path": "build/objdiff/base/mdct_825C2428.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/mdct.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825C25B0 (mdct)",
+      "target_path": "build/objdiff/target/mdct_825C25B0.o",
+      "base_path": "build/objdiff/base/mdct_825C25B0.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/mdct.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825C2748 (mdct)",
+      "target_path": "build/objdiff/target/mdct_825C2748.o",
+      "base_path": "build/objdiff/base/mdct_825C2748.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/mdct.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825C2878 (mdct)",
+      "target_path": "build/objdiff/target/mdct_825C2878.o",
+      "base_path": "build/objdiff/base/mdct_825C2878.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/mdct.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825C29B8 (mdct)",
+      "target_path": "build/objdiff/target/mdct_825C29B8.o",
+      "base_path": "build/objdiff/base/mdct_825C29B8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/mdct.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825C4708 (floor1)",
+      "target_path": "build/objdiff/target/floor1_825C4708.o",
+      "base_path": "build/objdiff/base/floor1_825C4708.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "thirdparty/ogg_vorbis/vorbis/lib/floor1.c",
+        "progress_categories": [
+          "upstream"
+        ],
+        "auto_generated": true
+      }
+    },
+    {
+      "name": "sub_825E45E8 (y1_attach_flag)",
+      "target_path": "build/objdiff/target/y1_attach_flag_825E45E8.o",
+      "base_path": "build/objdiff/base/y1_attach_flag_825E45E8.o",
+      "metadata": {
+        "complete": true,
+        "source_path": "src/y1_attach_flag.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_826DD438 (y1_slot_detach)",
+      "target_path": "build/objdiff/target/y1_slot_detach_826DD438.o",
+      "base_path": "build/objdiff/base/y1_slot_detach_826DD438.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y1_slot_detach.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_821FA2B8 (y2_locale_known)",
+      "target_path": "build/objdiff/target/y2_locale_known_821FA2B8.o",
+      "base_path": "build/objdiff/base/y2_locale_known_821FA2B8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y2_locale_known.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82606EC8 (f_arena_alloc)",
+      "target_path": "build/objdiff/target/f_arena_alloc_82606EC8.o",
+      "base_path": "build/objdiff/base/f_arena_alloc_82606EC8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/f_arena_alloc.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82606FD8 (h_arena_twin)",
+      "target_path": "build/objdiff/target/h_arena_twin_82606FD8.o",
+      "base_path": "build/objdiff/base/h_arena_twin_82606FD8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/h_arena_twin.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_821D9A78 (y1_ctor_s1340)",
+      "target_path": "build/objdiff/target/y1_ctor_s1340_821D9A78.o",
+      "base_path": "build/objdiff/base/y1_ctor_s1340_821D9A78.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y1_ctor_s1340.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_825FC978 (y2_range_lookup)",
+      "target_path": "build/objdiff/target/y2_range_lookup_825FC978.o",
+      "base_path": "build/objdiff/base/y2_range_lookup_825FC978.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y2_range_lookup.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82540B18 (y2_atoi_back)",
+      "target_path": "build/objdiff/target/y2_atoi_back_82540B18.o",
+      "base_path": "build/objdiff/base/y2_atoi_back_82540B18.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y2_atoi_back.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_826779C8 (y2_clear_slot_150)",
+      "target_path": "build/objdiff/target/y2_clear_slot_150_826779C8.o",
+      "base_path": "build/objdiff/base/y2_clear_slot_150_826779C8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y2_clear_slot_150.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_821AE3D8 (y1_ctor_m20_s100)",
+      "target_path": "build/objdiff/target/y1_ctor_m20_s100_821AE3D8.o",
+      "base_path": "build/objdiff/base/y1_ctor_m20_s100_821AE3D8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y1_ctor_m20_s100.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_8215A6F8 (y2_tokenize_into)",
+      "target_path": "build/objdiff/target/y2_tokenize_into_8215A6F8.o",
+      "base_path": "build/objdiff/base/y2_tokenize_into_8215A6F8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y2_tokenize_into.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82713100 (y2_segment_kind)",
+      "target_path": "build/objdiff/target/y2_segment_kind_82713100.o",
+      "base_path": "build/objdiff/base/y2_segment_kind_82713100.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y2_segment_kind.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_8216C240 (g5_chunked_bit)",
+      "target_path": "build/objdiff/target/g5_chunked_bit_8216C240.o",
+      "base_path": "build/objdiff/base/g5_chunked_bit_8216C240.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/g5_chunked_bit.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_825DB4C0 (m36_adjust_counts)",
+      "target_path": "build/objdiff/target/m36_adjust_counts_825DB4C0.o",
+      "base_path": "build/objdiff/base/m36_adjust_counts_825DB4C0.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/m36_adjust_counts.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_821AE340 (y1_ctor_m20_s100_b)",
+      "target_path": "build/objdiff/target/y1_ctor_m20_s100_b_821AE340.o",
+      "base_path": "build/objdiff/base/y1_ctor_m20_s100_b_821AE340.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y1_ctor_m20_s100_b.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_821AE470 (y1_ctor_m20_s100_c)",
+      "target_path": "build/objdiff/target/y1_ctor_m20_s100_c_821AE470.o",
+      "base_path": "build/objdiff/base/y1_ctor_m20_s100_c_821AE470.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y1_ctor_m20_s100_c.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82606F68 (y1_arena_flip)",
+      "target_path": "build/objdiff/target/y1_arena_flip_82606F68.o",
+      "base_path": "build/objdiff/base/y1_arena_flip_82606F68.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y1_arena_flip.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82636A58 (y1_set_ref)",
+      "target_path": "build/objdiff/target/y1_set_ref_82636A58.o",
+      "base_path": "build/objdiff/base/y1_set_ref_82636A58.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y1_set_ref.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82157C08 (y1_clear_block)",
+      "target_path": "build/objdiff/target/y1_clear_block_82157C08.o",
+      "base_path": "build/objdiff/base/y1_clear_block_82157C08.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y1_clear_block.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82663320 (y1_release_delete)",
+      "target_path": "build/objdiff/target/y1_release_delete_82663320.o",
+      "base_path": "build/objdiff/base/y1_release_delete_82663320.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y1_release_delete.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82712E28 (y1_msg_send)",
+      "target_path": "build/objdiff/target/y1_msg_send_82712E28.o",
+      "base_path": "build/objdiff/base/y1_msg_send_82712E28.o",
+      "metadata": {
+        "complete": true,
+        "source_path": "src/y1_msg_send.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_821F61F8 (y1_dispatch_notify)",
+      "target_path": "build/objdiff/target/y1_dispatch_notify_821F61F8.o",
+      "base_path": "build/objdiff/base/y1_dispatch_notify_821F61F8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y1_dispatch_notify.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_8215CCC0 (y2_crc_table)",
+      "target_path": "build/objdiff/target/y2_crc_table_8215CCC0.o",
+      "base_path": "build/objdiff/base/y2_crc_table_8215CCC0.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y2_crc_table.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_826491E0 (y1_deleting_dtor)",
+      "target_path": "build/objdiff/target/y1_deleting_dtor_826491E0.o",
+      "base_path": "build/objdiff/base/y1_deleting_dtor_826491E0.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y1_deleting_dtor.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_8261AB90 (y1_release_each)",
+      "target_path": "build/objdiff/target/y1_release_each_8261AB90.o",
+      "base_path": "build/objdiff/base/y1_release_each_8261AB90.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y1_release_each.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82524E90 (y2_query_info)",
+      "target_path": "build/objdiff/target/y2_query_info_82524E90.o",
+      "base_path": "build/objdiff/base/y2_query_info_82524E90.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y2_query_info.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_821A9900 (y2_hash_by_kind)",
+      "target_path": "build/objdiff/target/y2_hash_by_kind_821A9900.o",
+      "base_path": "build/objdiff/base/y2_hash_by_kind_821A9900.o",
+      "metadata": {
+        "complete": true,
+        "source_path": "src/y2_hash_by_kind.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_821C1D58 (y2_enable_slot)",
+      "target_path": "build/objdiff/target/y2_enable_slot_821C1D58.o",
+      "base_path": "build/objdiff/base/y2_enable_slot_821C1D58.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y2_enable_slot.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82583860 (y2_query_info3)",
+      "target_path": "build/objdiff/target/y2_query_info3_82583860.o",
+      "base_path": "build/objdiff/base/y2_query_info3_82583860.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y2_query_info3.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82103940 (y1_fmt_toggle0)",
+      "target_path": "build/objdiff/target/y1_fmt_toggle0_82103940.o",
+      "base_path": "build/objdiff/base/y1_fmt_toggle0_82103940.o",
+      "metadata": {
+        "complete": true,
+        "source_path": "src/y1_fmt_toggle0.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_821039D8 (y1_fmt_toggle1)",
+      "target_path": "build/objdiff/target/y1_fmt_toggle1_821039D8.o",
+      "base_path": "build/objdiff/base/y1_fmt_toggle1_821039D8.o",
+      "metadata": {
+        "complete": true,
+        "source_path": "src/y1_fmt_toggle1.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82103A70 (y1_fmt_toggle2)",
+      "target_path": "build/objdiff/target/y1_fmt_toggle2_82103A70.o",
+      "base_path": "build/objdiff/base/y1_fmt_toggle2_82103A70.o",
+      "metadata": {
+        "complete": true,
+        "source_path": "src/y1_fmt_toggle2.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_822306D8 (y2_bind_lazy_six)",
+      "target_path": "build/objdiff/target/y2_bind_lazy_six_822306D8.o",
+      "base_path": "build/objdiff/base/y2_bind_lazy_six_822306D8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y2_bind_lazy_six.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82232420 (y2_bind_lazy_five)",
+      "target_path": "build/objdiff/target/y2_bind_lazy_five_82232420.o",
+      "base_path": "build/objdiff/base/y2_bind_lazy_five_82232420.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y2_bind_lazy_five.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82103008 (y1_byte_state)",
+      "target_path": "build/objdiff/target/y1_byte_state_82103008.o",
+      "base_path": "build/objdiff/base/y1_byte_state_82103008.o",
+      "metadata": {
+        "complete": true,
+        "source_path": "src/y1_byte_state.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82103028 (y1_byte_state)",
+      "target_path": "build/objdiff/target/y1_byte_state_82103028.o",
+      "base_path": "build/objdiff/base/y1_byte_state_82103028.o",
+      "metadata": {
+        "complete": true,
+        "source_path": "src/y1_byte_state.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82103048 (y1_byte_state)",
+      "target_path": "build/objdiff/target/y1_byte_state_82103048.o",
+      "base_path": "build/objdiff/base/y1_byte_state_82103048.o",
+      "metadata": {
+        "complete": true,
+        "source_path": "src/y1_byte_state.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82103068 (y1_byte_state)",
+      "target_path": "build/objdiff/target/y1_byte_state_82103068.o",
+      "base_path": "build/objdiff/base/y1_byte_state_82103068.o",
+      "metadata": {
+        "complete": true,
+        "source_path": "src/y1_byte_state.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82103088 (y1_byte_state)",
+      "target_path": "build/objdiff/target/y1_byte_state_82103088.o",
+      "base_path": "build/objdiff/base/y1_byte_state_82103088.o",
+      "metadata": {
+        "complete": true,
+        "source_path": "src/y1_byte_state.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82103C98 (y1_float_state)",
+      "target_path": "build/objdiff/target/y1_float_state_82103C98.o",
+      "base_path": "build/objdiff/base/y1_float_state_82103C98.o",
+      "metadata": {
+        "complete": true,
+        "source_path": "src/y1_float_state.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82103CC8 (y1_float_state)",
+      "target_path": "build/objdiff/target/y1_float_state_82103CC8.o",
+      "base_path": "build/objdiff/base/y1_float_state_82103CC8.o",
+      "metadata": {
+        "complete": true,
+        "source_path": "src/y1_float_state.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82103CF8 (y1_float_state)",
+      "target_path": "build/objdiff/target/y1_float_state_82103CF8.o",
+      "base_path": "build/objdiff/base/y1_float_state_82103CF8.o",
+      "metadata": {
+        "complete": true,
+        "source_path": "src/y1_float_state.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82103D20 (y1_float_state)",
+      "target_path": "build/objdiff/target/y1_float_state_82103D20.o",
+      "base_path": "build/objdiff/base/y1_float_state_82103D20.o",
+      "metadata": {
+        "complete": true,
+        "source_path": "src/y1_float_state.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82103318 (y1_field_state)",
+      "target_path": "build/objdiff/target/y1_field_state_82103318.o",
+      "base_path": "build/objdiff/base/y1_field_state_82103318.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y1_field_state.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82103358 (y1_field_state)",
+      "target_path": "build/objdiff/target/y1_field_state_82103358.o",
+      "base_path": "build/objdiff/base/y1_field_state_82103358.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y1_field_state.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
       "name": "sub_826C1480 (init12)",
       "target_path": "build/objdiff/target/init12_826C1480.o",
       "base_path": "build/objdiff/base/init12_826C1480.o",
@@ -15879,19 +16949,6 @@
       }
     },
     {
-      "name": "sub_82606EC8 (f_arena_alloc)",
-      "target_path": "build/objdiff/target/f_arena_alloc_82606EC8.o",
-      "base_path": "build/objdiff/base/f_arena_alloc_82606EC8.o",
-      "metadata": {
-        "complete": false,
-        "source_path": "src/f_arena_alloc.cpp",
-        "progress_categories": [
-          "nearmiss"
-        ],
-        "auto_generated": false
-      }
-    },
-    {
       "name": "sub_82202D08 (m_pick_slot)",
       "target_path": "build/objdiff/target/m_pick_slot_82202D08.o",
       "base_path": "build/objdiff/base/m_pick_slot_82202D08.o",
@@ -15937,19 +16994,6 @@
       "metadata": {
         "complete": false,
         "source_path": "src/k_kind_weight.cpp",
-        "progress_categories": [
-          "nearmiss"
-        ],
-        "auto_generated": false
-      }
-    },
-    {
-      "name": "sub_82606FD8 (h_arena_twin)",
-      "target_path": "build/objdiff/target/h_arena_twin_82606FD8.o",
-      "base_path": "build/objdiff/base/h_arena_twin_82606FD8.o",
-      "metadata": {
-        "complete": false,
-        "source_path": "src/h_arena_twin.cpp",
         "progress_categories": [
           "nearmiss"
         ],
@@ -16165,19 +17209,6 @@
       }
     },
     {
-      "name": "sub_8216C240 (g5_chunked_bit)",
-      "target_path": "build/objdiff/target/g5_chunked_bit_8216C240.o",
-      "base_path": "build/objdiff/base/g5_chunked_bit_8216C240.o",
-      "metadata": {
-        "complete": false,
-        "source_path": "src/g5_chunked_bit.cpp",
-        "progress_categories": [
-          "nearmiss"
-        ],
-        "auto_generated": false
-      }
-    },
-    {
       "name": "sub_82673020 (g8_accumulate_stats)",
       "target_path": "build/objdiff/target/g8_accumulate_stats_82673020.o",
       "base_path": "build/objdiff/base/g8_accumulate_stats_82673020.o",
@@ -16262,19 +17293,6 @@
       "metadata": {
         "complete": false,
         "source_path": "src/m35_read_run.cpp",
-        "progress_categories": [
-          "nearmiss"
-        ],
-        "auto_generated": false
-      }
-    },
-    {
-      "name": "sub_825DB4C0 (m36_adjust_counts)",
-      "target_path": "build/objdiff/target/m36_adjust_counts_825DB4C0.o",
-      "base_path": "build/objdiff/base/m36_adjust_counts_825DB4C0.o",
-      "metadata": {
-        "complete": false,
-        "source_path": "src/m36_adjust_counts.cpp",
         "progress_categories": [
           "nearmiss"
         ],
@@ -16379,6 +17397,84 @@
       "metadata": {
         "complete": false,
         "source_path": "src/z3_ctor_inner_vt.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_821ADFC8 (y1_ctor_s32_m60)",
+      "target_path": "build/objdiff/target/y1_ctor_s32_m60_821ADFC8.o",
+      "base_path": "build/objdiff/base/y1_ctor_s32_m60_821ADFC8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y1_ctor_s32_m60.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_821AE070 (y1_ctor_s28_m56)",
+      "target_path": "build/objdiff/target/y1_ctor_s28_m56_821AE070.o",
+      "base_path": "build/objdiff/base/y1_ctor_s28_m56_821AE070.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y1_ctor_s28_m56.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_8215A5C8 (y2_count_tokens)",
+      "target_path": "build/objdiff/target/y2_count_tokens_8215A5C8.o",
+      "base_path": "build/objdiff/base/y2_count_tokens_8215A5C8.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y2_count_tokens.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82166B50 (y2_relocate_recs)",
+      "target_path": "build/objdiff/target/y2_relocate_recs_82166B50.o",
+      "base_path": "build/objdiff/base/y2_relocate_recs_82166B50.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y2_relocate_recs.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_82578558 (y2_wave_format_ok)",
+      "target_path": "build/objdiff/target/y2_wave_format_ok_82578558.o",
+      "base_path": "build/objdiff/base/y2_wave_format_ok_82578558.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y2_wave_format_ok.cpp",
+        "progress_categories": [
+          "nearmiss"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
+      "name": "sub_827C35F0 (y2_hsv_to_rgb)",
+      "target_path": "build/objdiff/target/y2_hsv_to_rgb_827C35F0.o",
+      "base_path": "build/objdiff/base/y2_hsv_to_rgb_827C35F0.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/y2_hsv_to_rgb.cpp",
         "progress_categories": [
           "nearmiss"
         ],

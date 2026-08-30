@@ -43,6 +43,38 @@
 // taking Item*, a compound `*=`, both multiply operand orders, `default:`
 // first, last, absent, and assigning the -1 in a default block.
 //
+// THREE MORE, all applied to the case-24/31 body ALONE (body 1 is already
+// byte-exact, so any change that reaches this has to be local to body 2), all
+// BYTE-IDENTICAL to the baseline at 46 of 53:
+//
+//   * MATCHED.md's named const-qualified view, `const Info* t = g_info;` then
+//     `t[sub].size` -- the lever that cracked VectorGrow. Its stated limit is
+//     that the view must name a field reached through a POINTER PARAMETER;
+//     `g_info` is a global, and this is another instance of that limit;
+//   * the base as the RIGHT operand of the add, `(sub + g_info)->size`, on
+//     the theory that MSVC evaluates a binary operator right to left and the
+//     later-evaluated operand is created first. MSVC canonicalises it back;
+//   * a TWO-LEVEL inlined free helper, `InfoSize(i)` calling `InfoAt(i)`,
+//     since two nesting levels is what kept a base pointer alive in
+//     sub_82164040. One level was already known not to move it; two does not
+//     either.
+//
+// WHAT THE DIFFERENCE ACTUALLY IS, stated more precisely than "one register
+// tighter". Both compiles assign the eight values of body 2 from the free
+// list r11, r10, r9, [r8 = frames], r7, r6, r5, r4, r3 in CREATION order:
+//
+//      ours    sub=r11, sub*2=r10, base=r9,  sub*3=r7, base+8=r6, ... 8 regs
+//      target  sub=r11, base=r10,  sub*2=r9, sub*3=r9, base+8=r7, ... 7 regs
+//
+// so the whole residue is that the target creates the g_info ADDRESS before
+// the index scaling and we create it after; the in-place `add r9,r11,r9`
+// follows from that, because sub*2 is then the most recently allocated
+// register and is dead at the add. Body 1 creates the index first in the
+// TARGET too (k*2 -> r11, lis -> r8), so the two bodies genuinely differ in
+// creation order, and the only source-visible difference between them is
+// that body 2's index needs a `lbz` and body 1's is already live in r10.
+// Nothing tried so far reorders those two chains.
+//
 // THREE OF THOSE ARE EVIDENCE, and they pin the source shape rather than
 // leaving it open:
 //

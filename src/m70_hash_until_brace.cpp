@@ -53,8 +53,36 @@
 //   * the loop lifted into an inlined `static u32 HashUntilBrace(const char*)`
 //     so the walk runs on a parameter copy -- byte-identical to the local
 //     version, same 11 of 14.
+//   * the second terminator as a `break`, `while (*c != 0) { if (*c == '}')
+//     break; ... }` -- a different AST that produces the SAME rotation, and
+//     byte-identical, same 11 of 14.
+//   * the increment folded into the accumulate, `h = h * 131 + *c++;` --
+//     byte-identical.
+//   * the walk on a `const u8*` with `(char)` at all three reads, per the
+//     signedness-split lever of sub_8215A420 -- byte-identical. The load is
+//     already `lbz` + `extsb` either way, so the cast changes no vreg.
 // The transposition lever from sub_827DAC60 points at the optimisation level,
 // and the level is ruled out here; what is left is a register name.
+//
+// STATED AS AN ALLOCATION ORDER, which is what still has to move: the four
+// values take r11, r10, r9, r8 in creation order, and
+//
+//      target  char=r11, ptr copy=r10, raw byte=r9, h*131=r8
+//      ours    char=r11, raw byte=r10, ptr copy=r9, h*131=r8
+//
+// so the target creates the `mr` of the parameter before the loop-bottom
+// `lbzu`'s destination and we create it after. The two have the same
+// reference count (one read plus one write per iteration each), so the tie
+// is broken by creation order and nothing above reaches it.
+//
+// TOOL NOTE: the object holds TWO 60-byte functions, because the `static`
+// helper is emitted as its own COMDAT as well as being inlined, and match.py
+// picks the first by size. Compare with
+//     python tools/match.py src/m70_hash_until_brace.cpp 82600960 \
+//            --sym "?LookupName@@YAIPBD@Z"
+// Without --sym it scores the helper, which has a `blr` where the image has
+// the tail branch and reports 12 of 15 with NO relocated word -- a better
+// number for the wrong function.
 
 #include "types.h"
 

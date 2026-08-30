@@ -89,6 +89,54 @@
 //
 // Nothing addressed at the ARITHMETIC moves the y multiply; what moved w was
 // staging, and staging y the same way does not move y.
+//
+// ---- what the staging lever actually is, measured over all 16 subsets ----
+//
+// Which components are staged was swept exhaustively, and the rule is not
+// positional:
+//
+//      staged   w   plus ANY ONE of x, y, z   ->  46 of 47 (w's slots fix)
+//      staged   w   alone                     ->  45 of 47
+//      any subset WITHOUT w                   ->  45 of 47
+//      y and z staged together                ->  45 of 47 (y does NOT fix)
+//
+// So the fix needs w AND a second element IN THE SAME ARRAY -- giving x its
+// own separate array drops back to 45, and staging all four through ONE slot
+// (`s[0]` reused) is also 45. Whatever the array does, it does it once, to
+// the w multiply, and only when it holds more than one live element.
+//
+// Twelve further structures were measured on top of that and none reaches y:
+// a SECOND array introduced immediately before y (the direct test of "the
+// array re-numbers the first multiply after it"), three arrays, a `float[2]`
+// for y and z, a union per component, `inv` staged through an array at each
+// of the last two sites, and staging y's component and `inv` together. A
+// `Quat s = *in;` struct copy is 30 of 47 at 240 bytes and batch-staging all
+// four components before any multiply is 31 of 46 at 200 bytes, so both
+// change far more than this word.
+//
+// Nineteen spellings AT THE y SITE alone, all 46 of 47: a component temp and
+// an `inv` temp declared in either order, the array slot with an `inv` temp
+// either way, `1.0f / len` re-derived late, a bare component temp, `inv`
+// held in a `float[2]` written before or after the component read, helpers
+// taking (value, k) and (k, value), a `f32* dy = &out->y` destination pin, a
+// const view of `in`, a double staging, `in->y / len`, and y and z both
+// given late `inv` temps.
+//
+// THE len2 SUM CARRIES NO INFORMATION. Reordering it to w,x,y,z or y,x,z,w
+// changes nothing at all -- /fp:fast canonicalises the sum -- so the loads in
+// the guard block cannot be used to steer the scaling block.
+//
+// AND THE FLAG AXIS IS EXHAUSTED ON THE STAGED SHAPE, which the earlier
+// 72-combination sweep was not: tools/flagsweep.py --full, 2304 combinations,
+// 516 of them give 46 of 51 (including plain /O2) and no combination does
+// better. Every /fp:precise variant is 0 of 51 and every /Os variant is
+// 4 of 51 at 200 bytes.
+//
+// The file keeps the direct spelling at 45 of 47 rather than the staged one
+// at 46. Staging buys one word and asserts a `float s[4]` nobody wrote, and
+// it does not finish the function either way; the one word it does not buy
+// is the same one that 2304 flag combinations, 16 staging subsets, 12
+// staging structures and 19 y-site spellings all leave standing.
 
 struct Quat { f32 x; f32 y; f32 z; f32 w; };
 ASSERT_OFFSET(Quat, z, 0x08);

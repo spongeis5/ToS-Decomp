@@ -11,7 +11,7 @@ the inventory is wrong in both directions, short where a tail call's dead
 `blr` was not counted and long where one `.pdata` row covers several
 frameless bodies.
 
-**1215 functions, 35276 bytes.** Verify all of them, plus the reconstructing
+**1297 functions, 49820 bytes.** Verify all of them, plus the reconstructing
 build and six negative controls, with one command:
 
 ```bash
@@ -22,7 +22,7 @@ Every match is also a row in `src/manifest.txt`, so `tools/build.py` compiles
 it, resolves its relocations against the retail bytes and splices it into
 `.text`. Nothing here is a match on `match.py`'s word-comparison alone.
 
-SPLIT: 397 hand-written, 27084 bytes; 818 generated, 8192 bytes.
+SPLIT: 448 hand-written, 34308 bytes; 818 generated, 8192 bytes; 31 upstream, 7320 bytes.
 <!-- the line above is regenerated; edit tools/matched_table.py, not this -->
 
 The two halves are not comparable and the count should never be quoted
@@ -37,7 +37,7 @@ half does, however much larger it gets. (The counts live in the SPLIT line
 above, which is regenerated; repeating them here is how a document comes to
 contradict itself two commits later.)
 
-**The retail build did NOT use one optimisation level everywhere.** 119 of
+**The retail build did NOT use one optimisation level everywhere.** 139 of
 these need `/O2 /Os`; the rest need plain `/O2`. See "Flags are a property of
 the translation unit" below -- this was claimed the other way round for a
 while and the claim was wrong.
@@ -69,6 +69,7 @@ while and the claim was wrong.
 | `826918F8` | 44 | 82 | `d_basis_identity.cpp` | - | `/O2` |
 | `82663260` | 44 | 77 | `m_ref_ctor.cpp` | - | `/O2 /Os` |
 | `826A3648` | 52 | 75 | `c_share_static.cpp` | - | `/O2 /Os` |
+| `82606EC8` | 160 | 68 | `f_arena_alloc.cpp` | - | `/O2` |
 | `822D2450` | 24 | 59 | `table_index.cpp` | - | `/O2` |
 | `8224E6F8` | 40 | 54 | `a_item_vcall1.cpp` | - | `/O2` |
 | `8214D998` | 96 | 50 | `d_normalize3.cpp` | Normalize3 | `/O2` |
@@ -106,6 +107,7 @@ while and the claim was wrong.
 | `82677028` | 20 | 25 | `owner_clear.cpp` | ClearAndHandle | `/O2` |
 | `82677040` | 20 | 25 | `owner_clear.cpp` | ClearAndHandleOther | `/O2` |
 | `82545348` | 48 | 24 | `m_span_out.cpp` | - | `/O2` |
+| `82606FD8` | 160 | 24 | `h_arena_twin.cpp` | - | `/O2` |
 | `82724A68` | 44 | 24 | `m_tls_reserve.cpp` | - | `/O2` |
 | `827FE818` | 136 | 24 | `z2_release_four.cpp` | ReleaseFour | `/O2` |
 | `82540770` | 40 | 23 | `string_utils.cpp` | StrCopyN | `/O2` |
@@ -267,6 +269,7 @@ while and the claim was wrong.
 | `8214C788` | 20 | 5 | `b8_set_pair_2c28.cpp` | - | `/O2` |
 | `8215D038` | 32 | 5 | `c3_path_join.cpp` | - | `/O2` |
 | `8215F268` | 28 | 5 | `c2_fwd_callback.cpp` | - | `/O2` |
+| `8216C240` | 152 | 5 | `g5_chunked_bit.cpp` | - | `/O2` |
 | `8216E778` | 116 | 5 | `f5_relocate_chains.cpp` | - | `/O2` |
 | `8219E748` | 144 | 5 | `g2_ctor_three_vec.cpp` | - | `/O2` |
 | `821A5328` | 40 | 5 | `c7_ready_flag.cpp` | - | `/O2` |
@@ -296,6 +299,7 @@ while and the claim was wrong.
 | `825FAB10` | 136 | 5 | `f8_slot_index.cpp` | SlotIndex | `/O2` |
 | `825FAC00` | 112 | 5 | `f3_pack_three_fields.cpp` | SlotSet | `/O2` |
 | `826009D8` | 48 | 5 | `d3_pool_pop_free.cpp` | - | `/O2` |
+| `8261AB90` | 124 | 5 | `y1_release_each.cpp` | ?ReleaseEach@@YAXPAUList8261AB90@@@Z | `/O2` |
 | `82698EE8` | 104 | 5 | `f2_pair_lookup.cpp` | - | `/O2` |
 | `826B26A8` | 76 | 5 | `k2_field_scaled.cpp` | - | `/O2 /Os` |
 | `826C1470` | 8 | 5 | `b7_inner_at40.cpp` | - | `/O2` |
@@ -350,6 +354,7 @@ while and the claim was wrong.
 | `825B9970` | 20 | 4 | `l1_clear_triple_b.cpp` | - | `/O2` |
 | `825B9E20` | 20 | 4 | `l2_low3_clear.cpp` | - | `/O2` |
 | `825BE3D8` | 36 | 4 | `n4_zero5_ret0.cpp` | - | `/O2` |
+| `825DB4C0` | 120 | 4 | `m36_adjust_counts.cpp` | - | `/O2 /Os` |
 | `825DB730` | 20 | 4 | `l3_bits300_set.cpp` | - | `/O2 /Os` |
 | `825DEB20` | 132 | 4 | `n19_list_ctor_dup.cpp` | ListOwner | `/O2` |
 | `825FF468` | 36 | 4 | `n5_set_bit_pair.cpp` | - | `/O2` |
@@ -375,6 +380,7 @@ while and the claim was wrong.
 | `82786608` | 32 | 4 | `m27_relative_rect_call.cpp` | - | `/O2` |
 | `82790F80` | 20 | 4 | `l6_vcall0_second_arg.cpp` | - | `/O2 /Os` |
 | `82791438` | 128 | 4 | `n14_read_le32.cpp` | ReadEntryLe32 | `/O2 /Os` |
+| `8279B6B0` | 224 | 4 | `y2_handler_id.cpp` | - | `/O2` |
 | `827A7C98` | 20 | 4 | `store_two.cpp` | - | `/O2` |
 | `827B7660` | 84 | 4 | `l16_after_last_sep.cpp` | - | `/O2 /Os` |
 | `827DA5E0` | 92 | 4 | `m28_ring_push.cpp` | - | `/O2 /Os` |
@@ -411,8 +417,10 @@ while and the claim was wrong.
 | `822D91C8` | 20 | 3 | `m49_guard_flag_call.cpp` | - | `/O2` |
 | `822DF630` | 52 | 3 | `m63_sum_below_limit.cpp` | - | `/O2` |
 | `825409E8` | 64 | 3 | `z1_memcmp_n.cpp` | - | `/O2` |
+| `82540B18` | 228 | 3 | `y2_atoi_back.cpp` | - | `/O2` |
 | `825476F8` | 64 | 3 | `l46_count_list.cpp` | - | `/O2` |
 | `82581448` | 40 | 3 | `m60_wstrcopy_n.cpp` | - | `/O2` |
+| `825A39C8` | 372 | 3 | `y2_rate_table.cpp` | - | `/O2` |
 | `825ACB20` | 40 | 3 | `m61_clear_and_addref.cpp` | - | `/O2` |
 | `82606158` | 20 | 3 | `l21_global_pair_first.cpp` | - | `/O2` |
 | `82691B70` | 24 | 3 | `l29_col0_length.cpp` | - | `/O2 /Os` |
@@ -428,20 +436,64 @@ while and the claim was wrong.
 | `82807B50` | 44 | 3 | `l41_kind_filter.cpp` | - | `/O2` |
 | `8283F298` | 52 | 3 | `m65_clear_eight_slots.cpp` | - | `/O2` |
 | `82897128` | 20 | 3 | `l22_release_handle_8.cpp` | - | `/O2` |
+| `82103008` | 20 | 2 | `y1_byte_state.cpp` | ?SetByte2902@@YAXPAUByteState@@E@Z | `/O2 /Os` |
+| `8215A6F8` | 312 | 2 | `y2_tokenize_into.cpp` | - | `/O2` |
 | `8215BCD0` | 32 | 2 | `z4_table_second.cpp` | - | `/O2` |
+| `821A9900` | 244 | 2 | `y2_hash_by_kind.cpp` | - | `/O2` |
+| `821FA2B8` | 236 | 2 | `y2_locale_known.cpp` | - | `/O2` |
 | `82216918` | 304 | 2 | `m_line_of_sight.cpp` | TtCheckLineOfSight | `/O2` |
 | `822607F0` | 120 | 2 | `grid_indices.cpp` | - | `/O2` |
 | `825407D0` | 100 | 2 | `z1_strcat_n.cpp` | - | `/O2` |
 | `825492D8` | 32 | 2 | `z4_out_or_err37_b.cpp` | - | `/O2` |
+| `825FC978` | 240 | 2 | `y2_range_lookup.cpp` | RangeIdOf | `/O2` |
+| `82606F68` | 108 | 2 | `y1_arena_flip.cpp` | - | `/O2` |
+| `826779C8` | 72 | 2 | `y2_clear_slot_150.cpp` | ClearSlot150 | `/O2` |
 | `8267ACC0` | 236 | 2 | `m_hkpworld_ctor.cpp` | ??0hkpWorld@@QAA@XZ | `/O2` |
 | `826FE5B8` | 16 | 2 | `set_vtable.cpp` | SetVTableD170 | `/O2` |
 | `826FE5C8` | 16 | 2 | `set_vtable.cpp` | SetVTableD180 | `/O2` |
+| `82713100` | 332 | 2 | `y2_segment_kind.cpp` | - | `/O2 /Os` |
+| `82157C08` | 80 | 1 | `y1_clear_block.cpp` | - | `/O2` |
 | `8215BCA0` | 12 | 1 | `z4_flag_byte.cpp` | - | `/O2` |
+| `8215CCC0` | 240 | 1 | `y2_crc_table.cpp` | - | `/O2` |
+| `821AE340` | 132 | 1 | `y1_ctor_m20_s100_b.cpp` | - | `/O2` |
+| `821AE3D8` | 132 | 1 | `y1_ctor_m20_s100.cpp` | - | `/O2` |
+| `821AE470` | 132 | 1 | `y1_ctor_m20_s100_c.cpp` | - | `/O2` |
 | `821AE548` | 132 | 1 | `z3_ctor_inner_20.cpp` | - | `/O2` |
+| `821C1D58` | 240 | 1 | `y2_enable_slot.cpp` | - | `/O2` |
+| `821D9A78` | 100 | 1 | `y1_ctor_s1340.cpp` | ??0Obj821D9A78@@QAA@XZ | `/O2` |
+| `82524E90` | 256 | 1 | `y2_query_info.cpp` | - | `/O2` |
 | `825FEF80` | 72 | 1 | `z3_set_contains.cpp` | - | `/O2` |
+| `82691928` | 124 | 1 | `y1_mtx23_lerp.cpp` | - | `/O2 /Os` |
+| `826DD438` | 104 | 1 | `y1_slot_detach.cpp` | ?SlotDetach@@YAXPAUDOwner@@PAUDItem@@@Z | `/O2` |
+| `82712E28` | 88 | 1 | `y1_msg_send.cpp` | - | `/O2 /Os` |
 | `8289FA50` | 268 | 1 | `m_mixer_clear.cpp` | - | `/O2` |
+| `82103028` | 20 | 0 | `y1_byte_state.cpp` | ?SetByte2901@@YAXPAUByteState@@E@Z | `/O2 /Os` |
+| `82103048` | 20 | 0 | `y1_byte_state.cpp` | ?SetByte28FF@@YAXPAUByteState@@E@Z | `/O2 /Os` |
+| `82103068` | 20 | 0 | `y1_byte_state.cpp` | ?SetByte28FE@@YAXPAUByteState@@E@Z | `/O2 /Os` |
+| `82103088` | 20 | 0 | `y1_byte_state.cpp` | ?SetByte28FD@@YAXPAUByteState@@E@Z | `/O2 /Os` |
+| `82103318` | 56 | 0 | `y1_field_state.cpp` | ?SetField1@@YAXPAUFieldState@@I@Z | `/O2 /Os` |
+| `82103358` | 56 | 0 | `y1_field_state.cpp` | ?SetField2@@YAXPAUFieldState@@I@Z | `/O2 /Os` |
+| `82103940` | 144 | 0 | `y1_fmt_toggle0.cpp` | - | `/O2 /Os` |
+| `821039D8` | 144 | 0 | `y1_fmt_toggle1.cpp` | - | `/O2 /Os` |
+| `82103A70` | 144 | 0 | `y1_fmt_toggle2.cpp` | - | `/O2 /Os` |
+| `82103C98` | 36 | 0 | `y1_float_state.cpp` | ?SetFloat29CC@@YAXPAUFloatState@@I@Z | `/O2 /Os` |
+| `82103CC8` | 36 | 0 | `y1_float_state.cpp` | ?SetFloat29C4@@YAXPAUFloatState@@I@Z | `/O2 /Os` |
+| `82103CF8` | 28 | 0 | `y1_float_state.cpp` | ?SetFloat29D0@@YAXPAUFloatState@@I@Z | `/O2 /Os` |
+| `82103D20` | 36 | 0 | `y1_float_state.cpp` | ?SetFloat29C8@@YAXPAUFloatState@@I@Z | `/O2 /Os` |
+| `821F61F8` | 84 | 0 | `y1_dispatch_notify.cpp` | - | `/O2` |
+| `822306D8` | 344 | 0 | `y2_bind_lazy_six.cpp` | - | `/O2` |
+| `82232420` | 324 | 0 | `y2_bind_lazy_five.cpp` | - | `/O2` |
 | `8224BCF8` | 20 | 0 | `z4_vcall6_field12.cpp` | - | `/O2` |
+| `82583860` | 216 | 0 | `y2_query_info3.cpp` | - | `/O2` |
+| `825E45E8` | 136 | 0 | `y1_attach_flag.cpp` | - | `/O2 /Os` |
+| `82636A58` | 88 | 0 | `y1_set_ref.cpp` | - | `/O2` |
+| `826491E0` | 96 | 0 | `y1_deleting_dtor.cpp` | - | `/O2` |
+| `82663320` | 80 | 0 | `y1_release_delete.cpp` | - | `/O2 /Os` |
+| `82696938` | 116 | 0 | `y1_count_children.cpp` | - | `/O2` |
+| `826969B8` | 140 | 0 | `y1_pack_child.cpp` | - | `/O2` |
+| `82696A60` | 108 | 0 | `y1_bind_child.cpp` | - | `/O2` |
 | *(818 generated)* | 8192 | - | `vt_typeid_*`, `vt_const_*`, `vt_acc_*` | one expression each | `/O2` |
+| *(31 upstream)* | 7320 | - | `thirdparty/ogg_vorbis/` | libogg 1.1.3 + libvorbis 1.2.0, obtained not recovered | `/O2` |
 ---
 
 ## How these were found

@@ -82,11 +82,54 @@
 //    this-stores, declaring the +40 pin first, and clearing `o` after the
 //    call.  All 32 pin subsets on that shape also cap at 16.
 //
-//    What has NOT been tried, and is where the next attempt should go: the
-//    inlining axis, which MATCHED.md records as the one that reaches
-//    register allocation when nothing else does -- the four stores in a
-//    helper taking `Outer*`, that helper at two levels, and the sub-object's
-//    call plus its two stores in a helper taking `Inner*`.
+// 5. THE INLINING AXIS DOES NOT REACH IT EITHER, and neither does statement
+//    order.  Measured since, all on the `&o->inner` shape, all 16 of 24:
+//
+//      * ALL 720 STATEMENT ORDERS -- every permutation of the five pre-call
+//        statements against every permutation of the three tail statements.
+//        16 is the ceiling and 5 the floor; the distinct scores are 16, 14,
+//        13, 12, 11, 7, 6, 5.  (The recorded "10 interleavings" above were
+//        swept on the ONE-pointer shape, not this one.)
+//      * the four `o` stores in a helper taking `Outer*`; the same helper
+//        with a nested `SetVt(const VTc**)` inside it, so two levels; and
+//        the WHOLE body in a helper taking `(Outer* self, Outer* o)` and
+//        again as `(Outer* o, Outer* self)`.
+//      * `Outer& o = *BaseInit(this)`, `Outer* const o`, `&(*o).inner`,
+//        `&o[0].inner`, and `o->inner.Base()` as a member call.
+//      * a free function returning its argument, so r3 is live out exactly
+//        as it is for a constructor -- MATCHED.md's sub_826A3648 lever.  A
+//        free VOID function is 10 of 23 at 140 bytes, which is the control.
+//      * every `this`-derived pin hoisted to before the second call, singly
+//        and together: `&this->f98`, `&this->inner.vt`, `Inner* ip =
+//        &this->inner`.
+//      * a named zero local declared before or after `o`; `o = this` after
+//        the call; the tail through `Outer* t = this`.
+//
+// 6. USE COUNT IS NOT THE MECHANISM.  The obvious explanation was that
+//    `this` has six references in the matching shape and five in the other,
+//    so it loses the higher register.  It does not: routing a SIXTH store
+//    (+36) through `this` on the `&o->inner` shape keeps the swap exactly,
+//    at 13 of 24.
+//
+// 7. WHAT THE SWAP TRACKS IS WHICH POINTER FEEDS THE OUTGOING ARGUMENT of
+//    the second call, and nothing else measured moves it.  `&this->inner`
+//    puts `this` in r31 and the zero in r30; `&o->inner` exchanges them,
+//    across all 40+ shapes above and all 72 flag combinations.  So the two
+//    spellings still split it exactly in half, and the residue is one
+//    register-allocation decision rather than a source shape not yet tried.
+//
+// 8. A REAL BASE CLASS IS 19 OF 24, not 13 -- the earlier figure was before
+//    the address-of pins.  Every store is off r31 and the four r3 stores
+//    plus the `addi` are wrong.  This is worth stating positively, because
+//    it is a fact about the compiler and not about this function: MSVC does
+//    NOT model an out-of-line base constructor as returning `this`, so it
+//    will not address a member off r3 after `bl Base::Base()`.  The four r3
+//    stores therefore require a return value that the SOURCE uses, which is
+//    what fixes the `Outer* o = BaseInit(this)` reading.
+//
+// 9. THE FLAG AXIS IS EXHAUSTED ON THIS SHAPE TOO.  tools/flagsweep.py's 72
+//    combinations on `&this->inner`: 44 give 23 of 36 (including plain /O2),
+//    28 give 19 of 36 (including /O2 /Os).  Nothing else appears.
 //
 // Constants read out of the image: 82004764 = 0.2f, 82002DA4 = 0.0f,
 // 82003204 = 10.0f.  The sub-object's size is 80, pinned by the sibling

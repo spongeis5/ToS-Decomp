@@ -37,13 +37,18 @@
 // while /O2 hoists `li r8,0` to the loop top and gives the load a fresh
 // register -- the coalescing signature, worth nine words here.
 //
-// NEAR MISS: 29 of 30 words at /O2 /Os, right length, one word left --
+// MATCHED, 30 of 30 words at /O2 /Os. Nothing is relocated, so 30 of 30 are
+// compared.
+//
+// The last word to fall was
 //
 //      want  add r8,r8,r6          the loaded counter in rA
 //      got   add r8,r6,r8          the delta parameter in rA
 //
-// and it does NOT come out of the source. Four spellings of the same
-// accumulate were measured and all four give the identical instruction:
+// and the previous attempt recorded it as unreachable, on the reading that
+// `delta` is a loop-invariant PARAMETER whose CSE representative is pinned at
+// function entry. The measurement was right and the conclusion was not: the
+// expression axis really is dead -- all five of
 //
 //      c->counts[ids[i]] += delta;
 //      c->counts[ids[i]] = delta + c->counts[ids[i]];
@@ -51,16 +56,28 @@
 //      s32 v = c->counts[ids[i]]; c->counts[ids[i]] = v + delta;
 //      an inlined `static s32 AddTo(s32 v, int d) { return v + d; }`
 //
-// The add-operand rule says rA holds the operand whose SOURCE read comes
-// later, and it points the right way here -- `delta` is loop-invariant, so
-// its CSE representative sits at function entry and the load is later -- but
-// no expression order, named local or helper moves it. That is the same
-// negative shape recorded for `or` on sub_8216C240: readable in principle,
-// not reachable for THIS operand pair, where one side is a loop-invariant
-// PARAMETER rather than a local. Every other word, both loops, both guards
-// and the length are exact, so the residue is one register name.
+// still give `add r8,r6,r8`, and so do `s32 d = delta;` declared inside the
+// loop in either order against `v`, an unsigned round trip, a helper with the
+// parameters swapped, an index local, and a `while` rewrite. What moves it is
+// not the ADD at all but the operand's PROVENANCE, and three separate levers
+// each reach it, all giving byte-identical code:
 //
-// Nothing is relocated: 30 of 30 words are compared.
+//      s32* p = &c->counts[ids[i]]; *p += delta;    the address-of pin
+//      s32 d = delta;  at the top of the function   a named parameter copy
+//      const CounterSet* cc = c;  for the load      the const-view lever
+//
+// So SEVEN spellings now compile to these exact 120 bytes (the three above,
+// plus `*p = *p + delta`, `*p = delta + *p`, the pin in one loop or in both).
+// The bytes therefore do NOT decide which was written; the pin is taken here
+// because it is the one that reads as ordinary C, and the alternatives are
+// recorded so the choice is not mistaken for a measurement.
+//
+// The base reload survives the pin -- `c->counts` is still read inside the
+// loop -- which is what keeps the `lwz r10,72(r3)` in both loop bodies.
+//
+// /O2 alone is 22 of 30: the clamp loop's `li r8,0` hoists out of the guarded
+// block and the load gets a fresh register, nine words, which is the
+// coalescing signature that says /Os.
 
 #include "types.h"
 
@@ -77,12 +94,16 @@ int AdjustCounts(CounterSet* c, const s32* ids, int n, int delta)
     if (c->counts != 0)
     {
         for (int i = 0; i < n; i++)
-            c->counts[ids[i]] += delta;
+        {
+            s32* p = &c->counts[ids[i]];
+            *p += delta;
+        }
 
         for (int j = 0; j < n; j++)
         {
-            if (c->counts[ids[j]] < 0)
-                c->counts[ids[j]] = 0;
+            s32* p = &c->counts[ids[j]];
+            if (*p < 0)
+                *p = 0;
         }
     }
 

@@ -59,6 +59,39 @@
 // and no spelling tried produces both. What the target needs is for `c` to
 // still be live in r3 at the join; nothing in this function's source keeps
 // it there, and MSVC's coalescer takes r3 whenever it is free.
+//
+// FIVE MORE SHAPES, aimed specifically at the `mr r3,r11` -- that copy is
+// MATCHED.md's un-naming signature, "the source repeated the expression, it
+// CSEd into r11, and r3 was materialised with a copy" (sub_8224E178). None
+// of them produces it:
+//
+//   48 B, 6 of 12 -- `return c->slots + 1;` / `return c->slots;`, the array
+//     name decayed rather than `&c->slots[1]`. MSVC constant-folds 484 + 20
+//     before CSE and emits two independent `addi r3,r3,504` / `addi
+//     r3,r3,484`, exactly as the `&c->slots[1]` spelling does. The fold is
+//     why no unnamed spelling can produce the derived `addi r11,r11,20`.
+//   44 B, 2 of 11 -- a single `return p` through an if/else that also
+//     assigns `p = c->fallback` in the else. MSVC still tail-duplicates the
+//     cold return and still coalesces p into r3.
+//   44 B, 2 of 11 -- the flag read through a named `const Chooser* v = c;`,
+//     MATCHED.md's const-view CSE-tie lever. No change at all.
+//   48 B, 2 of 12 -- `Slot* p = c->slots;` before the guard with the
+//     POSITIVE polarity kept (the earlier note's "before the guard" was the
+//     inverted one). This is the informative failure: MSVC hoists `addi
+//     r3,r3,484` above the `enabled` test and moves `c` into r11, so the
+//     cold block becomes `lwz r3,168(r11)`. It will put the POINTER in r3
+//     and displace the parameter, which is the opposite of the target.
+//   48 B, 2 of 12 -- `c->slots` repeated on both arms so it becomes a CSE
+//     representative. Same hoist, and the increment still folds:
+//     `addi r3,r11,504`.
+//
+// And /O2 /Os on the 48-byte shape is 4 of 12: it drops to cr0 (`cmplwi
+// r11,0` / `beq- ` with no CR field), so the level is not the answer either.
+//
+// The one reading that fits everything seen: MSVC gives r3 to whichever of
+// `c` and the result is live longer, and in the target `c` wins because the
+// cold `lwz r3,168(r3)` is laid out AFTER the join. Every spelling that
+// names the pointer makes the pointer win instead.
 struct Slot
 {
     char unk0000[20];

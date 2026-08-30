@@ -42,7 +42,26 @@ ASSERT_OFFSET(Budget, limit, 32);
 
 struct Arena;
 
-extern Arena g_arena;
+// THE SECOND ARENA, and the address is in the name because there are two.
+//
+// This site resolves to 829A195C. `src/f_arena_alloc.cpp`, its twin, and
+// `src/y1_arena_flip.cpp` all name an `Arena` at 82A35288. Both are real and
+// both are in `.data`; the game has two of these objects, and calling them
+// both `g_arena` made build.py report
+//
+//     WOULD NOT LINK: ?g_arena@@3UArena@@A
+//         829A195C  referenced from 822DF658
+//         82A35288  referenced from 82606ED0, 82606FA4
+//
+// which is exactly what that check is for: every byte still verified,
+// because each site is patched from the image independently, and one name
+// still cannot have two addresses. The bytes were right and the source model
+// was wrong.
+//
+// Renaming does not change codegen -- the name is a relocation target, not
+// an operand -- so this still matches. The address-qualified form is the
+// same convention `kVTable_827007E8` and `kFloat_<addr>` already use.
+extern Arena g_arena_829A195C;
 
 int ArenaTake(Arena* a, int size, int align);
 
@@ -51,5 +70,5 @@ int TakeIfRoom(Budget* b)
     if (b->used + b->pending >= b->limit)
         return 0;
 
-    return ArenaTake(&g_arena, 24, 14);
+    return ArenaTake(&g_arena_829A195C, 24, 14);
 }

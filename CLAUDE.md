@@ -81,9 +81,18 @@ edited away; an identity in git history cannot.
 
 A measurement of what the compiler did is **evidence**. A conclusion that
 *nothing can be done about it* has so far **always** been wrong — both
-"provably impossible" claims fell, along with three stalls that had a
+"provably impossible" claims fell, along with **seven** stalls that had a
 recorded mechanism saying why they were unreachable. The measurements were
-right; the conclusions drawn from them were not.
+right; the conclusions drawn from them were not. Nothing has ever fallen the
+other way.
+
+The newest four, all in one afternoon: `82606EC8` and `82606FD8` (a
+folded-away read still sets operand order — read the base twice in a form
+that cancels, and nothing stays live), `8216C240` (the AND-mask lever applied
+to the INDEX, not the operator — it defeats MSVC's `base + (index << scale)`
+pattern and the rebuilt tree emits the commutative `or` the other way round),
+and `825DB4C0` (three separate levers each reach it, so the bytes do not say
+which was written).
 
 So a near-miss with a recorded reason is not finished. It is the more
 promising target, because the reason names the lever to reach for. Do not

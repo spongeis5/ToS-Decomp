@@ -1225,3 +1225,85 @@ src/z4_speed_check_b.cpp         822553D8
 src/z3_set_state.cpp            821F6B70
 src/z3_ctor_inner_20.cpp        821AE548
 src/z3_set_contains.cpp         825FEF80
+src/y2_handler_id.cpp            8279B6B0
+src/y1_mtx23_lerp.cpp           82691928  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/y1_count_children.cpp       82696938
+src/y1_pack_child.cpp           826969B8
+src/y1_bind_child.cpp           82696A60
+src/y2_rate_table.cpp            825A39C8
+thirdparty/ogg_vorbis/vorbis/lib/vorbisfile.c 825A8868  _lookup_serialno       flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/vorbis/lib/vorbisfile.c 825A98E0  ov_pcm_total           flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/vorbis/lib/vorbisfile.c 825AA548  ov_raw_tell            flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/vorbis/lib/vorbisfile.c 825AA568  ov_info                flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/vorbis/lib/vorbisfile.c 825AA5C8  ov_comment             flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/vorbis/lib/info.c 825AB588  vorbis_info_blocksize  flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/ogg/src/framing.c 825BD920  ogg_page_continued     flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/ogg/src/framing.c 825BD940  ogg_page_eos           flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/ogg/src/framing.c 825BD950  ogg_page_granulepos    flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/ogg/src/framing.c 825BDB38  ogg_page_checksum_set  flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/ogg/src/framing.c 825BDD78  ogg_sync_wrote         flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/ogg/src/framing.c 825BE400  ogg_stream_reset       flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/vorbis/lib/synthesis.c 825BE968  vorbis_packet_blocksize flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/vorbis/lib/block.c 825BFDF0  vorbis_synthesis_pcmout flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/vorbis/lib/block.c 825BFE78  vorbis_synthesis_read  flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/ogg/src/bitwise.c 825BFFB8  oggpack_adv            flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/vorbis/lib/floor1.c 825C02B8  ilog                   flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/vorbis/lib/codebook.c 825C14C0  decode_packed_entry_number flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/vorbis/lib/codebook.c 825C1698  vorbis_book_decode     flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/vorbis/lib/codebook.c 825C1700  vorbis_book_decodevs_add flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/vorbis/lib/codebook.c 825C18D8  vorbis_book_decodev_add flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/vorbis/lib/codebook.c 825C1B18  vorbis_book_decodev_set flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/vorbis/lib/codebook.c 825C1C20  vorbis_book_decodevv_add flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/vorbis/lib/mdct.c 825C1FF0  mdct_butterfly_16      flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/vorbis/lib/mdct.c 825C21F0  mdct_butterfly_32      flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/vorbis/lib/mdct.c 825C2428  mdct_butterfly_first   flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/vorbis/lib/mdct.c 825C25B0  mdct_butterfly_generic flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/vorbis/lib/mdct.c 825C2748  mdct_butterflies       flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/vorbis/lib/mdct.c 825C2878  mdct_bitreverse        flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/vorbis/lib/mdct.c 825C29B8  mdct_backward          flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+thirdparty/ogg_vorbis/vorbis/lib/floor1.c 825C4708  render_line            flags=/O2,/Gy,/GS-,/fp:fast,/D__BORLANDC__,/Ithirdparty/ogg_vorbis/ogg/include,/Ithirdparty/ogg_vorbis/vorbis/include,/Ithirdparty/ogg_vorbis/vorbis/lib
+src/y1_attach_flag.cpp          825E45E8  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/y1_slot_detach.cpp          826DD438  ?SlotDetach@@YAXPAUDOwner@@PAUDItem@@@Z
+src/y2_locale_known.cpp          821FA2B8
+src/f_arena_alloc.cpp           82606EC8
+src/h_arena_twin.cpp            82606FD8
+src/y1_ctor_s1340.cpp           821D9A78  ??0Obj821D9A78@@QAA@XZ
+src/y2_range_lookup.cpp          825FC978  RangeIdOf
+src/y2_atoi_back.cpp             82540B18
+src/y2_clear_slot_150.cpp        826779C8  ClearSlot150
+src/y1_ctor_m20_s100.cpp        821AE3D8
+src/y2_tokenize_into.cpp         8215A6F8
+src/y2_segment_kind.cpp          82713100  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/g5_chunked_bit.cpp          8216C240
+src/m36_adjust_counts.cpp       825DB4C0  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/y1_ctor_m20_s100_b.cpp      821AE340
+src/y1_ctor_m20_s100_c.cpp      821AE470
+src/y1_arena_flip.cpp           82606F68
+src/y1_set_ref.cpp              82636A58
+src/y1_clear_block.cpp          82157C08
+src/y1_release_delete.cpp       82663320  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/y1_msg_send.cpp             82712E28  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/y1_dispatch_notify.cpp      821F61F8
+src/y2_crc_table.cpp             8215CCC0
+src/y1_deleting_dtor.cpp        826491E0
+src/y1_release_each.cpp         8261AB90  ?ReleaseEach@@YAXPAUList8261AB90@@@Z
+src/y2_query_info.cpp            82524E90
+src/y2_hash_by_kind.cpp          821A9900
+src/y2_enable_slot.cpp           821C1D58
+src/y2_query_info3.cpp           82583860
+src/y1_fmt_toggle0.cpp          82103940  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/y1_fmt_toggle1.cpp          821039D8  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/y1_fmt_toggle2.cpp          82103A70  -                      flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/y2_bind_lazy_six.cpp         822306D8
+src/y2_bind_lazy_five.cpp        82232420
+src/y1_byte_state.cpp           82103008  ?SetByte2902@@YAXPAUByteState@@E@Z  flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/y1_byte_state.cpp           82103028  ?SetByte2901@@YAXPAUByteState@@E@Z  flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/y1_byte_state.cpp           82103048  ?SetByte28FF@@YAXPAUByteState@@E@Z  flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/y1_byte_state.cpp           82103068  ?SetByte28FE@@YAXPAUByteState@@E@Z  flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/y1_byte_state.cpp           82103088  ?SetByte28FD@@YAXPAUByteState@@E@Z  flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/y1_float_state.cpp          82103C98  ?SetFloat29CC@@YAXPAUFloatState@@I@Z  flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/y1_float_state.cpp          82103CC8  ?SetFloat29C4@@YAXPAUFloatState@@I@Z  flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/y1_float_state.cpp          82103CF8  ?SetFloat29D0@@YAXPAUFloatState@@I@Z  flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/y1_float_state.cpp          82103D20  ?SetFloat29C8@@YAXPAUFloatState@@I@Z  flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/y1_field_state.cpp          82103318  ?SetField1@@YAXPAUFieldState@@I@Z  flags=/O2,/Os,/Gy,/GS-,/fp:fast
+src/y1_field_state.cpp          82103358  ?SetField2@@YAXPAUFieldState@@I@Z  flags=/O2,/Os,/Gy,/GS-,/fp:fast

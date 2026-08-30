@@ -23,12 +23,10 @@ src/b_strcmp.cpp                826973C8
 # src/g_memset_thunk.cpp is not an attempt at all: it is the source that
 # demonstrated match.py could report MATCH having verified nothing. Kept as
 # a worked example; tools/test_shrink.py now covers the case.
-src/f_arena_alloc.cpp           82606EC8
 src/m_pick_slot.cpp             82202D08
 src/e_normalize4.cpp            82155080  QuatNormalize
 src/e_axis_project.cpp          8214F7E8  ProjectOntoAxes
 src/k_kind_weight.cpp           827261D8
-src/h_arena_twin.cpp            82606FD8
 src/j_quat_to_mtx.cpp           82154ED8
 src/j_init_defaults.cpp         82202B50
 src/m_audio_ctor.cpp            82583290
@@ -45,7 +43,6 @@ src/b2_pool_insert.cpp          825A3528
 src/b3_hash_remove.cpp          826377B0  RemoveAt
 src/a6_obj_ctor.cpp             82700B30  ??0Obj@@QAA@PAXH@Z
 src/g4_pair_related.cpp          82673EC8
-src/g5_chunked_bit.cpp           8216C240
 src/g8_accumulate_stats.cpp      82673020
 src/g3_float_to_int.cpp          826306F8
 src/k5_approach_clamped.cpp      821AEC78
@@ -53,7 +50,6 @@ src/l15_fold_compare_n.cpp       8215AA28
 src/l18_global_level_set.cpp     8225D5D0
 src/m34_set_fixed12.cpp          82761808
 src/m35_read_run.cpp             82790B18
-src/m36_adjust_counts.cpp        825DB4C0
 src/n17_find_paired.cpp          82631F78
 src/n21_outer_inner_ctor.cpp     82273AE8
 src/l23_memcpy_globals.cpp       82158E50
@@ -62,3 +58,9 @@ src/m70_hash_until_brace.cpp    82600960  ?LookupName@@YAIPBD@Z
 src/m72_upper_in_place.cpp      8215A8F0  ?UpperInPlace@@YAXPAE@Z
 src/z4_chain_nth_fwd.cpp         826C0FB8
 src/z3_ctor_inner_vt.cpp        821AE070
+src/y1_ctor_s32_m60.cpp         821ADFC8  ??0Obj821ADFC8@@QAA@XZ
+src/y1_ctor_s28_m56.cpp         821AE070  ??0Obj821AE070@@QAA@XZ
+src/y2_count_tokens.cpp          8215A5C8
+src/y2_relocate_recs.cpp         82166B50  RelocateRecs
+src/y2_wave_format_ok.cpp        82578558  CheckWaveFormat
+src/y2_hsv_to_rgb.cpp            827C35F0

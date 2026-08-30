@@ -4,65 +4,59 @@
 // sub_82606EC8 (src/f_arena_alloc.cpp), naming 82A352AC / 82A352C4 where that
 // one names 82A35288 / 82A352A0. 160 B, 24 callers.
 //
-// NOT MATCHED, and it is the same stall, at the same two words:
+// MATCHED: 35 of 35 non-relocated words, 160 B, at /O2 -- by the same lever,
+// on the same two words that held both twins for so long:
 //
 //      82607050  want  add r3,r7,r9      got  add r3,r9,r7
 //      82607068  want  add r3,r10,r9     got  add r3,r9,r10
 //
-//      40 word(s) compared: 33 identical, 2 differ, 5 differ in a relocated
-//      word (expected)
-//
 // Same registers, same values, operands transposed: the target puts the
-// CURSOR in rA and every source shape tried puts the BASE there. Read
-// f_arena_alloc.cpp for the full account -- the eleven shapes tried there,
-// the thirteen added since (including the named-const-view lever that solved
-// sub_82667EE0, which cannot reach a global's address expression), the
-// 72-combination flag sweep, and why any source that reads the base before
-// the branch collapses the two tails into one and drops the body from 40
-// words to 37.
+// CURSOR in rA and every source shape that computes the capacity check as an
+// INTEGER difference puts the BASE there, because MSVC gives rA to the
+// operand whose source read comes later and `size - cursor` reads the cursor
+// at the top while the base is only read in the tail.
 //
-// NINE MORE SHAPES were tried on this twin, all 33 of 35 with exactly those
+// The fix, in full in f_arena_alloc.cpp, is that the guard is a POINTER
+// difference:
+//
+//      char* end = g_arena2.base + g_arena2.size;
+//      char* cur = g_arena2.base + g_arena2.cursor;
+//      if (end - cur < need)
+//
+// Both base reads fold away -- `(b + size) - (b + cursor)` is `size -
+// cursor`, and the emitted guard is unchanged, four instructions with no
+// load of the base before the branch -- but the read POSITION survives the
+// folding, and that is what the operand-order rule reads. Nothing stays live
+// across the branch, so the two duplicated tails survive and the body stays
+// at 40 words.
+//
+// This twin is the control for that claim. It was written down as the same
+// stall for the same recorded reason, was never edited toward the answer,
+// and the identical one-line change takes it from 33 of 35 to 35 of 35 with
+// nothing else touched.
+//
+// Ruled out here before the lever was found, all 33 of 35 with exactly those
 // two words transposed and nothing else moved:
 //
 //   * base and cursor named in locals, base first, then `b + c`
 //   * `char* p = g.base; p += g.cursor;`  (compound assignment)
 //   * `g.cursor + g.base`  (integer-first pointer arithmetic)
-//   * one level of inlined helper, `Take(&g_arena, need)`
-//   * TWO levels of inlined helper -- `Take` calling `At(a)` -- which is the
-//     shape that cracked sub_82164040 and sub_82703E28 in the same session
+//   * one level of inlined helper, `Take(&g_arena2, need)`
+//   * TWO levels of inlined helper -- `Take` calling `At(a)` -- the shape
+//     that cracked sub_82164040 and sub_82703E28
 //   * base/other held as u32 rather than char*, with the sum written both
-//     ways round, so the add is an integer add whose operand order
-//     MATCHED.md records as readable off the source
+//     ways round, so the add is a pure integer add
 //   * the fast path written as an early return with its own tail
-//     (that one is worse: 38 words, the guard inverts)
+//     (worse: 38 words, the guard inverts)
 //
-// The integer-field pair is the informative one. `a + b` on two ints is the
-// case where operand order IS supposed to be readable, and BOTH orders --
-// `g.cursor + g.base` and `g.base + g.cursor` -- compile to the same
-// transposed `add`. So the choice here is not being made from the source
-// expression at all.
-//
-// What the session did establish, from sub_826C0F50, is that the choice moves
-// with the DECLARATION ORDER OF THE LOCALS rather than the order of the reads
-// in the expression: `NthNode* q = n; s32 r = index - total;` and the same
-// two declarations swapped give `add r3,r11,r10` and `add r3,r10,r11` from a
-// character-for-character identical return statement. There are no locals to
-// reorder here -- both operands are global fields whose CSE representatives
-// are fixed by the guard -- which is consistent with this being unreachable
-// from the source and is the reason to stop.
-//
-// EIGHTEEN MORE SHAPES were measured on the twin's source this session and
-// are recorded in f_arena_alloc.cpp. The finding worth carrying here is that
-// the requirement and the code size are in DIRECT CONFLICT: MSVC's rule puts
-// in rA the operand whose source read comes later, so the target's
-// `add r3,cursor,base` needs the base read BEFORE the guard -- and all six
-// ways of doing that collapse the two duplicated tails into one and take the
-// body from 40 words to 36 or fewer (144-152 bytes, 1 to 4 words right).
-// Twelve shapes that keep the base read in the tail are all 160 bytes and
-// all 33 of 35 with the same two words transposed.
-//
-// So: same class as MATCHED.md's "What still resists". One operand-selection
-// decision, reachable from neither source order nor flags.
+// The integer-field pair is why the earlier conclusion looked so solid.
+// `a + b` on two ints is the case where operand order IS supposed to be
+// readable off the source, and BOTH orders compiled to the same transposed
+// `add` -- so the choice was demonstrably not being made from the source
+// expression. That measurement was right. What it did not show, and what was
+// wrongly inferred from it, is that the choice was unreachable: it is made
+// from the read POSITIONS, and a read that the optimiser deletes still has
+// one.
 
 struct Arena2
 {
@@ -97,7 +91,10 @@ void* Arena2Alloc(int n)
 {
     int need = (n + 15) & ~15;
 
-    if (g_arena2.size - g_arena2.cursor < need)
+    char* end = g_arena2.base + g_arena2.size;
+    char* cur = g_arena2.base + g_arena2.cursor;
+
+    if (end - cur < need)
     {
         int   c = g_fixups2.count;
         s32** q = g_fixups2.slots;

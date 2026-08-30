@@ -64,6 +64,32 @@ void Init12(S* s, int a, int b, int c, int unused,
     // the identical 76 bytes and 13 of 19 -- including /Ou, the compiler's
     // own prescheduling switch, which is the one flag that could plausibly
     // have decided a pure scheduling tie.
+    //
+    // A SECOND control, the other end of the same axis: moving `f[2] = c` to
+    // the FRONT emits `stw r6,8(r3)` first and scores 10 of 19. So the store
+    // order is pinned in both directions and the six statements below are in
+    // the target's order; nothing about the residue is a store-order
+    // question.
+    //
+    // The MEMBER form is also byte-identical: `void S::Init12(...)` with
+    // `f[12]` as the member and the parameter renamed out of the way (the
+    // permuter's recorded shadowing bug). MATCHED.md's member lever moves
+    // register ALLOCATION, and every register here is already right.
+    //
+    // SO THE RESIDUE IS THE LOADS, NOT THE STORE, and that is worth stating
+    // the right way round. The two schedules differ by where the group of
+    // five free loads goes:
+    //
+    //      target  stw 12,16,20 ; lwz 84,92,100,108,116 ; stw 8 ; lwz 124
+    //      ours    stw 12,16,20 ; stw 8 ; lwz 84,92,100,108,116,124
+    //
+    // `lwz r10,92(r1)` cannot issue before `stw r10,20(r3)`, so index 3 is
+    // the earliest the group can start, and both compiles put something
+    // there. The target spends it on the loads and defers `stw r6,8(r3)`
+    // until r6 is actually wanted by `lwz r6,124(r1)`; we spend it on the
+    // store, freeing r6 as early as possible. Both are the same instruction
+    // multiset with the same register assignment, and the tie is inside the
+    // scheduler.
     s->f[3] = d;  s->f[4] = e;  s->f[5]  = f;
     s->f[2] = c;
     s->f[0] = a;  s->f[1] = b;

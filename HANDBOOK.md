@@ -32,20 +32,23 @@ bytes identical to the retail image. Not a port, not a re-implementation.
 function starts known           30,630
 .text                           8,467,964 bytes
 
-FUNCTIONS MATCHED               1,215
-  read off the disassembly      397   (27,084 bytes)
+FUNCTIONS MATCHED               1,297
+  read off the disassembly      448   (34,308 bytes)
   generated from encodings      818   (8,192 bytes)
+  upstream third-party source   31   (7,320 bytes)
 
-bytes rebuilt from source       35,276   (0.4166% of .text)
-near-misses recorded            43
+bytes rebuilt from source       49,820   (0.5883% of .text)
+near-misses recorded            45
 vetted match candidates         4,231
 ```
-The two halves of the match count are never added up without being
-split, here or anywhere else: the generated ones are a single
-expression each, written by script from the instructions
-themselves. They are real matches and a link needs them; they say
-much less than the hand-written ones about how much of this game
-has been read.
+The three parts of the match count are never added up without
+being split, here or anywhere else. The generated ones are a
+single expression each, written by script from the instructions
+themselves. The upstream ones are libogg 1.1.3 and libvorbis
+1.2.0, obtained rather than recovered -- the release pair decided
+by measurement in FINDINGS 8a. Both reproduce the image exactly
+and a link needs every one; only the first says anything about how
+much of this game has been read.
 <!-- /STATS -->
 
 Matches are listed in `MATCHED.md`, whose table is generated from
@@ -210,7 +213,7 @@ contiguous **run** of matched functions, hands it the retail order through
 emits against the image byte for byte.
 
 ```
-123 of 160 runs, 10,988 of the 15,808 bytes those runs span
+124 of 181 runs, 12,100 of the 27,128 bytes those runs span
 ```
 
 laid out by the linker rather than by us, at the addresses the image gives
@@ -707,6 +710,20 @@ control is in the middle of corrupting — and **the privacy check caught the
 comment written to explain the bug**, which spelled the account name out. It
 is meant to.
 
+**One rule, one implementation — and a cross-check only works on an input
+that can tell the copies apart.** Five tools each had their own way of finding
+the function a manifest row names, and two of them omitted the exact-name test
+between the mangled test and the substring test. C symbols are not mangled and
+`vorbis_book_decode` is a prefix of `vorbis_book_decodev_add`, so the wrong
+function was measured and the reported byte total was 488 too high. The rule
+is `libmatch.pick_function` now.
+
+`verify.py`'s three-way agreement had compared those totals for weeks and
+passed, because until the upstream Ogg sources arrived **no tracked file had
+two functions whose names were prefixes of one another**. The check was sound;
+it had never been handed an input that could distinguish the implementations.
+A cross-check is only as strong as the hardest case it has actually seen.
+
 **A restore reads and writes BYTES.** Python's text mode translates line
 endings on Windows, so `read_text` then `write_text` gives back a file whose
 content is right and whose bytes are not. That happened twice in one session:
@@ -949,10 +966,54 @@ That command is the ground truth and the comments in the files may lag it.
 The list is not reproduced here any more, because it was reproduced here
 three times and was wrong by the third.
 
-**Six were solved after being written down as stalls, and three of those had
+**Ten were solved after being written down as stalls, and seven of those had
 a recorded MECHANISM saying why they could not be solved.** That is the
 useful part of this section, so it is worth being exact about what the wrong
-explanations were:
+explanations were.
+
+**The four newest, all in one afternoon**, and the arena pair is the one to
+read first:
+
+* `82606EC8` / `82606FD8` **the arena twins**, 35 of 35 each. This file said
+  the const-view lever "works on fields reached through a pointer parameter,
+  not on a global's `lis`/`addi` address expression". True, and the deeper
+  reading was also true: the target's `add r3,cursor,base` needs the base
+  read BEFORE the guard, and every way of reading it early kept a value live
+  across the branch, so MSVC merged two tails that must stay duplicated.
+  **What it missed is that the read does not have to survive.** Writing the
+  capacity test as a pointer difference —
+
+  ```c
+  char* end = g_arena.base + g_arena.size;
+  char* cur = g_arena.base + g_arena.cursor;
+  if (end - cur < need)
+  ```
+
+  — reads the base twice ahead of the guard and then folds both reads away
+  completely: `(b+size)-(b+cursor)` is `size-cursor`, the guard is the same
+  four instructions with no base load, nothing is live, the tails stay
+  duplicated, and both adds come out with the cursor in `rA`. Six spellings
+  reach 35/35. An inlined `At(off)` helper normalises the read positions away
+  (33/35) and `need > end - cur` puts the base back in `rA` (33/35), so the
+  form matters. **The twin took the identical one-line change with nothing
+  else touched, which is the control.**
+* `8216C240` **chunked bit**, 38 of 38, by the AND-mask lever applied to the
+  **index rather than the operator**. Both indexed accesses were already
+  correct; masking the index misses MSVC's `base + (index << scale)`
+  addressing pattern, and the rebuilt expression tree emits the commutative
+  `or` with its operands the other way round. The mask is an exact identity,
+  not merely harmless: `(r & 0x3FFFFFFF) << 2 == r << 2` for every `r`,
+  because the two bits it clears are the two the shift discards.
+* `825DB4C0` **adjust counts**, 30 of 30 at `/O2 /Os`. Recorded as
+  unreachable because `delta` is a loop-invariant parameter whose CSE
+  representative is pinned at entry. The expression axis really is dead — ten
+  spellings confirm it — but **three separate levers each reach it**: the
+  address-of pin, a `s32 d = delta;` at the top, and a const view. Seven
+  spellings compile to identical bytes, so the bytes do not decide which was
+  written, and the source says so rather than letting the choice read as a
+  measurement.
+
+The six older ones, and what the wrong explanations were:
 
 * `82667EE0` **VectorGrow**. This file said the `mullw` operand order was
   displaced by an earlier read making the first occurrence the CSE
@@ -1025,18 +1086,38 @@ in particular has not once survived contact with a new lever.
 
 **Still genuinely open, and the honest reasons:**
 
-* `82606EC8` / `82606FD8`, the arena twins, 33 of 35. The const-view lever
-  that cracked VectorGrow was tried and has a LIMIT worth recording: it works
-  on fields reached through a pointer parameter, not on a global's
-  `lis`/`addi` address expression -- which is the same reason declaration
-  order cannot reach these either.
-* `826377B0`, 69 of 74, is the counter-example in MATCHED.md: `lwzx` operand
-  order is not uniform WITHIN the retail function, so no single source
-  convention produces both halves.
+* `826377B0`, **71 of 74** (was 69). `lwzx` operand order is not uniform
+  WITHIN the retail function, so no single source convention produces both
+  halves. Two of the five moved by masking the FIRST occurrence of the index
+  --  `slots[hole & 0x1FFFFFFFu].key = -1;` -- which fixes two `slots[hole]`
+  accesses *inside the loop* that the statement does not contain, at no size
+  cost because the `rlwinm ...,3,0,28` already discards everything above bit
+  28. 89 further variants were tried at 296 B / 71 of 74, including the
+  reversed subscript `i[slots]` at all nine sites, which is byte-identical --
+  MSVC canonicalises it, a clean negative. Splitting the loop test into two
+  source expressions, the obvious answer to "not uniform within the
+  function", reorganises the whole body: 288 B, 17 of 72.
 * Three functions -- `826973C8`, `821FC4D8`, `8215BD60` -- each want `/O2`'s
   register allocation with `/Os`'s instruction selection, and none of the 72
-  flag combinations `flagsweep.py` tries expresses that. That is a real
-  boundary of the flag axis rather than a fact about any of the three.
+  flag combinations `flagsweep.py` tries expresses that. **Sharpened, and it
+  is now a statement about the compiler rather than about the flags:**
+  `#pragma optimize("s", on)` at `/O2` gives the `/Os` answer and
+  `#pragma optimize("t", on)` at `/O2 /Os` gives the `/O2` answer. So the GPR
+  pair and the CR field are two consequences of ONE internal size/speed
+  decision -- movable from source in both directions, but not separable. 59
+  source shapes at both levels and 88 further flag combinations beyond
+  flagsweep's own did not split them, and neither did seven placements of the
+  folded-read lever that cracked the arena. **That lever reaches operand
+  SELECTION, not register or CR-field ASSIGNMENT** -- worth recording as its
+  limit.
+* `821AE070`, 23 of 24, one word: the target takes the sub-object address off
+  the pointer a base constructor RETURNED, ours off `this`. All 720 statement
+  orders on the `&o->inner` shape, inlined helpers in both parameter orders,
+  and 72 flag combinations leave it unmoved. Two facts worth keeping: use
+  count is not the mechanism (a sixth reference keeps the swap), and MSVC
+  does not model an out-of-line base constructor as returning `this` -- a real
+  base class is 19 of 24 with every store off r31, which independently
+  confirms the `Outer* o = BaseInit(this)` reading.
 
 `tools/permuter.py`'s mutations still do not reach register allocation, so
 **a mutation that changes register PRESSURE remains the one worth writing**.
