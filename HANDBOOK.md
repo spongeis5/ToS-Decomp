@@ -590,6 +590,7 @@ broken one pops a modal dialog that blocks until someone clicks OK.
 | `addrtaken.py` | Function starts whose address is TAKEN IN CODE |
 | `switches.py` | Decode MSVC PowerPC switch dispatch, and say what the targets are |
 | `switchtab.py` | Where the jump tables are. ONE reader for build/switch_tables.txt |
+| `loose_ends.py` | Re-derive the blocked-run external-symbol analysis for the whole-image link |
 | `truncated.py` | Which inventory rows are TRUNCATED by a jump table sitting inside them? |
 | `interior.py` | Function starts hidden INSIDE another inventory row, and unreachable |
 | `rtti.py` | Recover classes and vtables from MSVC RTTI |
@@ -1358,9 +1359,29 @@ in particular has not once survived contact with a new lever.
    whose REL24 the linker computes differently from `build.py`'s hand-solved
    one, which nothing checks today.
 
-   **Two loose ends to look at first**, both cheap and neither explained: the
-   3 references landing in `.text` at a non-function-start, and the 3 that
-   could not be solved from the retail word.
+   **Both loose ends are SETTLED — `python tools/loose_ends.py`.** They were
+   "the 3 references landing in `.text` at a non-function-start, and the 3
+   that could not be solved from the retail word", and neither was a
+   mystery; both were things this repository already knew, sitting in files
+   nothing was reading. Re-derived against the current manifest: **167
+   symbols needed by 52 blocked runs, 165 addresses recovered.**
+
+   * **0 unsolved.** The ones that looked unsolvable are
+     `__declspec(thread)` variables at TLS slot 40, reached through r13 by a
+     TOCREL14. `coffreloc.solve_address` returns `tls` as its own kind
+     precisely so it is not read as a recovered location; filing it under
+     "could not be solved" is what made it look open.
+   * **2 of the 3 non-starts are XEX import thunks** — `8291284C` and
+     `8291285C`, `mtctr r11 ; bctr` behind two ordinal words, named in
+     `build/imports.txt` as `xboxkrnl.exe!RtlEnterCriticalSection` and
+     `!RtlLeaveCriticalSection`. Our `LockEnter`/`LockLeave` are invented
+     names for kernel imports, so the whole-image link needs an import
+     thunk there, not a function.
+   * **1 genuine non-start remains**: a data object at `827A7C88`, reached
+     by an ADDR32NB/SECREL pair from inside `.text`.
+
+   The rest resolve cleanly: 94 to a `.text` function start, 39 to `.rdata`,
+   29 to `.data`. Nothing in that set blocks the whole-image link.
 7. **A register-pressure mutation for `tools/permuter.py`.** Its seven
    mutations do not reach register allocation, which is what all six
    remaining stalls come down to.
