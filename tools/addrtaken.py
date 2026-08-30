@@ -20,7 +20,7 @@ which is why the inventory records that range as ONE 156-byte function --
 and why `8215E5B0`, listed in MATCHED.md as a stall, was being compared
 against 156 bytes when the function is 28.
 
-TWO CONTAMINANTS, both removed, because each would otherwise inflate the
+THREE CONTAMINANTS, all removed, because each would otherwise inflate the
 result with something that is not a function:
 
   * **MSVC switch case bodies.** A switch dispatch builds `caseBase` with a
@@ -28,6 +28,18 @@ result with something that is not a function:
     recovered is an address formed in code. They are not functions. Before
     this exclusion the very first "new function" this reported was 82107B58,
     which is row one of build/switch_targets.txt.
+  * **THE JUMP TABLES THEMSELVES.** This said "two contaminants, both
+    removed" while 331 of the 437 table bases in build/switch_tables.txt
+    were in its own output -- 26% of 1,252 addresses. The dispatch builds
+    the TABLE's address with a `lis`/`addi` pair too, so a table is exactly
+    what this scan is designed to find, and a table sitting in `.text` is
+    preceded by the `bctr` that reads it, which passes the terminator test
+    as convincingly as any real function does.
+
+    Anyone extending the inventory from this file would have planted 331
+    false starts, each silently truncating the row it landed in. The extent
+    comes from `interior.switch_table_ranges`, one implementation shared
+    with the tool that had the mirror-image version of this same bug.
   * **Addresses that are already known starts** -- kept, but only as the
     calibration set below.
 
@@ -78,6 +90,17 @@ def main(argv):
     addrs = [a for a, _ in byva]
     sizes = dict(byva)
     switch = load_switch_targets()
+    # NOT `import interior`: a local named `interior` further down would
+    # shadow it, and the failure would be an AttributeError long after this.
+    from interior import switch_table_ranges
+    import bisect as _bisect
+    tables, tbl_unknown = switch_table_ranges(img)
+    tables.sort()
+    tbl_lo = [lo for lo, _hi in tables]
+
+    def in_table(a):
+        i = _bisect.bisect_right(tbl_lo, a) - 1
+        return i >= 0 and a < tables[i][1]
 
     def owner(a):
         lo, hi, best = 0, len(addrs) - 1, None
@@ -149,6 +172,14 @@ def main(argv):
     contaminated = sorted(a for a in found if a in switch)
     print("  of those, MSVC switch case bodies (excluded)   %d" % len(contaminated))
     found = {a: v for a, v in found.items() if a not in switch}
+    tabled = sorted(a for a in found if in_table(a))
+    print("  of those, JUMP TABLES themselves (excluded)    %d  of %d recorded"
+          % (len(tabled), len(tables)))
+    if tbl_unknown:
+        print("    %d of those %d table(s) record NO LENGTH; extent measured"
+              % (tbl_unknown, len(tables)))
+        print("    as the run of aligned .text addresses at the base")
+    found = {a: v for a, v in found.items() if not in_table(a)}
     print("  remaining                                       %d" % len(found))
 
     known = [a for a in found if a in starts]

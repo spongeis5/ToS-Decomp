@@ -152,6 +152,39 @@ def _address_run(img, a0, limit=4096):
     return n
 
 
+def switch_table_ranges(img):
+    """-> ([(lo, hi)], how many had no recorded length).
+
+    ONE implementation, because two tools need it and they must agree. A
+    jump table is DATA sitting in `.text`: it is preceded by the `bctr` that
+    reads it and pointed at from the code that builds its base, so it looks
+    like a function start from every angle either tool measures.
+    `addrtaken.py` had this wrong in the other direction -- it excluded
+    switch CASE BODIES and not table BASES, so 331 of its 1,252 "address-
+    taken function starts" were tables.
+    """
+    tables, unknown = [], 0
+    sw = ROOT / "build/switch_tables.txt"
+    if not sw.exists():
+        return tables, 0
+    for line in sw.read_text().splitlines():
+        line = line.split("#")[0].strip()
+        if not line:
+            continue
+        f = line.split()
+        if len(f) < 2:
+            continue
+        try:
+            a0, n = int(f[0], 16), int(f[1])
+        except ValueError:
+            continue
+        if n == 0:
+            unknown += 1
+            n = _address_run(img, a0)
+        tables.append((a0, a0 + n))
+    return tables, unknown
+
+
 def find(img, inv):
     starts = sorted(inv)
     calls = call_targets()
@@ -182,23 +215,7 @@ def find(img, inv):
     # So an unknown extent is MEASURED here rather than assumed away. A jump
     # table of the absolute-address form is a run of aligned words that are
     # all addresses inside .text, so the run itself gives the extent.
-    tables, unknown = [], 0
-    sw = ROOT / "build/switch_tables.txt"
-    if sw.exists():
-        for line in sw.read_text().splitlines():
-            line = line.split("#")[0].strip()
-            if not line:
-                continue
-            f = line.split()
-            if len(f) >= 2:
-                try:
-                    a0, n = int(f[0], 16), int(f[1])
-                except ValueError:
-                    continue
-                if n == 0:
-                    unknown += 1
-                    n = _address_run(img, a0)
-                tables.append((a0, a0 + n))
+    tables, unknown = switch_table_ranges(img)
 
     def in_table(a):
         return any(lo <= a < hi for lo, hi in tables)

@@ -1070,15 +1070,26 @@ reason this has not been done, and it is 211 candidates and 42,216 bytes of
 currently invisible target, of which 125 and 4,108 bytes pass a structural
 test as well.
 
-**Do NOT do it by running `tools/inventory.py --addrtaken`.** It adds all
-1,252 address-taken starts, and **331 of the 437 switch-table bases are in
-`build/addrtaken.txt`** — `addrtaken.py` excludes case *bodies* via
-`switch_targets.txt` but never table *bases*. That is 331 false starts, each
-silently truncating the row it lands in. `interior.py --write` is not safe
-either as written: it appends all of them unsorted and does not shrink the
-enclosing row, leaving overlapping rows — and `disasm.py --fn` takes the
-FIRST containing row in file order, so an appended row is shadowed by the one
-it sits inside.
+**`build/addrtaken.txt` held 331 jump tables until 2026-08-30**, and the
+same day's fix is the reason that sentence is in the past tense.
+`addrtaken.py`'s docstring said "two contaminants, both removed" while
+**331 of its 1,252 addresses — 26% — were switch-table bases**: it excluded
+case *bodies* via `switch_targets.txt` and never table *bases*, though a
+dispatch builds the table's address with the same `lis`/`addi` pair the scan
+looks for, and a table in `.text` sits behind the `bctr` that reads it, so it
+passes the terminator test as convincingly as a real function. Extending the
+inventory from that file would have planted 331 false starts, each silently
+truncating the row it landed in. It now reports **921**, and the extent comes
+from `interior.switch_table_ranges` — one implementation, shared with the
+tool that had the mirror-image version of the same bug on the same day.
+
+**`interior.py --write` is still not safe as written**: it appends all
+candidates unsorted and does not shrink the enclosing row, leaving
+overlapping rows — and `disasm.py --fn` takes the FIRST containing row in
+file order, so an appended row is shadowed by the one it sits inside. Promote
+one address at a time, require the enclosing row's arithmetic to CLOSE
+(4 + 4 + 60 = 68; 72 + 80 = 152), and insert in sorted position while
+shrinking the row it came from.
 
 ### What still resists
 
