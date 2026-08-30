@@ -42,6 +42,7 @@ ORDER = [
     "xex.py", "flatten_pe.py", "verify_mapping.py", "pdata.py",
     "inventory.py", "peimage.py", "ppcdis.py", "disasm.py",
     "discover.py", "addrtaken.py", "switches.py", "switchtab.py",
+    "evidence.py", "linkgap.py",
     "loose_ends.py",
     "truncated.py",
     "interior.py", "rtti.py", "vtables.py", "xeximports.py", "srcfiles.py",

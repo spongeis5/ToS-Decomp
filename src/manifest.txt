@@ -1326,3 +1326,9 @@ src/w4_scan4_clear.cpp           82226F38
 src/w4_and2_flag.cpp             82761AA8  flags=/O2,/Os,/Gy,/GS-,/fp:fast
 src/w4_sentinel_a.cpp            825F4740  flags=/O2,/Os,/Gy,/GS-,/fp:fast
 src/w4_bit1_of56.cpp            822038B0
+src/w5_clear_list.cpp       82589FF8
+src/w5_zero8w.cpp           825FCCB8
+src/w5_chain4null.cpp       821FF818
+src/w5_3guard2tail.cpp      821F0108
+src/w5_init52.cpp           82543D08
+src/w5_aca90.cpp            825ACA90

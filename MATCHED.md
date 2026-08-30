@@ -11,7 +11,7 @@ the inventory is wrong in both directions, short where a tail call's dead
 `blr` was not counted and long where one `.pdata` row covers several
 frameless bodies.
 
-**1316 functions, 55164 bytes.** Verify all of them, plus the reconstructing
+**1322 functions, 55496 bytes.** Verify all of them, plus the reconstructing
 build and six negative controls, with one command:
 
 ```bash
@@ -22,7 +22,7 @@ Every match is also a row in `src/manifest.txt`, so `tools/build.py` compiles
 it, resolves its relocations against the retail bytes and splices it into
 `.text`. Nothing here is a match on `match.py`'s word-comparison alone.
 
-SPLIT: 463 hand-written, 35276 bytes; 818 generated, 8192 bytes; 35 upstream, 11696 bytes.
+SPLIT: 469 hand-written, 35608 bytes; 818 generated, 8192 bytes; 35 upstream, 11696 bytes.
 <!-- the line above is regenerated; edit tools/matched_table.py, not this -->
 
 The two halves are not comparable and the count should never be quoted
@@ -329,10 +329,12 @@ while and the claim was wrong.
 | `8219ED88` | 84 | 4 | `l9_deep_ready_a.cpp` | IsReadyKind7 | `/O2` |
 | `821A5390` | 40 | 4 | `n7_state2_or_flag.cpp` | - | `/O2` |
 | `821A93E0` | 24 | 4 | `l7_sub_kind2.cpp` | - | `/O2` |
+| `821F0108` | 52 | 4 | `w5_3guard2tail.cpp` | - | `/O2` |
 | `821F6B70` | 208 | 4 | `z3_set_state.cpp` | - | `/O2` |
 | `821F7B18` | 40 | 4 | `n8_reset_two_floats.cpp` | - | `/O2` |
 | `821FC180` | 128 | 4 | `n18_flag_move_notify.cpp` | - | `/O2` |
 | `821FE858` | 24 | 4 | `l8_store_then_vcall0.cpp` | - | `/O2` |
+| `821FF818` | 64 | 4 | `w5_chain4null.cpp` | - | `/O2` |
 | `82203890` | 16 | 4 | `h1_inner_bit0.cpp` | - | `/O2` |
 | `822152C0` | 96 | 4 | `m29_set_frame_axes.cpp` | - | `/O2` |
 | `82218FB0` | 36 | 4 | `n1_submit12.cpp` | - | `/O2` |
@@ -349,17 +351,21 @@ while and the claim was wrong.
 | `822E0D80` | 16 | 4 | `k6_swap_forward.cpp` | - | `/O2` |
 | `82540838` | 64 | 4 | `z1_strupr.cpp` | - | `/O2` |
 | `82542518` | 124 | 4 | `m39_ensure_config.cpp` | - | `/O2` |
+| `82543D08` | 52 | 4 | `w5_init52.cpp` | - | `/O2` |
 | `82547880` | 116 | 4 | `m32_list_find_key48.cpp` | - | `/O2` |
 | `825492B8` | 32 | 4 | `m25_out_or_err37.cpp` | - | `/O2` |
 | `8257EC60` | 128 | 4 | `n16_dsp_sink_ctor.cpp` | DspSink | `/O2` |
+| `82589FF8` | 52 | 4 | `w5_clear_list.cpp` | - | `/O2` |
 | `8258A730` | 44 | 4 | `w4_sentinel_b.cpp` | - | `/O2` |
 | `825914B8` | 96 | 4 | `m30_query_ready.cpp` | - | `/O2` |
+| `825ACA90` | 68 | 4 | `w5_aca90.cpp` | - | `/O2` |
 | `825B9970` | 20 | 4 | `l1_clear_triple_b.cpp` | - | `/O2` |
 | `825B9E20` | 20 | 4 | `l2_low3_clear.cpp` | - | `/O2` |
 | `825BE3D8` | 36 | 4 | `n4_zero5_ret0.cpp` | - | `/O2` |
 | `825DB4C0` | 120 | 4 | `m36_adjust_counts.cpp` | - | `/O2 /Os` |
 | `825DB730` | 20 | 4 | `l3_bits300_set.cpp` | - | `/O2 /Os` |
 | `825DEB20` | 132 | 4 | `n19_list_ctor_dup.cpp` | ListOwner | `/O2` |
+| `825FCCB8` | 44 | 4 | `w5_zero8w.cpp` | - | `/O2` |
 | `825FF468` | 36 | 4 | `n5_set_bit_pair.cpp` | - | `/O2` |
 | `82600AD0` | 28 | 4 | `list_insert.cpp` | - | `/O2` |
 | `8261B1A8` | 100 | 4 | `m31_hash_find_node.cpp` | - | `/O2` |

@@ -32,13 +32,13 @@ bytes identical to the retail image. Not a port, not a re-implementation.
 function starts known           30,630
 .text                           8,467,964 bytes
 
-FUNCTIONS MATCHED               1,316
-  read off the disassembly      463   (35,276 bytes)
+FUNCTIONS MATCHED               1,322
+  read off the disassembly      469   (35,608 bytes)
   generated from encodings      818   (8,192 bytes)
   upstream third-party source   35   (11,696 bytes)
 
-bytes rebuilt from source       55,164   (0.6514% of .text)
-near-misses recorded            42
+bytes rebuilt from source       55,496   (0.6554% of .text)
+near-misses recorded            44
 vetted match candidates         4,231
 ```
 The three parts of the match count are never added up without
@@ -238,6 +238,34 @@ So `bridge.py`'s "run gain" is a SPAN — the right question for layout, the
 wrong one for "how many more bytes link tomorrow". Read them apart. The
 resolution is item 6 below: one link of the whole image, where every symbol
 is placed and no run has anything left to reach for.
+
+**AND THE LINK HAS SETTLED FAR LESS ABOUT RELOCATION THAN ITS BYTE COUNT
+SUGGESTS — `python tools/evidence.py`.** The figures below were measured at
+**1,316 matched / 55,164 bytes / 121 linked runs**, and they are a ratio
+rather than a total: re-run the tool rather than reading them off, because
+the numerator moves with every match. Of those bytes, **92.20% are whole
+words the compiler emitted** and were compared against the image. The rest
+are relocated fields, and their provenance splits:
+
+```
+COMPILER   50,860   92.20%   whole words the compiler produced
+LINKED        216    0.39%   relocated fields link.exe computed from
+                             our own placement of our own symbols
+SPLICED     4,088    7.41%   relocated fields build.py took out of the
+                             retail word
+```
+
+**216 bytes**, not 12,088, is what the real link has proven about
+relocation — and **27 of those 54 words are in one function**,
+`i_canon_switch.cpp`. The reason is structural rather than incidental: a run
+links only when every symbol it references is inside it, so the runs that
+link are the ones with least for a linker to do. Relocated words are 1.94%
+of linked runs and 9.29% of the rest — the relocation-dense code is exactly
+what cannot link yet.
+
+None of this makes a matched byte less correct; every one is byte-identical
+to retail either way. It bounds what the LINK has established, as against
+the splice, and that bound is the strongest argument for item 6.
 
 Six negative controls
 (`--selftest`) require it to *see* a difference when the order is reversed,
@@ -590,6 +618,8 @@ broken one pops a modal dialog that blocks until someone clicks OK.
 | `addrtaken.py` | Function starts whose address is TAKEN IN CODE |
 | `switches.py` | Decode MSVC PowerPC switch dispatch, and say what the targets are |
 | `switchtab.py` | Where the jump tables are. ONE reader for build/switch_tables.txt |
+| `evidence.py` | How much of the matched byte total did the COMPILER actually produce? |
+| `linkgap.py` | Why the blocked runs do not link, measured rather than summarised |
 | `loose_ends.py` | Re-derive the blocked-run external-symbol analysis for the whole-image link |
 | `truncated.py` | Which inventory rows are TRUNCATED by a jump table sitting inside them? |
 | `interior.py` | Function starts hidden INSIDE another inventory row, and unreachable |
@@ -1341,6 +1371,48 @@ in particular has not once survived contact with a new lever.
    reach what it calls has a **median of 4.10 MB** and a largest of 10.13 MB —
    more than `.text` itself, because a third of the references are to data
    sections that sit after it. Only 4 of 26 are under 64 KB.
+
+   **AND A FLOAT LITERAL MAKES IT COMPULSORY, not merely tidier —
+   `python tools/linkgap.py`.** A function using a float constant cannot
+   have its run linked in isolation and reproduce retail, by construction:
+   the compiler emits `__real@...` into our own object, the linker resolves
+   the symbol against that copy, and places it wherever this small link puts
+   `.rdata` — which is not retail's address, so the `lis`/`addi` pair comes
+   out pointing somewhere else. Supplying the retail address as an ABSOLUTE
+   instead collides with the object's own definition (LNK2005). Neither way
+   works. Measured on the two runs it was tried on: they link, and differ at
+   exactly the `lis` words.
+
+   **What actually blocks the blocked runs**, each reference resolved from
+   the retail word at its site and classified by where it lands. Measured at
+   **1,316 matched, 52 blocked runs, 195 references**; the shape is the
+   point, not the totals, so re-run `linkgap.py` for current numbers:
+
+   ```
+   CODE not matched        86    needs real decompilation
+   SELF-DEFINED            33    the run's own object defines it; describe()
+                                 builds `have` from the placed FUNCTION
+                                 names, so a float constant or string
+                                 literal it emits into .rdata is invisible
+   DATA (.data)            29    a global
+   DATA (.rdata)           21    a constant, vtable or string literal
+   NAME DRIFT              21    a .text address we ALREADY match, under a
+                                 different invented name
+   text, not a start        5
+   ```
+
+   **Only 44% of it is missing decompilation.** By run: 11 are blocked by
+   DATA alone, 10 by CODE alone, 2 by NAME DRIFT alone, 2 by SELF alone — so
+   **15 of 52 need no new function matched at all.**
+
+   `linkgap.py --try` supplies every external at its retail address as an
+   absolute and links the run at its retail address: **11 runs reproduce the
+   image byte for byte, 1,244 bytes.** That is real and it is STRICTLY
+   WEAKER than a self-contained run — the arithmetic is the linker's, the
+   address is the image's — so it is never added to the linked total. It
+   also bounds itself: an absolute satisfies an address SPLIT and cannot
+   satisfy a CALL (link.exe answers a REL24 against one with LNK2013
+   overflow), and 36 of 52 blocked runs need at least one call.
 
    **So it is one link of the whole image, with `.text`, `.rdata` and `.data`
    all placed.** Every piece exists:
