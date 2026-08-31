@@ -10,7 +10,7 @@ The goal is C++ that, compiled with the title's own 2008 Xbox 360 XDK
 compiler (XDK 8276), produces bytes **identical** to the retail image. Not a port, not a
 re-implementation, not an emulator.
 
-**1,986 functions matched** — 474 written by hand from the disassembly, 1,475 generated from their own encodings, 37 upstream libogg/libvorbis — reproducing 67,768 of the 8,467,964 bytes in `.text`, 0.8003%.
+**1,987 functions matched** — 475 written by hand from the disassembly, 1,475 generated from their own encodings, 37 upstream libogg/libvorbis — reproducing 67,848 of the 8,467,964 bytes in `.text`, 0.8012%.
 
 Those three parts are deliberately never added up without being split.
 

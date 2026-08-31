@@ -25854,6 +25854,19 @@
       }
     },
     {
+      "name": "sub_82252C98 (bucket_unlink)",
+      "target_path": "build/objdiff/target/bucket_unlink_82252C98.o",
+      "base_path": "build/objdiff/base/bucket_unlink_82252C98.o",
+      "metadata": {
+        "complete": false,
+        "source_path": "src/bucket_unlink.cpp",
+        "progress_categories": [
+          "handwritten"
+        ],
+        "auto_generated": false
+      }
+    },
+    {
       "name": "sub_826C1480 (init12)",
       "target_path": "build/objdiff/target/init12_826C1480.o",
       "base_path": "build/objdiff/base/init12_826C1480.o",

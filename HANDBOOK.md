@@ -32,12 +32,12 @@ bytes identical to the retail image. Not a port, not a re-implementation.
 function starts known           30,630
 .text                           8,467,964 bytes
 
-FUNCTIONS MATCHED               1,986
-  read off the disassembly      474   (35,700 bytes)
+FUNCTIONS MATCHED               1,987
+  read off the disassembly      475   (35,780 bytes)
   generated from encodings      1,475   (20,164 bytes)
   upstream third-party source   37   (11,904 bytes)
 
-bytes rebuilt from source       67,768   (0.8003% of .text)
+bytes rebuilt from source       67,848   (0.8012% of .text)
 near-misses recorded            61
 vetted match candidates         4,231
 ```
