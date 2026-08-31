@@ -114,6 +114,120 @@ ALLOWED_PATHS = {
     "test_privacy_guard.py",
 }
 
+
+# ---------------------------------------------------------------------------
+# HISTORY. Everything above asks about the working tree, and that is the
+# question that was already being answered correctly while nine blobs sat in
+# this repository's history for sixty-seven commits. `git grep` reports the
+# TREE; a push sends the OBJECTS. They are not the same question, and the
+# narrow one is the one that feels like an answer.
+#
+# Cost is why this can be a check rather than an audit: one batched
+# `git cat-file` streams every object in about a tenth of a second, where a
+# process per object took most of a minute. A check too slow to run every
+# time becomes an opt-in check, which is a check that does not run.
+#
+# NOTHING IS FED TO cat-file ON STDIN. Writing a list of object ids in while
+# reading bodies out deadlocks the moment the output pipe fills, which it
+# does within the first megabyte -- the first version of this hung for ten
+# minutes. `--batch-all-objects` needs no stdin at all, and the paths come
+# from a separate, cheap `rev-list` that produces text and nothing else.
+
+
+def _object_paths():
+    """-> ({sha: {paths}}, {reachable shas}) from one rev-list."""
+    paths, reachable = {}, set()
+    listing = git("rev-list", "--objects", "--all")
+    if listing is None:
+        return None, None
+    for line in listing.splitlines():
+        parts = line.split(" ", 1)
+        reachable.add(parts[0])
+        if len(parts) == 2 and parts[1].strip():
+            paths.setdefault(parts[0], set()).add(parts[1].strip())
+    return paths, reachable
+
+
+def _scan_objects(want_name, want_home):
+    """One pass over EVERY object in the database.
+
+    -> (name_reachable, name_unreachable, home_hits) where the first two are
+    lists of object ids and the third is a list of (sha, path).
+
+    All objects rather than only reachable ones: an unreachable blob is not
+    published, but it IS still on this disk, and saying nothing about it is
+    how a rewrite gets called finished while the old bytes sit in the object
+    database. The two are reported separately because the remedies differ --
+    a reachable hit needs a history rewrite, an unreachable one needs a gc.
+    """
+    paths, reachable = _object_paths()
+    if paths is None:
+        return None
+
+    p = subprocess.Popen(
+        ["git", "cat-file", "--batch-all-objects", "--batch", "--buffer",
+         "--unordered"],
+        cwd=str(ROOT), stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+
+    name_r, name_u, home = [], [], []
+    out = p.stdout
+    try:
+        while True:
+            header = out.readline()
+            if not header:
+                break
+            parts = header.split()
+            if len(parts) < 3:
+                continue
+            sha, kind, size = parts[0].decode(), parts[1], int(parts[2])
+            body = out.read(size)
+            out.read(1)
+            if kind != b"blob":
+                continue
+
+            if want_name and want_name in body.lower():
+                (name_r if sha in reachable else name_u).append(sha)
+
+            if want_home:
+                known = paths.get(sha, set())
+                if any(Path(q).name in ALLOWED_PATHS for q in known):
+                    continue
+                text = body.decode("utf-8", errors="ignore")
+                if home_path_hit(text):
+                    home.append((sha, sorted(known)[0] if known
+                                 else "<unreachable>"))
+    finally:
+        out.close()
+        p.wait()
+    return name_r, name_u, home
+
+# Account components that name nobody. The home-path rule is a proxy for
+# the identity rule, and after a history rewrite the account component is
+# the word the rewrite substituted -- so without this the rule fires on the
+# evidence that the problem was fixed.
+#
+# Deliberately tiny, and every entry is a word no account is plausibly
+# called. It is NOT a way to exempt a real name: doing that would mean
+# writing the name here in plain text, which this file's first rule forbids.
+#
+# ONE entry, and it is the word this repository's history rewrite actually
+# substituted. The first version of this list also held "user", "someone",
+# "example" and five more -- and swallowed test_privacy_guard.py's own
+# fixtures, which plant a home path with exactly those components. The guard
+# caught it, which is the entire reason the guard exists: an allowlist wide
+# enough to be convenient is wide enough to disarm the rule.
+SAFE_ACCOUNTS = {"redacted"}
+
+
+def home_path_hit(text):
+    """-> True if `text` holds a home path whose account names a person."""
+    for m in HOME_PATH.finditer(text):
+        who = m.group(1)
+        if who.lower().strip("<>") not in SAFE_ACCOUNTS:
+            return True
+    return False
+
+
 RESULTS = []
 SKIPPED = []
 
@@ -185,8 +299,7 @@ def main():
         except OSError:
             continue
         for i, line in enumerate(text.splitlines(), 1):
-            m = HOME_PATH.search(line)
-            if m:
+            if home_path_hit(line):
                 hp.append((rel, i, line.strip()[:70]))
     check("no tracked file contains a home-directory path", not hp,
           "%d hit(s)" % len(hp) if hp else "")
@@ -222,6 +335,43 @@ def main():
         check("the configured commit email is a privacy address",
               bool(nxt) and bool(ALLOWED_EMAIL.match(nxt)),
               nxt or "user.email is unset")
+
+    # 5 and 6. The same two rules again, over git OBJECTS rather than the
+    #          working tree. One pass answers both.
+    account_needle = (account.lower().encode()
+                      if (not local_only and account and len(account) >= 3)
+                      else None)
+    scanned = _scan_objects(account_needle, True)
+
+    if scanned is None:
+        check("git objects could be scanned at all", False,
+              "git rev-list unavailable")
+    else:
+        name_r, name_u, home = scanned
+
+        if account_needle is None:
+            not_here("this machine's account name is in no git object",
+                     local_only or "the home account name is too short "
+                                   "to search for safely")
+        else:
+            check("this machine's account name is in no REACHABLE git object",
+                  not name_r,
+                  "%d object(s), e.g. %s" % (len(name_r), name_r[0][:12])
+                  if name_r else "")
+            if name_r:
+                print("       a push PUBLISHES these. Removing them needs a")
+                print("       history rewrite and a force-push, not an edit.")
+            check("no unreachable git object holds it either", not name_u,
+                  "%d leftover object(s)" % len(name_u) if name_u else "")
+            if name_u:
+                print("       not published, but still on this disk:")
+                print("       git reflog expire --expire=now --all"
+                      " && git gc --prune=now")
+
+        check("no git object contains a home-directory path", not home,
+              "%d object(s)" % len(home) if home else "")
+        for sha, where in home[:8]:
+            print("       %s  %s" % (sha[:12], where))
 
     print("")
     bad_n = RESULTS.count(False)

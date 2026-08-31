@@ -407,6 +407,14 @@ def main():
                          ["tools/test_privacy.py"]))
     results.append(check("privacy guard fires, 7 cases (4 plants)",
                          ["tools/test_privacy_guard.py"]))
+    # And the same question asked of git OBJECTS rather than the tree.
+    # The tree check passed for sixty-seven commits while nine blobs in
+    # history held an account name: `git grep` reports the TREE, a push
+    # sends the OBJECTS, and only one of those was ever checked. This
+    # guard plants objects -- reachable and unreachable, plus one that
+    # must NOT fire -- and requires each verdict.
+    results.append(check("privacy history guard fires, 6 cases",
+                         ["tools/test_privacy_history_guard.py"]))
     # The README's front page said 181 functions and 10,280 bytes when the
     # truth was 1,200 and 34,096 -- wrong by six times, in the first block a
     # visitor reads, and stale in five other places. MATCHED.md's table is

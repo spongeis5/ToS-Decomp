@@ -753,6 +753,7 @@ broken one pops a modal dialog that blocks until someone clicks OK.
 | `test_xdkcc_cache.py` | The compile memo must never serve a result from different source text |
 | `test_privacy.py` | Refuse to let identifying information reach a public repository |
 | `test_privacy_guard.py` | The privacy check must FAIL on each thing it claims to catch |
+| `test_privacy_history_guard.py` | Prove the HISTORY checks in tools/test_privacy.py fire, and fire for the |
 | `test_doc_guards.py` | The documentation guards must FAIL on what they claim to catch |
 | `test_verify_honesty.py` | verify.py must not report an UNMEASURED function as a broken one |
 | `test_match_api.py` | match.py's in-process API and its command line must agree, case by case |
@@ -926,7 +927,7 @@ was reached rather than presenting the bound as an answer.
 python tools/verify.py
 ```
 
-37 checks: the tool self-tests, the whole manifest rebuilt and hashed, the
+38 checks: the tool self-tests, the whole manifest rebuilt and hashed, the
 real link over every contiguous run, and the negative controls -- which each
 corrupt one fact and require the thing they guard to FAIL. A failing negative
 control is the serious kind: it means a check reports success without being

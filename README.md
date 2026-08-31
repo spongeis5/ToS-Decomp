@@ -45,7 +45,7 @@ result into `.text`, hashes the section, and runs the tool self-tests:
 python tools/verify.py
 ```
 
-37 checks. Several are **negative controls**: they corrupt one fact
+38 checks. Several are **negative controls**: they corrupt one fact
 — a struct offset, a switch case mapping, a manifest address, the order two
 functions are linked in — and require the result to *fail*. A control that
 stops failing is the serious result, because it means a check reports success
