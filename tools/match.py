@@ -275,6 +275,103 @@ def parse_flags(text):
     return parts
 
 
+def select(fns, sym_want):
+    """Which function in the object a row means. -> (list, None) | (None, why).
+
+    Lifted OUT of main so that anything else asking the same question asks it
+    of the same code. verify.py used to ask by running this file as a
+    subprocess, once per manifest row, which was correct but cost 1,986
+    process launches; it now calls in here instead, and the only way that is
+    safe is if there is exactly one implementation to call.
+
+    The mangled anchor comes first and is the whole point: MSVC emits
+    `?Name@@YA...`, so `?Name@@` pins the name, where a plain substring made
+    `ClearAndHandle` also select `ClearAndHandleOther` and the tie was then
+    broken by size -- which is to say, arbitrarily.
+    """
+    if sym_want:
+        exact = [f for f in fns if ("?" + sym_want + "@@") in f[0]]
+        fns = (exact or [f for f in fns if f[0] == sym_want]
+               or [f for f in fns if sym_want in f[0]])
+        if len(fns) > 1:
+            return None, ("--sym %r selects %d functions; it must select one"
+                          % (sym_want, len(fns)))
+    if not fns:
+        return None, "no PowerPC function found in the object"
+    if len(fns) > 1:
+        # REFUSE, exactly as build.py does. Picking the largest silently
+        # builds the wrong function the moment a translation unit grows a
+        # second one, and it once scored a `static` helper instead of the
+        # function being worked on -- 12 of 15 for the wrong body while the
+        # real one was at 11 of 14.
+        return None, ("%d functions in the object and no --sym to choose"
+                      " between them" % len(fns))
+    return fns, None
+
+
+def compare(img, sizes, target, code, mask):
+    """Everything the comparison establishes about one function. -> dict.
+
+    THE decision. main() prints from what this returns and verify.py reads
+    `verdict` off it; neither reaches its own conclusion, because five tools
+    have now disagreed with verify.py by reimplementing this comparison and
+    every one of them disagreed in the direction that gets believed.
+
+    `verdict` is three-valued for the reason classify_match is:
+
+      match         every non-relocated word agrees, and at least one was
+                    actually compared
+      differ        a non-relocated word disagrees, or the sizes cannot be
+                    reconciled
+      unverifiable  the sizes reconcile and nothing disagrees, but EVERY
+                    word is relocated -- so the comparison excused all of
+                    them and confirmed nothing. Reported as a failure by
+                    match.py's exit code, which is what it has always done.
+    """
+    recorded = sizes[target]
+    tsize = recorded
+    tbytes = img.read(target, tsize)
+
+    extended = None
+    grown = can_extend(img, sizes, code, mask, target, tsize)
+    if grown is not None:
+        extended = len(code)
+        tbytes, tsize = grown, len(code)
+
+    shrunk = None
+    if can_shrink(code, mask, tbytes, target, tsize):
+        shrunk = (tsize, len(code))
+        tbytes, tsize = tbytes[:len(code)], len(code)
+
+    n = min(len(code), tsize) // 4
+    same = diff = reloc_diff = 0
+    words = []
+    for i in range(n):
+        a = struct.unpack_from(">I", tbytes, i * 4)[0]
+        b = struct.unpack_from(">I", code, i * 4)[0]
+        relocated = not all(mask[i * 4:i * 4 + 4])
+        if a == b:
+            same += 1
+            continue
+        if relocated:
+            reloc_diff += 1
+        else:
+            diff += 1
+        words.append((target + i * 4, a, b, relocated))
+
+    sized = (len(code) == tsize)
+    if diff == 0 and sized and n and same == 0:
+        verdict = "unverifiable"
+    elif diff == 0 and sized:
+        verdict = "match"
+    else:
+        verdict = "differ"
+    return {"recorded": recorded, "tsize": tsize, "tbytes": tbytes,
+            "extended": extended, "shrunk": shrunk, "n": n, "same": same,
+            "diff": diff, "reloc_diff": reloc_diff, "words": words,
+            "extra": abs(len(code) - tsize) // 4, "verdict": verdict}
+
+
 def main(argv):
     if len(argv) < 3:
         print(__doc__)
@@ -303,50 +400,22 @@ def main(argv):
     if obj is None:
         return 2
 
-    fns = coff_functions(obj.read_bytes())
-    if sym_want:
-        # Anchor on the mangled form: MSVC emits `?Name@@YA...`, so "?Name@@"
-        # pins the whole name. A plain substring made `ClearAndHandle` also
-        # select `ClearAndHandleOther`, and the tie was then broken by size --
-        # which is to say, arbitrarily.
-        exact = [f for f in fns if ("?" + sym_want + "@@") in f[0]]
-        fns = exact or [f for f in fns if f[0] == sym_want] \
-            or [f for f in fns if sym_want in f[0]]
-        if len(fns) > 1:
-            print("--sym %r selects %d functions; it must select one:"
-                  % (sym_want, len(fns)))
-            for n, c, _m in fns:
-                print("    %-50s %d byte(s)" % (n, len(c)))
-            return 2
-    if not fns:
-        print("no PowerPC function found in the object")
-        return 2
-    if len(fns) > 1:
-        # REFUSE, exactly as build.py does. This used to print a warning and
-        # then take the largest, which is a guess dressed as a default.
-        #
-        # It scored the WRONG FUNCTION and reported a BETTER number for it.
-        # `m70_hash_until_brace.cpp` holds a `static` helper that MSVC both
-        # inlines and emits as its own COMDAT, so the object has two 60-byte
-        # functions; `max` by length breaks that tie arbitrarily, and the run
-        # came back 12 of 15 for the helper while the function actually being
-        # worked on was at 11 of 14. A near-miss score is the thing this
-        # project uses to decide what to work on next, and that one was about
-        # a different function.
-        #
-        # build.py has refused this since the beginning, and its comment says
-        # why: "picking the largest silently builds the wrong function the
-        # moment a translation unit grows a second one." Two tools deciding
-        # the same question differently is the drift this repository has paid
-        # for more than any other.
-        print("%d functions in the object and no --sym to choose between"
-              % len(fns))
-        print("them. Refusing to guess -- naming one is the caller's job:")
-        for n, c, _m in fns:
+    allfns = coff_functions(obj.read_bytes())
+    fns, why = select(allfns, sym_want)
+    if fns is None:
+        print("%s:" % why)
+        shown = allfns
+        if sym_want:
+            shown = [f for f in allfns
+                     if ("?" + sym_want + "@@") in f[0] or f[0] == sym_want
+                     or sym_want in f[0]] or allfns
+        for n, c, _m in shown:
             print("    %-50s %d byte(s)" % (n, len(c)))
-        print("")
-        print("    python tools/match.py %s %08X --sym <name>"
-              % (src, target))
+        if not sym_want and len(allfns) > 1:
+            print("")
+            print("    Refusing to guess -- naming one is the caller's job:")
+            print("    python tools/match.py %s %08X --sym <name>"
+                  % (src, target))
         return 2
     sym, code, mask = fns[0]
     code, mask = trim_padding(code, mask)
@@ -360,16 +429,9 @@ def main(argv):
     # So when our code is longer, extend the window into the image and say so.
     # Bounded by the next known function start, and only reported as a
     # reconciliation once the extra words actually agree -- never silently.
-    extended = None
-    grown = can_extend(img, sizes, code, mask, target, tsize)
-    if grown is not None:
-        extended = len(code)
-        tbytes, tsize = grown, len(code)
-
-    shrunk = None
-    if can_shrink(code, mask, tbytes, target, tsize):
-        shrunk = (tsize, len(code))
-        tbytes, tsize = tbytes[:len(code)], len(code)
+    res = compare(img, sizes, target, code, mask)
+    tbytes, tsize = res["tbytes"], res["tsize"]
+    extended, shrunk = res["extended"], res["shrunk"]
 
     print()
     print("target  %08X  %d byte(s)" % (target, recorded))
@@ -409,37 +471,24 @@ def main(argv):
         print("  frameless functions. Comparing %d bytes." % now)
     print()
 
-    n = min(len(code), tsize) // 4
-    same = diff = reloc_diff = 0
-    for i in range(n):
-        va = target + i * 4
-        a = struct.unpack_from(">I", tbytes, i * 4)[0]
-        b = struct.unpack_from(">I", code, i * 4)[0]
-        relocated = not all(mask[i * 4 : i * 4 + 4])
-        if a == b:
-            same += 1
-            continue
-        if relocated:
-            reloc_diff += 1
-            flag = "r"
-        else:
-            diff += 1
-            flag = "X"
+    n, same = res["n"], res["same"]
+    diff, reloc_diff = res["diff"], res["reloc_diff"]
+    for va, a, b, relocated in res["words"]:
+        flag = "r" if relocated else "X"
         print(" %s %08X  want %08x  %-34s" % (flag, va, a, text(a, va)))
         print("            got  %08x  %-34s" % (b, text(b, va)))
 
-    extra = abs(len(code) - tsize) // 4
     print()
     print("%d word(s) compared: %d identical, %d differ, %d differ in a "
           "relocated word (expected)" % (n, same, diff, reloc_diff))
-    if extra:
-        print("%d word(s) of length difference not compared" % extra)
+    if res["extra"]:
+        print("%d word(s) of length difference not compared" % res["extra"])
 
     # Never report a match having compared nothing. A function every one of
     # whose words is relocated is not confirmed by this tool at all -- the
     # comparison excuses relocated words, so "0 identical, 0 differ" is an
     # empty statement dressed as a success.
-    if diff == 0 and len(code) == tsize and n and same == 0:
+    if res["verdict"] == "unverifiable":
         print("")
         print("NOT A MATCH -- all %d word(s) are relocated, so nothing was" % n)
         print("actually verified. A function whose every word is supplied by")
@@ -447,7 +496,7 @@ def main(argv):
         print("RESOLVES relocations instead of excusing them, is what can")
         print("speak about it.")
         return 1
-    if diff == 0 and len(code) == tsize:
+    if res["verdict"] == "match":
         print("\nMATCH: every non-relocated word is identical.")
         return 0
     print("\nNO MATCH.")

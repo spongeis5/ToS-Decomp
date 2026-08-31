@@ -446,6 +446,13 @@ def main():
     # the three-way classification and the whole-run lock that now prevents it.
     results.append(check("unmeasured is not a mismatch, 13 cases",
                          ["tools/test_verify_honesty.py"]))
+    # The MATCHES section below compiles each source ONCE and calls
+    # match.select/match.compare in process, rather than launching
+    # tools/match.py per row. That is only safe while the two paths are one
+    # implementation, and this is what says so -- including the two cases
+    # that must REFUSE, where a home-grown copy would report `differ`.
+    results.append(check("match.py: API and command line agree, 5 cases",
+                         ["tools/test_match_api.py"]))
     results.append(check("backslash-heredoc hook, 7 cases",
                          [".claude/hooks/test_no_backslash_heredoc.py"]))
     results.append(check("reconstructing build (.text reproduces)",
@@ -637,29 +644,87 @@ def main():
     print("MATCHES -- %d function(s)\n" % len(MATCHES))
     ok_n = 0
     mismatched, unmeasured = [], []
+
+    # ONE COMPILE PER SOURCE FILE, not one per manifest row.
+    #
+    # This used to run tools/match.py as a subprocess for every row. That was
+    # right about the question and wrong about the arithmetic: 1,986 rows come
+    # from 579 files, and the 1,475 generated accessors come from 37 of them
+    # at up to 40 functions each -- so the loop paid for ~1,400 process
+    # launches re-compiling objects it had already built. The run took ten
+    # minutes and most of it was Python starting up.
+    #
+    # What it is NOT is a second opinion about matching. The object is
+    # compiled by match.compile_one, the function is chosen by match.select,
+    # and the verdict is match.compare -- the same three calls tools/match.py
+    # itself makes, in the same order. verify.py reaching its own conclusion
+    # here is exactly the drift this project has paid for five times, so it
+    # does not: tools/test_match_api.py requires the in-process path and the
+    # command line to agree, case by case, including the ones that refuse.
+    #
+    # THE FAILURE MODE THIS MUST PRESERVE, because it cost a whole diagnosis:
+    # a compile REFUSED (another process holding the negative-control lock)
+    # is not a mismatch. Two overlapping runs printed refusals as FAIL, one
+    # blaming a single function and the next thirty-two accessors, and
+    # nothing was wrong with any of them. A compile that did not happen is
+    # `unmeasured`, and unmeasured is a third outcome, not a bad `differ`.
+    groups = {}
     for src, addr, sym, flags in MATCHES:
-        args = ["tools/match.py", src, addr] + (["--sym", sym] if sym else [])
-        if flags:
-            args += ["--flags", "/c /nologo " + " ".join(flags.split(","))]
-        rc, out = run(args)
-        # THIS COST A WHOLE DIAGNOSIS. Two verify runs overlapped with other
-        # processes compiling; xdkcc refused those compiles because the
-        # negative-control lock was held, and this loop printed the refusals
-        # as FAIL. One run blamed a single function, the next blamed
-        # thirty-two accessors, and nothing was wrong with any of them.
-        # xdkcc's own refusal text predicts exactly that -- "the result would
-        # look like an ordinary mismatch rather than a race" -- and this is
-        # the code that was throwing that text away.
-        verdict, why = classify_match(rc, out)
-        if verdict == "match":
-            ok_n += 1
-        elif verdict == "differ":
-            mismatched.append((src, addr, sym, flags))
-            print("  FAIL  %-28s %s %s %s"
-                  % (Path(src).name, addr, sym or "", flags or ""))
+        groups.setdefault((src, flags), []).append((addr, sym))
+
+    sys.path.insert(0, str(ROOT / "tools"))
+    import match as _match
+    from peimage import Image as _Image, load_inventory as _load_inv
+    from libmatch import coff_functions as _coff_functions
+    from libmatch import trim_padding as _trim_padding
+
+    _img = _Image()
+    _sizes = dict(_load_inv())
+    _work = ROOT / "build/match"
+    # `flags` is None for a row that takes the defaults, and None does not
+    # order against a string -- sort on the text form rather than the key.
+    for (src, flags), rows in sorted(groups.items(),
+                                     key=lambda kv: (kv[0][0], kv[0][1] or "")):
+        use = (_match.parse_flags(flags) if flags
+               else list(_match.DEFAULT_FLAGS))
+        try:
+            obj = _match.compile_one(Path(ROOT / src), use, _work)
+        except Exception as e:                              # noqa: BLE001
+            obj, why_c = None, "compile raised: %s" % e
         else:
-            unmeasured.append((src, addr, sym, why))
-            print("  ????  %-28s %s %s" % (Path(src).name, addr, why))
+            why_c = ("compile refused or failed -- another process may hold"
+                     " the negative-control lock")
+        fns = None
+        if obj is not None:
+            try:
+                fns = _coff_functions(obj.read_bytes())
+            except Exception as e:                          # noqa: BLE001
+                fns, why_c = None, "object unreadable: %s" % e
+        for addr, sym in rows:
+            if fns is None:
+                unmeasured.append((src, addr, sym, why_c))
+                print("  ????  %-28s %s %s" % (Path(src).name, addr, why_c))
+                continue
+            target = int(addr, 16)
+            if target not in _sizes:
+                why = "%s is not a known function start" % addr
+                unmeasured.append((src, addr, sym, why))
+                print("  ????  %-28s %s %s" % (Path(src).name, addr, why))
+                continue
+            picked, why = _match.select(fns, sym)
+            if picked is None:
+                unmeasured.append((src, addr, sym, why))
+                print("  ????  %-28s %s %s" % (Path(src).name, addr, why))
+                continue
+            _n, code, mask = picked[0]
+            code, mask = _trim_padding(code, mask)
+            res = _match.compare(_img, _sizes, target, code, mask)
+            if res["verdict"] == "match":
+                ok_n += 1
+            else:
+                mismatched.append((src, addr, sym, flags))
+                print("  FAIL  %-28s %s %s %s"
+                      % (Path(src).name, addr, sym or "", flags or ""))
     print("  %d of %d match, %d differ, %d could not be measured"
           % (ok_n, len(MATCHES), len(mismatched), len(unmeasured)))
     if unmeasured:

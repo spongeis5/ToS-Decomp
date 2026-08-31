@@ -196,6 +196,51 @@ the scan. What is left in those bands is FMOD's own code and FMOD's edits to
 vorbis, and it has to be READ. `thirdparty/ogg_vorbis_fmod/` is where the
 reconstructed ones go, and it already holds four.
 
+### The Wii build has the symbols, and it is the SAME source tree
+
+Measured 2026-08-30, from a dump at `game_wii/` (gitignored, like `game/`).
+`DATA/files/SB09WiiMASTERWAD.elf` is 16 MB and is **not stripped**:
+
+```
+.debug_info    2,303,564      .debug_line      989,190
+.debug_loc       772,747      .debug_pubnames  616,498
+.symtab   45,707 symbols -- 23,359 FUNC, 17,471 OBJECT, 1,012 FILE
+```
+
+The question that decides what it is worth is whether it is the same source,
+and it is. `STT_FILE` holds bare basenames — that says nothing either way, it
+is just what CodeWarrior emits — but `.debug_line`'s directory table holds
+**1,390 paths rooted at `C:/branches/SB09/main`**, the branch the 360's own
+assert stubs name. The 360 forms
+`c:\branches\SB09\main\NG\Source\Engine\Graphics\Builder.cpp`; the Wii build
+compiles `NG/Source/Engine/Graphics/Builders/`, `NG/Source/Engine/System/`,
+`NG/Source/Tools/Havok/source/...` and `NG/Source/Tools/FMOD_Source/...`.
+One codebase, one branch, two backends — `NG` is not a 360-only directory.
+There is also a `GM/Engine/Core/x/` tree, the older Heavy Iron `x` engine,
+which is where `xVec3` and `xAnimSingle` come from.
+
+**188 of the 226 distinct class names this project recovered from the 360's
+RTTI appear in the Wii build (83.2%).** The 38 that do not are 360-only
+Havok — thread pools, packfile writers, `hkStdioStream*`.
+
+What that is worth, stated as what it does and does not do:
+
+* it does **NOT** transfer a single byte. CodeWarrior against MSVC
+  15.00.8153; different register allocation, inlining and scheduling.
+* it **does** transfer the two things this project spends its time
+  recovering: **field layouts** — 1,475 of the matched functions are
+  generated accessors whose whole value is that each one pins one offset —
+  and the **file-to-function map**, which "What this project does not yet
+  do" names as its weakest point.
+* it changes what a big function costs. Today matching one means guessing
+  the source AND the spelling, two unknowns multiplied: 0 of 12 at 176 bytes
+  and up in one session. With a name, a signature and a struct, only the
+  spelling is left.
+
+Read it with `tools/wii_dwarf.py`. NOTHING FROM THE WII BUILD MAY BE
+TREATED AS A MATCH — it is evidence about the source, and `match.py` still
+owns whether a source reproduces the 360's bytes.
+
 **Bink is not in scope for the percentage at all.** It lives at
 `82913600..82923098`, which starts four bytes after `.text` ends — a
 different section, outside the denominator. `src/outofscope/two_null_guards.cpp`
@@ -657,6 +702,7 @@ broken one pops a modal dialog that blocks until someone clicks OK.
 | `xref.py` | Find every reference to a guest address |
 | `tunits.py` | Named translation units, from the assert-registration stubs |
 | `segment.py` | Group functions into probable translation units |
+| `wii_dwarf.py` | Read the Wii build's symbols and DWARF, and say how much is the same source |
 | `attribute.py` | Consolidate every attribution signal into one scope picture |
 | `candidates.py` | Find good first targets for byte-matching |
 | `libmatch.py` | Match XDK library code against the retail image |
@@ -709,6 +755,7 @@ broken one pops a modal dialog that blocks until someone clicks OK.
 | `test_privacy_guard.py` | The privacy check must FAIL on each thing it claims to catch |
 | `test_doc_guards.py` | The documentation guards must FAIL on what they claim to catch |
 | `test_verify_honesty.py` | verify.py must not report an UNMEASURED function as a broken one |
+| `test_match_api.py` | match.py's in-process API and its command line must agree, case by case |
 | `vmx128_check.py` | Mark the VMX128 decoder against Biallas's independent bit tables |
 | `vmx128_oracle.py` | Mark the VMX128 decoder against MICROSOFT'S OWN ENCODER |
 | `vmx128_table.py` | Exhaustive VMX128 table check: binutils vs the documentation vs MSVC |
@@ -879,7 +926,7 @@ was reached rather than presenting the bound as an answer.
 python tools/verify.py
 ```
 
-36 checks: the tool self-tests, the whole manifest rebuilt and hashed, the
+37 checks: the tool self-tests, the whole manifest rebuilt and hashed, the
 real link over every contiguous run, and the negative controls -- which each
 corrupt one fact and require the thing they guard to FAIL. A failing negative
 control is the serious kind: it means a check reports success without being
